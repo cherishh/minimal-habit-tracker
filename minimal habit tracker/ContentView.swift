@@ -11,6 +11,8 @@ struct ContentView: View {
     @EnvironmentObject var habitStore: HabitStore
     @State private var isAddingHabit = false
     @Environment(\.colorScheme) var colorScheme
+    // hack entry
+    @State private var selectedHabitId: UUID? = nil
     
     var body: some View {
         NavigationView {
@@ -32,6 +34,23 @@ struct ContentView: View {
             .sheet(isPresented: $isAddingHabit) {
                 NewHabitView(isPresented: $isAddingHabit)
             }
+            // hack entry start
+            .onAppear {
+                // 如果有习惯，自动选择第一个
+                if !habitStore.habits.isEmpty && selectedHabitId == nil {
+                    selectedHabitId = habitStore.habits.first?.id
+                }
+            }
+            
+            // 默认显示选中的习惯详情
+            if let habitId = selectedHabitId, let habit = habitStore.habits.first(where: { $0.id == habitId }) {
+                HabitDetailView(habit: habit)
+            } else {
+                Text("请选择或创建一个习惯")
+                    .font(.title2)
+                    .foregroundColor(.secondary)
+            }
+            // hack entry end
         }
     }
     
@@ -66,9 +85,16 @@ struct ContentView: View {
     private var habitListView: some View {
         List {
             ForEach(habitStore.habits) { habit in
-                NavigationLink(destination: HabitDetailView(habit: habit)) {
+                // hack entry start
+                // NavigationLink(destination: HabitDetailView(habit: habit)) {
+                NavigationLink(
+                    destination: HabitDetailView(habit: habit),
+                    tag: habit.id,
+                    selection: $selectedHabitId
+                ) {
                     HabitRowView(habit: habit)
                 }
+                // hack entry end
             }
             .onDelete(perform: deleteHabit)
         }

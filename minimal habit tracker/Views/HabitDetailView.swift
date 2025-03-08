@@ -119,7 +119,7 @@ struct GitHubStyleHeatmapView: View {
     @EnvironmentObject var habitStore: HabitStore
     
     // 星期标签 - 显示周一、三、五、日
-    private let weekdayLabels = ["一", "", "三", "", "五", "", "日"]
+    private let weekdayLabels = ["一", "", "三", "", "五", "", ""]
     // 月份标签
     private let monthLabels = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
     
@@ -138,7 +138,7 @@ struct GitHubStyleHeatmapView: View {
                         Text("").frame(height: cellWidth)  // 空行
                         Text("五").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
                         Text("").frame(height: cellWidth)  // 空行
-                        Text("日").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
+                        Text("").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
                     }
                 }
                 .frame(width: 15)  // 最小宽度
