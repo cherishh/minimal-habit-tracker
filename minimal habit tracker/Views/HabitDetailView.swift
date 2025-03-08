@@ -26,7 +26,7 @@ struct HabitDetailView: View {
                 
                 // 底部说明和操作栏
                 HStack {
-                    Text("点击格子记录完成习惯，可多次点击")
+                    Text(verbatim: "点击格子记录完成习惯，可多次点击")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -34,7 +34,7 @@ struct HabitDetailView: View {
                     
                     // 图例
                     HStack(spacing: 4) {
-                        Text("少")
+                        Text(verbatim: "少")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         
@@ -45,7 +45,7 @@ struct HabitDetailView: View {
                                 .frame(width: 12, height: 12)
                         }
                         
-                        Text("多")
+                        Text(verbatim: "多")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
@@ -78,7 +78,7 @@ struct YearPicker: View {
             
             Spacer()
             
-            Text("\(selectedYear)年")
+            Text("\(selectedYear)" + "年".localized)
                 .font(.headline)
             
             Spacer()
@@ -88,7 +88,7 @@ struct YearPicker: View {
             }
             
             Button(action: goToCurrentYear) {
-                Text("今年")
+                Text(verbatim: "今年")
                     .font(.subheadline)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
@@ -118,10 +118,10 @@ struct GitHubStyleHeatmapView: View {
     let colorScheme: ColorScheme
     @EnvironmentObject var habitStore: HabitStore
     
-    // 星期标签 - 显示周一、三、五、日
-    private let weekdayLabels = ["一", "", "三", "", "五", "", ""]
-    // 月份标签
-    private let monthLabels = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
+    // 星期标签 - 使用本地化
+    private let weekdayLabels = ["一", "", "三", "", "五", "", ""].map { $0.localized }
+    // 月份标签 - 使用本地化
+    private let monthLabels = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"].map { $0.localized }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -132,11 +132,11 @@ struct GitHubStyleHeatmapView: View {
                     Spacer().frame(height: 24)  // 为月份标签留出空间
                     
                     VStack(spacing: cellSpacing) {
-                        Text("一").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
+                        Text(verbatim: "一").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
                         Text("").frame(height: cellWidth)  // 空行
-                        Text("三").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
+                        Text(verbatim: "三").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
                         Text("").frame(height: cellWidth)  // 空行
-                        Text("五").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
+                        Text(verbatim: "五").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
                         Text("").frame(height: cellWidth)  // 空行
                         Text("").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
                     }
@@ -316,9 +316,9 @@ struct DayCellGitHub: View {
 struct HabitSettingsView: View {
     let habit: Habit
     @Binding var isPresented: Bool
+    @EnvironmentObject var habitStore: HabitStore
     @State private var editedName: String
     @State private var selectedTheme: Habit.ColorThemeName
-    @EnvironmentObject var habitStore: HabitStore
     @Environment(\.colorScheme) var colorScheme
     
     init(habit: Habit, isPresented: Binding<Bool>) {
@@ -331,11 +331,11 @@ struct HabitSettingsView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("习惯名称")) {
-                    TextField("习惯名称", text: $editedName)
+                Section(header: Text(verbatim: "习惯名称")) {
+                    TextField("例如: 每日锻炼".localized, text: $editedName)
                 }
                 
-                Section(header: Text("颜色主题")) {
+                Section(header: Text(verbatim: "颜色主题")) {
                     ForEach(Habit.ColorThemeName.allCases, id: \.self) { themeName in
                         let theme = ColorTheme.getTheme(for: themeName)
                         
@@ -367,15 +367,15 @@ struct HabitSettingsView: View {
                 
                 Section {
                     Button(action: deleteHabit) {
-                        Text("删除习惯")
+                        Text(verbatim: "删除习惯")
                             .foregroundColor(.red)
                     }
                 }
             }
-            .navigationTitle("习惯设置")
+            .navigationTitle("习惯设置".localized)
             .navigationBarItems(
-                leading: Button("取消") { isPresented = false },
-                trailing: Button("保存") { saveChanges() }
+                leading: Button("取消".localized) { isPresented = false },
+                trailing: Button("保存".localized) { saveChanges() }
                     .disabled(editedName.isEmpty)
             )
         }

@@ -9,10 +9,12 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var habitStore: HabitStore
+    @EnvironmentObject var languageManager: LanguageManager
     @State private var isAddingHabit = false
     @Environment(\.colorScheme) var colorScheme
     // hack entry
     @State private var selectedHabitId: UUID? = nil
+    @State private var showingLanguageSettings = false
     
     var body: some View {
         NavigationView {
@@ -23,16 +25,29 @@ struct ContentView: View {
                     habitListView
                 }
             }
-            .navigationTitle("习惯追踪")
+            .navigationTitle("习惯追踪".localized)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { isAddingHabit = true }) {
-                        Label("添加习惯", systemImage: "plus")
+                        Label("添加习惯".localized, systemImage: "plus")
                     }
                 }
+                
+                // 仅在开发模式下显示语言切换按钮
+                #if DEBUG
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { showingLanguageSettings = true }) {
+                        Image(systemName: "globe")
+                    }
+                }
+                #endif
             }
             .sheet(isPresented: $isAddingHabit) {
                 NewHabitView(isPresented: $isAddingHabit)
+            }
+            // 语言设置面板
+            .sheet(isPresented: $showingLanguageSettings) {
+                LanguageSettingsView(isPresented: $showingLanguageSettings)
             }
             // hack entry start
             .onAppear {
@@ -46,7 +61,7 @@ struct ContentView: View {
             if let habitId = selectedHabitId, let habit = habitStore.habits.first(where: { $0.id == habitId }) {
                 HabitDetailView(habit: habit)
             } else {
-                Text("请选择或创建一个习惯")
+                Text(verbatim: "请选择或创建一个习惯")
                     .font(.title2)
                     .foregroundColor(.secondary)
             }
@@ -60,17 +75,17 @@ struct ContentView: View {
                 .font(.system(size: 80))
                 .foregroundColor(.secondary)
             
-            Text("开始追踪您的习惯")
+            Text(verbatim: "开始追踪您的习惯")
                 .font(.title2)
                 .fontWeight(.medium)
             
-            Text("添加您想要培养的习惯，每天记录进度，形成可视化热力图。")
+            Text(verbatim: "添加您想要培养的习惯，每天记录进度，形成可视化热力图。")
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
             
             Button(action: { isAddingHabit = true }) {
-                Text("添加第一个习惯")
+                Text(verbatim: "添加第一个习惯")
                     .fontWeight(.medium)
                     .padding()
                     .background(Color.accentColor)
@@ -131,6 +146,63 @@ struct HabitRowView: View {
                         .frame(width: 12, height: 12)
                 }
             }
+        }
+    }
+}
+
+// 语言设置视图
+struct LanguageSettingsView: View {
+    @Binding var isPresented: Bool
+    @EnvironmentObject var languageManager: LanguageManager
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        NavigationView {
+            List {
+                Section(header: Text("选择语言 / Language")) {
+                    Button(action: { 
+                        languageManager.currentLanguage = "zh-Hans" 
+                        isPresented = false
+                        // 提示用户重启应用
+                        NotificationCenter.default.post(name: UIApplication.didBecomeActiveNotification, object: nil)
+                    }) {
+                        HStack {
+                            Text("中文")
+                            Spacer()
+                            if languageManager.isChinese {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    .foregroundColor(.primary)
+                    
+                    Button(action: { 
+                        languageManager.currentLanguage = "en" 
+                        isPresented = false
+                        // 提示用户重启应用
+                        NotificationCenter.default.post(name: UIApplication.didBecomeActiveNotification, object: nil)
+                    }) {
+                        HStack {
+                            Text("English")
+                            Spacer()
+                            if !languageManager.isChinese {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    .foregroundColor(.primary)
+                }
+                
+                Section(footer: Text("语言更改可能需要重启应用才能完全生效").font(.caption).foregroundColor(.secondary)) {
+                    Button("关闭", role: .cancel) {
+                        isPresented = false
+                    }
+                }
+            }
+            .navigationTitle("语言设置 / Language")
+            .preferredColorScheme(colorScheme) // 保持与系统一致的主题
         }
     }
 }

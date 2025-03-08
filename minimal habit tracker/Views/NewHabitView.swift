@@ -10,11 +10,11 @@ struct NewHabitView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("习惯名称")) {
-                    TextField("例如: 每日锻炼", text: $habitName)
+                Section(header: Text(verbatim: "习惯名称")) {
+                    TextField("例如: 每日锻炼".localized, text: $habitName)
                 }
                 
-                Section(header: Text("颜色主题")) {
+                Section(header: Text(verbatim: "颜色主题")) {
                     ForEach(Habit.ColorThemeName.allCases, id: \.self) { themeName in
                         let theme = ColorTheme.getTheme(for: themeName)
                         
@@ -44,10 +44,10 @@ struct NewHabitView: View {
                     }
                 }
             }
-            .navigationTitle("新建习惯")
+            .navigationTitle("新建习惯".localized)
             .navigationBarItems(
-                leading: Button("取消") { isPresented = false },
-                trailing: Button("保存") {
+                leading: Button("取消".localized) { isPresented = false },
+                trailing: Button("保存".localized) {
                     saveHabit()
                 }
                 .disabled(habitName.isEmpty)

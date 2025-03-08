@@ -1,0 +1,53 @@
+/* Navigation Title */
+"习惯追踪" = "Habit Tracker";
+"请选择或创建一个习惯" = "Please select or create a habit";
+
+/* Empty State */
+"开始追踪您的习惯" = "Start Tracking Your Habits";
+"添加您想要培养的习惯，每天记录进度，形成可视化热力图。" = "Add habits you want to develop, record progress daily, and form a visual heatmap.";
+"添加第一个习惯" = "Add Your First Habit";
+"添加习惯" = "Add Habit";
+
+/* New Habit View */
+"新建习惯" = "New Habit";
+"习惯名称" = "Habit Name";
+"例如: 每日锻炼" = "Example: Daily Exercise";
+"颜色主题" = "Color Theme";
+"取消" = "Cancel";
+"保存" = "Save";
+
+/* Habit Detail View */
+"点击格子记录完成习惯，可多次点击" = "Click a cell to record completion, can click multiple times";
+"少" = "Less";
+"多" = "More";
+"今年" = "This Year";
+"年" = "Year";
+
+/* Month names */
+"1月" = "Jan";
+"2月" = "Feb";
+"3月" = "Mar";
+"4月" = "Apr";
+"5月" = "May";
+"6月" = "Jun";
+"7月" = "Jul";
+"8月" = "Aug";
+"9月" = "Sep";
+"10月" = "Oct";
+"11月" = "Nov";
+"12月" = "Dec";
+
+/* Weekday labels */
+"一" = "M";
+"三" = "W";
+"五" = "F";
+
+/* Settings View */
+"习惯设置" = "Habit Settings";
+"删除习惯" = "Delete Habit";
+
+/* Color Themes */
+"GitHub" = "GitHub";
+"Blue Ocean" = "Blue Ocean";
+"Sunset" = "Sunset";
+"Purple Rain" = "Purple Rain"; 

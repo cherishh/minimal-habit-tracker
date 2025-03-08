@@ -2,9 +2,19 @@ import SwiftUI
 
 struct ColorTheme: Identifiable {
     var id: Habit.ColorThemeName
-    var name: String
+    private var _name: String
+    var name: String {
+        return _name.localized
+    }
     var lightColors: [Color]
     var darkColors: [Color]
+    
+    init(id: Habit.ColorThemeName, name: String, lightColors: [Color], darkColors: [Color]) {
+        self.id = id
+        self._name = name
+        self.lightColors = lightColors
+        self.darkColors = darkColors
+    }
     
     // 获取特定强度级别的颜色
     func color(for level: Int, isDarkMode: Bool) -> Color {
