@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct minimal_habit_trackerApp: App {
+    @StateObject private var habitStore = HabitStore()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(habitStore)
+                .preferredColorScheme(.none) // 允许系统自动切换明暗模式
         }
     }
 }

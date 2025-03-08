@@ -8,17 +8,108 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var habitStore: HabitStore
+    @State private var isAddingHabit = false
+    @Environment(\.colorScheme) var colorScheme
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationView {
+            VStack() {
+                if habitStore.habits.isEmpty {
+                    emptyStateView
+                } else {
+                    habitListView
+                }
+            }
+            .navigationTitle("习惯追踪")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { isAddingHabit = true }) {
+                        Label("添加习惯", systemImage: "plus")
+                    }
+                }
+            }
+            .sheet(isPresented: $isAddingHabit) {
+                NewHabitView(isPresented: $isAddingHabit)
+            }
+        }
+    }
+    
+    private var emptyStateView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "calendar.badge.clock")
+                .font(.system(size: 80))
+                .foregroundColor(.secondary)
+            
+            Text("开始追踪您的习惯")
+                .font(.title2)
+                .fontWeight(.medium)
+            
+            Text("添加您想要培养的习惯，每天记录进度，形成可视化热力图。")
+                .multilineTextAlignment(.center)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+            
+            Button(action: { isAddingHabit = true }) {
+                Text("添加第一个习惯")
+                    .fontWeight(.medium)
+                    .padding()
+                    .background(Color.accentColor)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .padding(.top)
         }
         .padding()
+    }
+    
+    private var habitListView: some View {
+        List {
+            ForEach(habitStore.habits) { habit in
+                NavigationLink(destination: HabitDetailView(habit: habit)) {
+                    HabitRowView(habit: habit)
+                }
+            }
+            .onDelete(perform: deleteHabit)
+        }
+    }
+    
+    private func deleteHabit(at offsets: IndexSet) {
+        for index in offsets {
+            habitStore.removeHabit(habitStore.habits[index])
+        }
+    }
+}
+
+struct HabitRowView: View {
+    let habit: Habit
+    @EnvironmentObject var habitStore: HabitStore
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        HStack {
+            Text(habit.name)
+                .font(.headline)
+            
+            Spacer()
+            
+            // 显示最近的5天小型热力图
+            HStack(spacing: 3) {
+                ForEach(0..<5, id: \.self) { dayOffset in
+                    let date = Calendar.current.date(byAdding: .day, value: -dayOffset, to: Date())!
+                    let count = habitStore.getLogCountForDate(habitId: habit.id, date: date)
+                    let theme = ColorTheme.getTheme(for: habit.colorTheme)
+                    
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(theme.color(for: min(count, 4), isDarkMode: colorScheme == .dark))
+                        .frame(width: 12, height: 12)
+                }
+            }
+        }
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(HabitStore())
 }
