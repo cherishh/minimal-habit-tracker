@@ -235,9 +235,9 @@ struct DayCell: View {
         let completionPercentage = Double(min(count, 4)) / 4.0 // 完成进度百分比
         
         ZStack {
-            // 今日背景 - 使用主题最浅色
+            // 今日背景 - 使用主题第二浅的颜色(level 1)但添加透明度
             Circle()
-                .fill(isToday ? theme.color(for: 0, isDarkMode: colorScheme == .dark) : Color.clear)
+                .fill(isToday ? theme.color(for: 1, isDarkMode: colorScheme == .dark).opacity(0.5) : Color.clear)
                 .frame(height: 40)
             
             // 只有已打卡日期才显示圆环
