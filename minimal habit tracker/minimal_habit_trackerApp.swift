@@ -10,12 +10,13 @@ import SwiftUI
 @main
 struct minimal_habit_trackerApp: App {
     @StateObject private var habitStore = HabitStore()
+    @AppStorage("isDarkMode") private var isDarkMode = false
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(habitStore)
-                .preferredColorScheme(.none) // 允许系统自动切换明暗模式
+                .preferredColorScheme(isDarkMode ? .dark : .light) // 使用用户设置的主题模式
         }
     }
 }

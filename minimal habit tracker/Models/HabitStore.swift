@@ -40,11 +40,29 @@ class HabitStore: ObservableObject {
         let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
         let normalizedDate = calendar.date(from: dateComponents)!
         
+        // 查找对应的习惯
+        guard let habit = habits.first(where: { $0.id == habitId }) else { return }
+        
         if let existingLogIndex = habitLogs.firstIndex(where: { log in
             log.habitId == habitId && calendar.isDate(log.date, inSameDayAs: normalizedDate)
         }) {
-            // 更新现有记录
-            habitLogs[existingLogIndex].count += 1
+            // 根据习惯类型更新现有记录
+            let currentCount = habitLogs[existingLogIndex].count
+            
+            switch habit.habitType {
+            case .checkbox:
+                // 对于checkbox类型，第二次点击会取消记录
+                if currentCount > 0 {
+                    habitLogs.remove(at: existingLogIndex)
+                }
+            case .count:
+                // 对于count类型，第5次点击会清零记录
+                if currentCount >= 4 {
+                    habitLogs.remove(at: existingLogIndex)
+                } else {
+                    habitLogs[existingLogIndex].count += 1
+                }
+            }
         } else {
             // 创建新记录
             let newLog = HabitLog(habitId: habitId, date: normalizedDate, count: 1)

@@ -6,15 +6,16 @@ struct HabitDetailView: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var showingSettings = false
     
-    // 获取当前年
+    // 获取当前年和月
     @State private var selectedYear: Int = Calendar.current.component(.year, from: Date())
+    @State private var selectedMonth: Int = Calendar.current.component(.month, from: Date())
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 0) {
+            VStack(spacing: 25) {
                 // 年份选择器
                 YearPicker(selectedYear: $selectedYear)
-                    .padding()
+                    .padding(.horizontal)
                 
                 // GitHub风格热力图
                 GitHubStyleHeatmapView(
@@ -22,47 +23,223 @@ struct HabitDetailView: View {
                     selectedYear: selectedYear,
                     colorScheme: colorScheme
                 )
-                .padding()
+                .padding(.horizontal)
                 
-                // 底部说明和操作栏
-                HStack {
-                    Text("点击格子记录完成习惯，可多次点击")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    // 图例
-                    HStack(spacing: 4) {
-                        Text("少")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                        
-                        ForEach(0..<5) { level in
-                            let theme = ColorTheme.getTheme(for: habit.colorTheme)
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(theme.color(for: level, isDarkMode: colorScheme == .dark))
-                                .frame(width: 12, height: 12)
-                        }
-                        
-                        Text("多")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    Button(action: { showingSettings = true }) {
-                        Image(systemName: "gear")
-                            .foregroundColor(.primary)
-                    }
-                }
-                .padding()
+                // 热力图说明和操作栏
+                heatmapLegendView
+                
+                Divider()
+                    .padding(.horizontal)
+                
+                // 月历视图
+                MonthCalendarView(
+                    habit: habit, 
+                    selectedYear: selectedYear,
+                    selectedMonth: $selectedMonth
+                )
+                .padding(.horizontal)
             }
+            .padding(.vertical)
         }
         .navigationTitle(habit.name)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { showingSettings = true }) {
+                    Image(systemName: "gear")
+                }
+            }
+        }
         .sheet(isPresented: $showingSettings) {
             HabitSettingsView(habit: habit, isPresented: $showingSettings)
+        }
+    }
+    
+    private var heatmapLegendView: some View {
+        HStack {
+            Text("点击格子记录完成习惯\(habit.habitType == .count ? "，可多次点击" : "")")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Spacer()
+            
+            // 图例
+            HStack(spacing: 4) {
+                Text("少")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                
+                ForEach(0..<5) { level in
+                    let theme = ColorTheme.getTheme(for: habit.colorTheme)
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(theme.color(for: level, isDarkMode: colorScheme == .dark))
+                        .frame(width: 12, height: 12)
+                }
+                
+                Text("多")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.horizontal)
+    }
+}
+
+// 月历视图
+struct MonthCalendarView: View {
+    let habit: Habit
+    let selectedYear: Int
+    @Binding var selectedMonth: Int
+    @EnvironmentObject var habitStore: HabitStore
+    
+    // 一周的天数
+    private let daysOfWeek = ["日", "一", "二", "三", "四", "五", "六"]
+    
+    var body: some View {
+        VStack(spacing: 15) {
+            // 月份选择器
+            HStack {
+                Button(action: previousMonth) {
+                    Image(systemName: "chevron.left")
+                }
+                
+                Spacer()
+                
+                Text("\(selectedMonth)月")
+                    .font(.headline)
+                
+                Spacer()
+                
+                Button(action: nextMonth) {
+                    Image(systemName: "chevron.right")
+                }
+                
+                Button(action: goToCurrentMonth) {
+                    Text("本月")
+                        .font(.subheadline)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Color.secondary.opacity(0.2))
+                        .cornerRadius(8)
+                }
+                .padding(.leading, 10)
+            }
+            
+            // 星期标题
+            HStack {
+                ForEach(daysOfWeek, id: \.self) { day in
+                    Text(day)
+                        .font(.caption)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            
+            // 日历网格
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 10) {
+                ForEach(daysInMonth().indices, id: \.self) { index in
+                    let day = daysInMonth()[index]
+                    if day.day > 0 {
+                        DayCell(date: day.date, habit: habit)
+                    } else {
+                        Color.clear
+                            .frame(height: 40)
+                    }
+                }
+            }
+        }
+    }
+    
+    // 获取当前月的所有日期
+    private func daysInMonth() -> [(day: Int, date: Date)] {
+        let calendar = Calendar.current
+        
+        // 创建当前选择的年月的日期
+        var components = DateComponents()
+        components.year = selectedYear
+        components.month = selectedMonth
+        components.day = 1
+        
+        guard let firstDayOfMonth = calendar.date(from: components) else {
+            return []
+        }
+        
+        // 计算这个月的第一天是星期几
+        let firstWeekday = calendar.component(.weekday, from: firstDayOfMonth) - 1
+        
+        // 这个月有多少天
+        let daysInMonth = calendar.range(of: .day, in: .month, for: firstDayOfMonth)?.count ?? 0
+        
+        var result: [(day: Int, date: Date)] = []
+        
+        // 添加前面的空白
+        for _ in 0..<firstWeekday {
+            result.append((0, Date()))
+        }
+        
+        // 添加这个月的天数
+        for day in 1...daysInMonth {
+            components.day = day
+            if let date = calendar.date(from: components) {
+                result.append((day, date))
+            }
+        }
+        
+        return result
+    }
+    
+    private func previousMonth() {
+        if selectedMonth > 1 {
+            selectedMonth -= 1
+        } else {
+            selectedMonth = 12
+            // 可以选择是否自动减少年份
+        }
+    }
+    
+    private func nextMonth() {
+        if selectedMonth < 12 {
+            selectedMonth += 1
+        } else {
+            selectedMonth = 1
+            // 可以选择是否自动增加年份
+        }
+    }
+    
+    private func goToCurrentMonth() {
+        let currentDate = Date()
+        let calendar = Calendar.current
+        selectedMonth = calendar.component(.month, from: currentDate)
+    }
+}
+
+// 单日单元格
+struct DayCell: View {
+    let date: Date
+    let habit: Habit
+    @EnvironmentObject var habitStore: HabitStore
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        let calendar = Calendar.current
+        let day = calendar.component(.day, from: date)
+        let count = habitStore.getLogCountForDate(habitId: habit.id, date: date)
+        let theme = ColorTheme.getTheme(for: habit.colorTheme)
+        let isToday = calendar.isDateInToday(date)
+        
+        ZStack {
+            Circle()
+                .strokeBorder(isToday ? Color.accentColor : Color.clear, lineWidth: 2)
+                .background(
+                    Circle()
+                        .fill(count > 0 ? theme.color(for: min(count, 4), isDarkMode: colorScheme == .dark) : Color.clear)
+                )
+                .frame(height: 40)
+            
+            Text("\(day)")
+                .foregroundColor(count > 0 ? (colorScheme == .dark ? .white : .primary) : .primary)
+        }
+        .contentShape(Circle())
+        .onTapGesture {
+            habitStore.logHabit(habitId: habit.id, date: date)
         }
     }
 }
@@ -316,30 +493,60 @@ struct DayCellGitHub: View {
 struct HabitSettingsView: View {
     let habit: Habit
     @Binding var isPresented: Bool
-    @State private var editedName: String
-    @State private var selectedTheme: Habit.ColorThemeName
+    @State private var habitName: String
+    @State private var emoji: String
+    @State private var colorTheme: Habit.ColorThemeName
     @EnvironmentObject var habitStore: HabitStore
     @Environment(\.colorScheme) var colorScheme
+    
+    // 常用emoji列表
+    private let emojis = ["📝", "📚", "💪", "🏃", "🧘", "💧", "🥗", "😴", "🌱", "🎯", "🧠", "🎨", "🎸", "📱", "🧹", "💼"]
     
     init(habit: Habit, isPresented: Binding<Bool>) {
         self.habit = habit
         self._isPresented = isPresented
-        self._editedName = State(initialValue: habit.name)
-        self._selectedTheme = State(initialValue: habit.colorTheme)
+        self._habitName = State(initialValue: habit.name)
+        self._emoji = State(initialValue: habit.emoji)
+        self._colorTheme = State(initialValue: habit.colorTheme)
     }
     
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("习惯名称")) {
-                    TextField("习惯名称", text: $editedName)
+                Section(header: Text("习惯信息")) {
+                    TextField("习惯名称", text: $habitName)
+                    
+                    // Emoji选择器
+                    HStack {
+                        Text("选择图标")
+                        
+                        Spacer()
+                        
+                        Text(emoji)
+                            .font(.title)
+                    }
+                }
+                
+                Section(header: Text("Emoji")) {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 8), spacing: 15) {
+                        ForEach(emojis, id: \.self) { emojiItem in
+                            Text(emojiItem)
+                                .font(.title)
+                                .padding(5)
+                                .background(emoji == emojiItem ? Color.accentColor.opacity(0.3) : Color.clear)
+                                .cornerRadius(8)
+                                .onTapGesture {
+                                    emoji = emojiItem
+                                }
+                        }
+                    }
                 }
                 
                 Section(header: Text("颜色主题")) {
                     ForEach(Habit.ColorThemeName.allCases, id: \.self) { themeName in
                         let theme = ColorTheme.getTheme(for: themeName)
                         
-                        Button(action: { selectedTheme = themeName }) {
+                        Button(action: { colorTheme = themeName }) {
                             HStack {
                                 Text(theme.name)
                                 
@@ -354,7 +561,7 @@ struct HabitSettingsView: View {
                                     }
                                 }
                                 
-                                if selectedTheme == themeName {
+                                if colorTheme == themeName {
                                     Image(systemName: "checkmark")
                                         .foregroundColor(.blue)
                                         .padding(.leading, 5)
@@ -366,38 +573,56 @@ struct HabitSettingsView: View {
                 }
                 
                 Section {
-                    Button(action: deleteHabit) {
-                        Text("删除习惯")
-                            .foregroundColor(.red)
+                    HStack {
+                        Text("习惯类型")
+                        Spacer()
+                        Text(habit.habitType == .checkbox ? "打卡型" : "计数型")
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 5) {
+                        if habit.habitType == .checkbox {
+                            Text("点击一次记录完成，再次点击取消")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        } else {
+                            Text("可多次点击增加计数，颜色会逐渐加深")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
             }
-            .navigationTitle("习惯设置")
+            .navigationTitle("修改习惯")
             .navigationBarItems(
                 leading: Button("取消") { isPresented = false },
-                trailing: Button("保存") { saveChanges() }
-                    .disabled(editedName.isEmpty)
+                trailing: Button("保存") {
+                    saveHabit()
+                }
+                .disabled(habitName.isEmpty)
             )
         }
     }
     
-    private func saveChanges() {
+    private func saveHabit() {
         var updatedHabit = habit
-        updatedHabit.name = editedName
-        updatedHabit.colorTheme = selectedTheme
+        updatedHabit.name = habitName
+        updatedHabit.emoji = emoji
+        updatedHabit.colorTheme = colorTheme
+        
         habitStore.updateHabit(updatedHabit)
-        isPresented = false
-    }
-    
-    private func deleteHabit() {
-        habitStore.removeHabit(habit)
         isPresented = false
     }
 }
 
 #Preview {
     NavigationView {
-        HabitDetailView(habit: Habit(name: "读书", colorTheme: .github))
-            .environmentObject(HabitStore())
+        HabitDetailView(habit: Habit(
+            name: "读书", 
+            emoji: "📚", 
+            colorTheme: .github, 
+            habitType: .checkbox
+        ))
+        .environmentObject(HabitStore())
     }
 } 
