@@ -85,6 +85,41 @@ class HabitStore: ObservableObject {
         return 0
     }
     
+    // 获取习惯打卡总天数
+    func getTotalLoggedDays(habitId: UUID) -> Int {
+        return habitLogs.filter { $0.habitId == habitId }.count
+    }
+    
+    // 获取习惯最长连续打卡天数
+    func getLongestStreak(habitId: UUID) -> Int {
+        let filteredLogs = habitLogs.filter { $0.habitId == habitId }
+        guard !filteredLogs.isEmpty else { return 0 }
+        
+        // 按日期排序
+        let sortedDates = filteredLogs.map { $0.date }.sorted()
+        
+        let calendar = Calendar.current
+        var currentStreak = 1
+        var longestStreak = 1
+        
+        for i in 1..<sortedDates.count {
+            let previousDate = sortedDates[i-1]
+            let currentDate = sortedDates[i]
+            
+            // 检查是否为连续日期
+            let dayDifference = calendar.dateComponents([.day], from: previousDate, to: currentDate).day ?? 0
+            
+            if dayDifference == 1 {
+                currentStreak += 1
+                longestStreak = max(longestStreak, currentStreak)
+            } else if dayDifference > 1 {
+                currentStreak = 1
+            }
+        }
+        
+        return longestStreak
+    }
+    
     // MARK: - 持久化
     
     private func saveData() {

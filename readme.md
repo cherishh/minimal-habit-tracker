@@ -10,14 +10,20 @@
 
 ## todos
 - [ ] 列表页 UI 改版；
+- [ ] 最大 habits 数量限制
 - [ ] 用户可以在桌面添加该 app 的 widget。这个 widget 显示当前 habit 的 heatmap。如果用户点击 widget，直接默认在当前 habit 上 log+1。【不需要】进入 app。
 - [ ] 如果用户有多个 habit，则应该像ios 自带的 smart stack widget 一样，用户可以上下滑动切换不同的 habit。
 - [ ] 设置页扩展
 - [ ] 文案优化
+- [ ] dark mode 颜色优化
 - [ ] 多语言支持
 - [ ] 支持数据导出
+- [ ] 设置每天的提醒时间，提醒用户打卡
 - [ ] 添加增值服务
-    - [ ] 设置每天的提醒时间，提醒用户打卡
     - [ ] 自定义 color theme
-    - [ ] 数据统计功能
+    - [ ] note 功能
+    - [ ] 数据云同步
+    - [ ] 无限 habits 数量
 - [ ] 非 current year 颜色有 opacity，后期优化 current year 的逻辑，应该根据当前选择年份走
+- [ ] 成果分享
+- [ ] audio 

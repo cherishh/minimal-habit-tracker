@@ -56,28 +56,51 @@ struct HabitDetailView: View {
     
     private var heatmapLegendView: some View {
         HStack {
-            Text("点击格子记录完成习惯\(habit.habitType == .count ? "，可多次点击" : "")")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            // 左侧显示统计数据
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text("总计天数")
+                        .font(.caption)
+                        .foregroundColor(Color(hex: "#94a3b8"))
+                    
+                    Text("\(habitStore.getTotalLoggedDays(habitId: habit.id))天")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(colorScheme == .dark ? Color(hex: "#e2e8f0") : Color(hex: "#334155"))
+                }
+                
+                HStack(spacing: 6) {
+                    Text("最长连续")
+                        .font(.caption)
+                        .foregroundColor(Color(hex: "#94a3b8"))
+                    
+                    Text("\(habitStore.getLongestStreak(habitId: habit.id))天")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(colorScheme == .dark ? Color(hex: "#e2e8f0") : Color(hex: "#334155"))
+                }
+            }
             
             Spacer()
             
-            // 图例
-            HStack(spacing: 4) {
-                Text("少")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                
-                ForEach(0..<5) { level in
-                    let theme = ColorTheme.getTheme(for: habit.colorTheme)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(theme.color(for: level, isDarkMode: colorScheme == .dark))
-                        .frame(width: 12, height: 12)
+            // 图例，仅在count类型时显示
+            if habit.habitType == .count {
+                HStack(spacing: 4) {
+                    Text("少")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    
+                    ForEach(1..<5) { level in
+                        let theme = ColorTheme.getTheme(for: habit.colorTheme)
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(theme.color(for: level, isDarkMode: colorScheme == .dark))
+                            .frame(width: 12, height: 12)
+                    }
+                    
+                    Text("多")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
                 }
-                
-                Text("多")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
             }
         }
         .padding(.horizontal)
@@ -91,8 +114,8 @@ struct MonthCalendarView: View {
     @Binding var selectedMonth: Int
     @EnvironmentObject var habitStore: HabitStore
     
-    // 一周的天数
-    private let daysOfWeek = ["日", "一", "二", "三", "四", "五", "六"]
+    // 一周的天数 - 从星期一开始
+    private let daysOfWeek = ["一", "二", "三", "四", "五", "六", "日"]
     
     var body: some View {
         VStack(spacing: 15) {
@@ -164,8 +187,10 @@ struct MonthCalendarView: View {
             return []
         }
         
-        // 计算这个月的第一天是星期几
-        let firstWeekday = calendar.component(.weekday, from: firstDayOfMonth) - 1
+        // 计算这个月的第一天是星期几 (调整为周一为0)
+        var firstWeekday = calendar.component(.weekday, from: firstDayOfMonth) - 1
+        // 调整为周一为0，周日为6
+        firstWeekday = (firstWeekday + 6) % 7
         
         // 这个月有多少天
         let daysInMonth = calendar.range(of: .day, in: .month, for: firstDayOfMonth)?.count ?? 0
