@@ -7,6 +7,7 @@ struct Habit: Identifiable, Codable {
     var colorTheme: ColorThemeName
     var habitType: HabitType
     var createdAt = Date()
+    var backgroundColor: String? // 可选的背景色，十六进制格式
     
     enum ColorThemeName: String, CaseIterable, Codable {
         case github = "GitHub"

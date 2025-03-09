@@ -50,7 +50,7 @@ struct HabitDetailView: View {
             }
         }
         .sheet(isPresented: $showingSettings) {
-            HabitSettingsView(habit: habit, isPresented: $showingSettings)
+            HabitFormView(isPresented: $showingSettings, habit: habit)
         }
     }
     
@@ -368,8 +368,8 @@ struct DayCell: View {
             animatedCompletion = completionPercentage
         }
         // 确保在count改变时更新animatedCompletion值
-        .onChange(of: count) { newCount in
-            animatedCompletion = Double(min(newCount, 4)) / 4.0
+        .onChange(of: count) { oldValue, newValue in
+            animatedCompletion = Double(min(newValue, 4)) / 4.0
         }
     }
 }

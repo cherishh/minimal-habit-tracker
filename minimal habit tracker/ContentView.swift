@@ -164,7 +164,7 @@ struct HabitRowView: View {
                 .frame(width: 44, height: 44)
                 .background(
                     Circle()
-                        .fill(Color.gray.opacity(0.1))
+                        .fill(habit.backgroundColor != nil ? Color(hex: habit.backgroundColor!) : Color.gray.opacity(0.1))
                 )
             
             VStack(alignment: .leading, spacing: 4) {
