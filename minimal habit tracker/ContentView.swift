@@ -18,7 +18,7 @@ struct ContentView: View {
     @State private var showingMaxHabitsAlert = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack() {
                 if habitStore.habits.isEmpty {
                     emptyStateView
@@ -59,14 +59,11 @@ struct ContentView: View {
                     dismissButton: .default(Text("我知道了"))
                 )
             }
-            .background(
-                NavigationLink(
-                    destination: selectedHabit.map { HabitDetailView(habit: $0) },
-                    isActive: $navigateToDetail
-                ) {
-                    EmptyView()
+            .navigationDestination(isPresented: $navigateToDetail) {
+                if let habit = selectedHabit {
+                    HabitDetailView(habit: habit)
                 }
-            )
+            }
             .onAppear {
                 setupNotificationObserver()
             }
@@ -124,44 +121,34 @@ struct ContentView: View {
     }
     
     private var habitListView: some View {
-        List {
-            ForEach(habitStore.habits) { habit in
-                ZStack {
-                    NavigationLink(destination: HabitDetailView(habit: habit)) {
-                        EmptyView()
-                    }
-                    .opacity(0)
-                    
-                    HabitRowView(habit: habit)
-                }
-                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-                .swipeActions(edge: .trailing) {
-                    Button(role: .destructive) {
-                        if let index = habitStore.habits.firstIndex(where: { $0.id == habit.id }) {
-                            withAnimation {
-                                habitStore.removeHabit(habit)
-                            }
+        ScrollView {
+            VStack(spacing: 16) {
+                ForEach(habitStore.habits) { habit in
+                    HabitCardView(habit: habit, onDelete: {
+                        withAnimation {
+                            habitStore.removeHabit(habit)
                         }
-                    } label: {
-                        Label("删除", systemImage: "trash")
-                    }
-                    .tint(.red)
+                    })
                 }
             }
+            .padding(.vertical, 16)
+            .padding(.horizontal, 24)
         }
-        .listStyle(PlainListStyle())
+        .background(Color(colorScheme == .dark ? UIColor.systemBackground : UIColor.systemGroupedBackground))
     }
 }
 
-struct HabitRowView: View {
+// 单独的习惯卡片视图
+struct HabitCardView: View {
     let habit: Habit
+    let onDelete: () -> Void
     @EnvironmentObject var habitStore: HabitStore
     @Environment(\.colorScheme) var colorScheme
     @State private var isAnimating = false
     @State private var todayCellAnimating = false
     @State private var progressValue: CGFloat = 0
+    @State private var offset: CGFloat = 0
+    @State private var isSwiped = false
     
     // 获取当前习惯的今日完成情况
     private var todayCompletionStatus: Int {
@@ -185,6 +172,87 @@ struct HabitRowView: View {
     }
     
     var body: some View {
+        ZStack(alignment: .trailing) {
+            // 删除按钮背景层
+            HStack {
+                Spacer()
+                Button {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        offset = 0 // 先重置位置
+                        isSwiped = false
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        onDelete()
+                    }
+                } label: {
+                    ZStack {
+                        Circle()
+                            .fill(Color.red)
+                            .frame(width: 50, height: 50)
+                            .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                        
+                        Image(systemName: "trash")
+                            .font(.system(size: 18))
+                            .foregroundColor(.white)
+                    }
+                    .contentShape(Circle()) // 确保整个圆形区域可点击
+                }
+                .padding(.trailing, 24)
+                .opacity(offset < 0 ? 1 : 0) // 当卡片滑动时显示按钮
+                .frame(width: 60, height: 60) // 增加点击区域
+            }
+            
+            // 卡片主体
+            mainCardView
+                .offset(x: offset)
+                .gesture(
+                    DragGesture(minimumDistance: 5)
+                        .onChanged { value in
+                            if value.translation.width < 0 {
+                                offset = value.translation.width
+                                if offset < -80 {
+                                    offset = -80
+                                }
+                            } else if isSwiped {
+                                offset = -80 + value.translation.width
+                                if offset > 0 {
+                                    offset = 0
+                                }
+                            }
+                        }
+                        .onEnded { value in
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                if value.translation.width < -20 || (isSwiped && value.translation.width < 20) {
+                                    offset = -80
+                                    isSwiped = true
+                                } else {
+                                    offset = 0
+                                    isSwiped = false
+                                }
+                            }
+                        }
+                )
+        }
+        .frame(maxWidth: .infinity)
+    }
+    
+    // 提取卡片主视图
+    private var mainCardView: some View {
+        HabitRowView
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if isSwiped {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        offset = 0
+                        isSwiped = false
+                    }
+                } else {
+                    NotificationCenter.default.post(name: NSNotification.Name("NavigateToDetail"), object: habit)
+                }
+            }
+    }
+    
+    private var HabitRowView: some View {
         // 卡片容器
         VStack(spacing: 0) {
             HStack(spacing: 0) {
@@ -193,7 +261,7 @@ struct HabitRowView: View {
                     // Emoji图标
                     Text(habit.emoji)
                         .font(.system(size: 30))
-                        .frame(width: 52, height: 52)
+                        .frame(width: 50, height: 50)
                         .background(
                             Circle()
                                 .fill(habit.backgroundColor != nil ? Color(hex: habit.backgroundColor!) : Color.gray.opacity(0.1))
@@ -205,9 +273,9 @@ struct HabitRowView: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .lineLimit(2)
                 }
-                .padding(.leading, 20)
-                .padding(.vertical, 20)
-                .frame(width: UIScreen.main.bounds.width * 0.45, alignment: .leading) // 限制左侧区域宽度
+                .padding(.leading, 16)
+                .padding(.vertical, 16)
+                .frame(width: UIScreen.main.bounds.width * 0.42, alignment: .leading)
                 
                 Spacer()
                 
@@ -243,6 +311,15 @@ struct HabitRowView: View {
                     
                     // 下方：打卡按钮
                     Button(action: {
+                        // 如果滑开状态，先关闭
+                        if isSwiped {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                offset = 0
+                                isSwiped = false
+                            }
+                            return
+                        }
+                        
                         // 触发动画
                         isAnimating = true
                         todayCellAnimating = true
@@ -251,11 +328,11 @@ struct HabitRowView: View {
                             // 计数模式：更新进度值
                             let currentCount = todayCompletionStatus
                             if currentCount < 4 {
-                                withAnimation(.spring()) {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                     progressValue = CGFloat(currentCount + 1) / 4.0
                                 }
                             } else {
-                                withAnimation(.spring()) {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                     progressValue = 0
                                 }
                             }
@@ -265,7 +342,7 @@ struct HabitRowView: View {
                         habitStore.logHabit(habitId: habit.id, date: Date())
                         
                         // 动画完成后重置状态
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                             isAnimating = false
                             todayCellAnimating = false
                         }
@@ -275,7 +352,7 @@ struct HabitRowView: View {
                             Text(isCompletedToday ? "Done!" : "Check")
                                 .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(isCompletedToday ? .white : theme.color(for: 4, isDarkMode: colorScheme == .dark))
-                                .frame(width: 140)
+                                .frame(width: 130)
                                 .padding(.vertical, 12)
                                 .background(
                                     RoundedRectangle(cornerRadius: 8)
@@ -283,7 +360,7 @@ struct HabitRowView: View {
                                             ? theme.color(for: 4, isDarkMode: colorScheme == .dark) 
                                             : theme.color(for: 0, isDarkMode: colorScheme == .dark))
                                 )
-                                .animation(.spring(), value: isCompletedToday)
+                                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCompletedToday)
                         } else {
                             // Count模式按钮 - 完整圆角效果
                             VStack(spacing: 0) {
@@ -292,13 +369,13 @@ struct HabitRowView: View {
                                     // 背景轨道
                                     Capsule()
                                         .fill(theme.color(for: 0, isDarkMode: colorScheme == .dark).opacity(0.3))
-                                        .frame(width: 140, height: 4)
+                                        .frame(width: 130, height: 4)
                                     
                                     // 进度条
                                     Capsule()
                                         .fill(theme.color(for: 4, isDarkMode: colorScheme == .dark))
-                                        .frame(width: 140 * countProgress, height: 4)
-                                        .animation(.spring(), value: countProgress)
+                                        .frame(width: 130 * countProgress, height: 4)
+                                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: countProgress)
                                 }
                                 .padding(.bottom, 4)
                                 
@@ -306,7 +383,7 @@ struct HabitRowView: View {
                                 Text(todayCompletionStatus >= 4 ? "Done!" : "Check")
                                     .font(.system(size: 16, weight: .medium))
                                     .foregroundColor(isCompletedToday ? .white : theme.color(for: 4, isDarkMode: colorScheme == .dark))
-                                    .frame(width: 140)
+                                    .frame(width: 130)
                                     .padding(.vertical, 12)
                                     .background(
                                         RoundedRectangle(cornerRadius: 8)
@@ -319,20 +396,13 @@ struct HabitRowView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
-                .padding(.trailing, 20)
-                .padding(.vertical, 20)
+                .padding(.trailing, 16)
+                .padding(.vertical, 16)
             }
         }
         .background(Color(colorScheme == .dark ? UIColor.secondarySystemBackground : UIColor.systemBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 5)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            // 卡片点击时触发导航
-            NotificationCenter.default.post(name: NSNotification.Name("NavigateToDetail"), object: habit)
-        }
     }
 }
 
@@ -342,7 +412,7 @@ struct SettingsView: View {
     @AppStorage("isDarkMode") private var isDarkMode = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section(header: Text("显示")) {
                     Toggle("暗黑模式", isOn: $isDarkMode)
@@ -362,9 +432,13 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("设置")
-            .navigationBarItems(trailing: Button("完成") {
-                isPresented = false
-            })
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("完成") {
+                        isPresented = false
+                    }
+                }
+            }
         }
     }
 }
