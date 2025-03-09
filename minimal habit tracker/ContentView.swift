@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var navigateToDetail = false
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("isDarkMode") private var isDarkMode = false
+    @State private var showingMaxHabitsAlert = false
     
     var body: some View {
         NavigationView {
@@ -33,7 +34,13 @@ struct ContentView: View {
                             Image(systemName: "gear")
                         }
                         
-                        Button(action: { isAddingHabit = true }) {
+                        Button(action: {
+                            if habitStore.canAddHabit() {
+                                isAddingHabit = true
+                            } else {
+                                showingMaxHabitsAlert = true
+                            }
+                        }) {
                             Image(systemName: "plus")
                         }
                     }
@@ -44,6 +51,13 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView(isPresented: $showingSettings)
+            }
+            .alert(isPresented: $showingMaxHabitsAlert) {
+                Alert(
+                    title: Text("达到最大数量"),
+                    message: Text("您最多只能创建4个习惯。如需添加更多，请升级为Pro版本。"),
+                    dismissButton: .default(Text("我知道了"))
+                )
             }
             .background(
                 NavigationLink(
@@ -90,7 +104,13 @@ struct ContentView: View {
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
             
-            Button(action: { isAddingHabit = true }) {
+            Button(action: { 
+                if habitStore.canAddHabit() {
+                    isAddingHabit = true
+                } else {
+                    showingMaxHabitsAlert = true
+                }
+            }) {
                 Text("添加第一个习惯")
                     .fontWeight(.medium)
                     .padding()

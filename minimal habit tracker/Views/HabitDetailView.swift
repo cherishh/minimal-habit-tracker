@@ -154,6 +154,7 @@ struct MonthCalendarView: View {
                 ForEach(daysOfWeek, id: \.self) { day in
                     Text(day)
                         .font(.caption)
+                        .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity)
                 }
             }

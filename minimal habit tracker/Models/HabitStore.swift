@@ -8,6 +8,9 @@ class HabitStore: ObservableObject {
     private let habitsKey = "habits"
     private let habitLogsKey = "habitLogs"
     
+    // 定义最大习惯数量常量
+    static let maxHabitCount = 4
+    
     init() {
         loadData()
     }
@@ -15,8 +18,18 @@ class HabitStore: ObservableObject {
     // MARK: - Habits 操作
     
     func addHabit(_ habit: Habit) {
+        // 检查是否已达到最大习惯数量
+        guard habits.count < HabitStore.maxHabitCount else {
+            return
+        }
+        
         habits.append(habit)
         saveData()
+    }
+    
+    // 检查是否可以添加新习惯
+    func canAddHabit() -> Bool {
+        return habits.count < HabitStore.maxHabitCount
     }
     
     func removeHabit(_ habit: Habit) {
