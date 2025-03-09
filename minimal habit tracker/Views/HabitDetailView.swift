@@ -100,6 +100,7 @@ struct MonthCalendarView: View {
             HStack {
                 Button(action: previousMonth) {
                     Image(systemName: "chevron.left")
+                        .foregroundColor(.black)
                 }
                 
                 Spacer()
@@ -111,6 +112,7 @@ struct MonthCalendarView: View {
                 
                 Button(action: nextMonth) {
                     Image(systemName: "chevron.right")
+                        .foregroundColor(.black)
                 }
                 
                 Button(action: goToCurrentMonth) {
@@ -217,6 +219,8 @@ struct DayCell: View {
     let habit: Habit
     @EnvironmentObject var habitStore: HabitStore
     @Environment(\.colorScheme) var colorScheme
+    @State private var animatedCompletion: Double = 0
+    @State private var isAnimating: Bool = false
     
     private var isFutureDate: Bool {
         date > Date()
@@ -228,30 +232,119 @@ struct DayCell: View {
         let count = habitStore.getLogCountForDate(habitId: habit.id, date: date)
         let theme = ColorTheme.getTheme(for: habit.colorTheme)
         let isToday = calendar.isDateInToday(date)
+        let completionPercentage = Double(min(count, 4)) / 4.0 // 完成进度百分比
         
         ZStack {
+            // 今日背景 - 使用主题最浅色
             Circle()
-                .strokeBorder(isToday ? Color.accentColor : Color.clear, lineWidth: 2)
-                .background(
-                    Circle()
-                        .fill(count > 0 ? theme.color(for: min(count, 4), isDarkMode: colorScheme == .dark) : Color.clear)
-                )
+                .fill(isToday ? theme.color(for: 0, isDarkMode: colorScheme == .dark) : Color.clear)
                 .frame(height: 40)
             
+            // 只有已打卡日期才显示圆环
+            if count > 0 || isAnimating {
+                // 使用habit.habitType判断是否为checkbox类型
+                if habit.habitType == .checkbox {
+                    // checkbox类型显示完整圆环，但是有动画
+                    Circle()
+                        .trim(from: 0, to: isAnimating ? animatedCompletion : 1.0)
+                        .stroke(
+                            theme.color(for: 4, isDarkMode: colorScheme == .dark),
+                            style: StrokeStyle(
+                                lineWidth: 3.5,
+                                lineCap: .round,    // 圆形线帽
+                                lineJoin: .round    // 圆形连接
+                            )
+                        )
+                        .frame(height: 37)
+                        .rotationEffect(.degrees(-90)) // 从顶部开始
+                } else {
+                    // 轨道圆环（底色）- 使用最浅色
+                    Circle()
+                        .stroke(
+                            theme.color(for: 0, isDarkMode: colorScheme == .dark),
+                            style: StrokeStyle(lineWidth: 3.5)
+                        )
+                        .frame(height: 37)
+                    
+                    // count类型显示部分圆环
+                    Circle()
+                        .trim(from: 0, to: isAnimating ? animatedCompletion : completionPercentage)
+                        .stroke(
+                            theme.color(for: 4, isDarkMode: colorScheme == .dark),
+                            style: StrokeStyle(
+                                lineWidth: 3.5,
+                                lineCap: .round,    // 圆形线帽
+                                lineJoin: .round    // 圆形连接
+                            )
+                        )
+                        .frame(height: 37)
+                        .rotationEffect(.degrees(-90)) // 从顶部开始
+                }
+            }
+            
+            // 日期文字
             Text("\(day)")
                 .foregroundColor(
-                    isFutureDate ? .gray.opacity(0.5) :
-                    (count > 0 ? (colorScheme == .dark ? .white : .primary) : .primary)
+                    isFutureDate ? .gray.opacity(0.5) : .primary
                 )
+                .font(.system(size: 14))
         }
         .contentShape(Circle())
         .onTapGesture {
             if !isFutureDate {
-                habitStore.logHabit(habitId: habit.id, date: date)
+                // 获取当前日期的计数
+                let currentCount = habitStore.getLogCountForDate(habitId: habit.id, date: date)
+                
+                // 计算点击后的新计数
+                var newCount = currentCount
+                if habit.habitType == .checkbox {
+                    // 对于checkbox，如果已有计数则变为0，否则变为4
+                    newCount = (currentCount > 0) ? 0 : 4
+                } else {
+                    // 对于count，计数加1，如果达到4则重置为0
+                    newCount = (currentCount >= 4) ? 0 : currentCount + 1
+                }
+                
+                // 设置动画的起点和终点
+                let startCompletion = Double(min(currentCount, 4)) / 4.0
+                let targetCompletion = Double(min(newCount, 4)) / 4.0
+                
+                // 设置动画
+                isAnimating = true
+                animatedCompletion = startCompletion
+                
+                // 使用withAnimation创建流畅的动画效果
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    if newCount == 0 {
+                        // 如果是取消打卡，动画应该从当前位置返回到0
+                        animatedCompletion = 0
+                    } else {
+                        // 否则动画应该前进到新位置
+                        animatedCompletion = targetCompletion
+                    }
+                }
+                
+                // 执行实际的打卡操作
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    habitStore.logHabit(habitId: habit.id, date: date)
+                    
+                    // 重置动画状态（在动画完成后）
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        isAnimating = false
+                    }
+                }
             }
         }
         .disabled(isFutureDate)
         .opacity(isFutureDate ? 0.5 : 1.0)
+        // 确保在初始渲染时设置正确的animatedCompletion值
+        .onAppear {
+            animatedCompletion = completionPercentage
+        }
+        // 确保在count改变时更新animatedCompletion值
+        .onChange(of: count) { newCount in
+            animatedCompletion = Double(min(newCount, 4)) / 4.0
+        }
     }
 }
 
