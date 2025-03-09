@@ -3,6 +3,7 @@ import SwiftUI
 // Emoji选择器视图
 struct EmojiPickerView: View {
     @Binding var selectedEmoji: String
+    @Binding var selectedBackgroundColor: String
     @Environment(\.presentationMode) var presentationMode
     @State private var searchText = ""
     @State private var selectedTab = 0 // 0表示Emoji，1表示Text
@@ -10,19 +11,31 @@ struct EmojiPickerView: View {
     @State private var selectedCategoryIndex = 0
     @State private var textInput = ""
     @State private var recentEmojis: [String] = []
-    var backgroundColor: String
     
     // 最近使用的emoji的UserDefaults键
     private let recentEmojisKey = "recentEmojis"
     // 最近使用的emoji的最大数量
     private let maxRecentEmojis = 30
     
+    // 添加背景色列表
+    let backgroundColors: [String] = [
+        "#FF5733", "#33FF57", "#5733FF", "#FF33A1", "#3399FF", 
+        "#FFD700", "#00BFFF", "#32CD32", "#FF6347", "#8A2BE2", 
+        "#FF1493", "#7FFF00", "#DC143C", "#FFD700", "#40E0D0", 
+        "#FF8C00", "#4682B4", "#8B0000", "#B8860B", "#2E8B57", 
+        "#A52A2A", "#C71585", "#228B22", "#D2691E", "#F0E68C", 
+        "#FF4500", "#708090", "#B0C4DE", "#9370DB", "#C0C0C0", 
+        "#FF6347", "#32CD32", "#90EE90", "#FF7F50", "#98FB98", 
+        "#B22222", "#D3D3D3", "#FFD700", "#FF00FF", "#663399",
+        "#FDF5E7"
+    ]
+    
     // 初始化临时选中的emoji
-    init(selectedEmoji: Binding<String>, backgroundColor: String) {
+    init(selectedEmoji: Binding<String>, selectedBackgroundColor: Binding<String>) {
         self._selectedEmoji = selectedEmoji
+        self._selectedBackgroundColor = selectedBackgroundColor
         self._tempSelectedEmoji = State(initialValue: selectedEmoji.wrappedValue)
         self._recentEmojis = State(initialValue: Self.loadRecentEmojis())
-        self.backgroundColor = backgroundColor
     }
     
     // 从UserDefaults加载最近使用的emoji
@@ -61,7 +74,7 @@ struct EmojiPickerView: View {
         var categories: [(name: String, symbol: String, emojis: [String])] = [
             ("最近使用", "clock", recentEmojis),
             ("笑脸表情", "face.smiling", ["😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "🙃", "🫠", "😉", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗", "☺️", "😚", "😙", "🥲", "😋", "😛", "😜", "🤪", "😝", "🤑", "🤗", "🤭", "🫢", "🫣", "🤫", "🤔", "🫡", "🤐", "🤨", "😐", "😑", "😶", "🫥", "😶‍🌫️", "😏", "😒", "🙄", "😬", "😮‍💨", "🤥", "😌", "😔", "😪", "🤤", "😴", "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "🥵", "🥶", "🥴", "😵", "😵‍💫", "🤯", "🤠", "🥳", "🥸", "😎", "🤓", "🧐"]),
-            ("人物形象", "person", ["👶", "👧", "🧒", "👦", "👩", "🧑", "👨", "👩‍🦱", "🧑‍🦱", "👨‍🦱", "👩‍🦰", "🧑‍🦰", "👨‍🦰", "👱‍♀️", "👱", "👱‍♂️", "👩‍🦳", "🧑‍🦳", "👨‍🦳", "👩‍🦲", "🧑‍🦲", "👨‍🦲", "🧔‍♀️", "🧔", "🧔‍♂️", "👵", "🧓", "👴", "👲", "👳‍♀️", "👳", "👳‍♂️", "🧕", "👮‍♀️", "👮", "👮‍♂️", "👷‍♀️", "👷", "👷‍♂️", "💂‍♀️", "💂", "💂‍♂️", "🕵️‍♀️", "🕵️", "🕵️‍♂️", "👩‍⚕️", "🧑‍⚕️", "👨‍⚕️", "👩‍🌾", "🧑‍🌾", "👨‍🌾", "👩‍🍳", "🧑‍🍳", "👨‍🍳", "👩‍🎓", "🧑‍🎓", "👨‍🎓", "👩‍🎤", "🧑‍🎤", "👨‍🎤"]),
+            ("人物形象", "person", ["👶", "👧", "🧒", "👦", "👩", "🧑", "👨", "👩‍🦱", "🧑‍🦱", "👨‍🦱", "👩‍🦰", "🧑‍🦰", "👨‍🦰", "👱‍♀️", "👱", "👱‍♂️", "👩‍🦳", "🧑‍🦳", "👨‍🦳", "👩‍🦲", "👩‍🦲", "👨‍🦲", "🧔‍♀️", "🧔", "🧔‍♂️", "👵", "🧓", "👴", "👲", "👳‍♀️", "👳", "👳‍♂️", "🧕", "👮‍♀️", "👮", "👮‍♂️", "👷‍♀️", "👷", "👷‍♂️", "💂‍♀️", "💂", "💂‍♂️", "🕵️‍♀️", "🕵️", "🕵️‍♂️", "👩‍⚕️", "🧑‍⚕️", "👨‍⚕️", "👩‍🌾", "🧑‍🌾", "👨‍🌾", "👩‍🍳", "🧑‍🍳", "👨‍🍳", "👩‍🎓", "🧑‍🎓", "👨‍🎓", "👩‍🎤", "🧑‍🎤", "👨‍🎤"]),
             ("手势动作", "hand.raised", ["👋", "🤚", "🖐️", "✋", "🖖", "👌", "🤌", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👍", "👎", "✊", "👊", "🤛", "🤜", "👏", "🙌", "👐", "🤲", "🤝", "🙏", "✍️", "💅", "🤳", "💪", "🦾", "🦵", "🦶", "👣", "👂", "🦻", "👃", "🧠", "🫀", "🫁", "🦷", "🦴", "👀", "👁️", "👅", "👄", "🫦"]),
             ("动物与自然", "leaf", ["🐵", "🐒", "🦍", "🦧", "🐶", "🐕", "🦮", "🐕‍🦺", "🐩", "🐺", "🦊", "🦝", "🐱", "🐈", "🐈‍⬛", "🦁", "🐯", "🐅", "🐆", "🐴", "🐎", "🦄", "🦓", "🦌", "🦬", "🐮", "🐂", "🐃", "🐄", "🐷", "🐖", "🐗", "🐽", "🐏", "🐑", "🐐", "🐪", "🐫", "🦙", "🦒", "🐘", "🦣", "🦏", "🦛", "🐭", "🐁", "🐀", "🐹", "🐰", "🐇", "🐿️", "🦫", "🦔", "🦇", "🐻", "🐻‍❄️", "🐨", "🐼", "🦥", "🦦", "🦨", "🦘", "🦡", "🐾", "🦃", "🐔", "🐓", "🐣", "🐤", "🐥", "🐦", "🐧", "🕊️", "🦅", "🦆", "🦢", "🦉", "🦤", "🪶", "🦩", "🦚", "🦜", "🐸", "🐊", "🐢", "🦎", "🐍", "🐲", "🐉", "🦕", "🦖", "🐳", "🐋", "🐬", "🦭", "🐟", "🐠", "🐡", "🦈", "🐙", "🐚", "🐌", "🦋", "🐛", "🐜", "🐝", "🪲", "🐞", "🦗", "🪳", "🕷️", "🕸️", "🦂", "🦟", "🪰", "🪱", "🦠", "💐", "🌸", "💮", "🏵️", "🌹", "🥀", "🌺", "🌻", "🌼", "🌷", "🌱", "🪴", "🌲", "🌳", "🌴", "🌵", "🌾", "🌿", "☘️", "🍀", "🍁", "🍂", "🍃", "🍄", "🌰", "🦀", "🦞", "🦐", "🦑"]),
             ("食物与饮料", "cup.and.saucer", ["🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🥭", "🍎", "🍏", "🍐", "🍑", "🍒", "🍓", "🫐", "🥝", "🍅", "🫒", "🥥", "🥑", "🍆", "🥔", "🥕", "🌽", "🌶️", "🫑", "🥒", "🥬", "🥦", "🧄", "🧅", "🍄", "🥜", "🫘", "🌰", "🍞", "🥐", "🥖", "🫓", "🥨", "🥯", "🥞", "🧇", "🧀", "🍖", "🍗", "🥩", "🥓", "🍔", "🍟", "🍕", "🌭", "🥪", "🌮", "🌯", "🫔", "🥙", "🧆", "🥚", "🍳", "🥘", "🍲", "🫕", "🥣", "🥗", "🍿", "🧈", "🧂", "🥫", "🍱", "🍘", "🍙", "🍚", "🍛", "🍜", "🍝", "🍠", "🍢", "🍣", "🍤", "🍥", "🥮", "🍡", "🥟", "🥠", "🥡", "🦀", "🦞", "🦐", "🦑", "🦪", "🍦", "🍧", "🍨", "🍩", "🍪", "🎂", "🍰", "🧁", "🥧", "🍫", "🍬", "🍭", "🍮", "🍯", "🍼", "🥛", "☕", "🫖", "🍵", "🍶", "🍾", "🍷", "🍸", "🍹", "🍺", "🍻", "🥂", "🥃", "🫗", "🥤", "🧋", "🧃", "🧉", "🧊", "🥢", "🍽️", "🍴", "🥄"]),
@@ -73,19 +86,65 @@ struct EmojiPickerView: View {
         return categories
     }
     
+    // 从传入的分类和emoji数组中随机选择一个emoji
+    private func randomEmoji() -> String {
+        let allCategories = emojiCategories
+        // 排除"最近使用"分类
+        let validCategories = Array(allCategories.dropFirst())
+        
+        // 随机选择一个分类
+        let randomCategory = validCategories.randomElement()!
+        // 从这个分类中随机选择一个emoji
+        return randomCategory.emojis.randomElement() ?? "😀"
+    }
+    
+    // 随机选择背景色
+    private func randomBackgroundColor() -> String {
+        return backgroundColors.randomElement() ?? "#FF5733"
+    }
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
                 // 当前选择的emoji
                 ZStack {
                     RoundedRectangle(cornerRadius: 15)
-                        .fill(Color(hex: backgroundColor))
+                        .fill(Color(hex: selectedBackgroundColor))
                         .frame(width: 80, height: 80)
                     
                     Text(tempSelectedEmoji)
                         .font(.system(size: 40))
                 }
                 .padding(.top)
+                
+                // 随机按钮区域
+                HStack(spacing: 20) {
+                    Button(action: {
+                        // 随机选择一个新emoji
+                        tempSelectedEmoji = randomEmoji()
+                        // 不再立即保存到最近使用列表，而是在确认时保存
+                    }) {
+                        Label("随机Emoji", systemImage: "dice")
+                            .font(.system(size: 14))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.secondary.opacity(0.2))
+                            .cornerRadius(8)
+                    }
+                    
+                    Button(action: {
+                        // 随机选择一个新背景色
+                        selectedBackgroundColor = randomBackgroundColor()
+                    }) {
+                        Label("随机颜色", systemImage: "paintpalette")
+                            .font(.system(size: 14))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.secondary.opacity(0.2))
+                            .cornerRadius(8)
+                    }
+                }
+                .padding(.top, 10)
                 
                 // 选项卡切换
                 HStack {
@@ -139,8 +198,7 @@ struct EmojiPickerView: View {
                                 Button(action: {
                                     // 选择emoji但不关闭界面
                                     tempSelectedEmoji = emoji
-                                    // 保存到最近使用列表
-                                    saveEmojiToRecents(emoji)
+                                    // 不再立即保存到最近使用列表，而是在确认时保存
                                 }) {
                                     ZStack {
                                         Circle()
@@ -148,7 +206,7 @@ struct EmojiPickerView: View {
                                             .background(
                                                 Circle()
                                                     .fill(tempSelectedEmoji == emoji ? 
-                                                        Color(hex: backgroundColor).opacity(0.5) : Color.clear)
+                                                        Color(hex: selectedBackgroundColor).opacity(0.5) : Color.clear)
                                             )
                                             .frame(width: 52, height: 52)
                                         
@@ -174,7 +232,7 @@ struct EmojiPickerView: View {
                             .font(.system(size: 28))
                             .multilineTextAlignment(.center)
                             .frame(height: 60)
-                            .background(Color(hex: backgroundColor).opacity(0.3))
+                            .background(Color(hex: selectedBackgroundColor).opacity(0.3))
                             .cornerRadius(10)
                             .padding(.horizontal, 40)
                             .onChange(of: textInput) { newValue in
@@ -206,9 +264,14 @@ struct EmojiPickerView: View {
                     if selectedTab == 1 && !textInput.isEmpty {
                         // 在Text模式下，只取第一个字符
                         selectedEmoji = String(textInput.prefix(1))
+                        // 保存文本输入的第一个字符到最近使用列表
+                        saveEmojiToRecents(selectedEmoji)
                     } else {
                         selectedEmoji = tempSelectedEmoji
+                        // 保存选中的emoji到最近使用列表
+                        saveEmojiToRecents(tempSelectedEmoji)
                     }
+                    // 关闭视图
                     presentationMode.wrappedValue.dismiss()
                 }
             )

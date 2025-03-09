@@ -34,8 +34,8 @@ struct HabitFormView: View {
         let commonEmojis = ["😀", "🎯", "💪", "🏃", "📚", "💤", "🍎", "💧", "🧘", "✍️", "🏋️", "🚴", "🧠", "🌱", "🚫", "💊"]
         // 随机选择一个emoji作为初始值
         self._selectedEmoji = State(initialValue: commonEmojis.randomElement() ?? "📝")
-        // 随机选择一个背景色
-        self._selectedBackgroundColor = State(initialValue: backgroundColors.randomElement() ?? "#FDF5E7")
+        // 固定默认背景色为#FDF5E7
+        self._selectedBackgroundColor = State(initialValue: "#FDF5E7")
         self._habitName = State(initialValue: "")
         self._selectedTheme = State(initialValue: .github)
         self._selectedType = State(initialValue: .checkbox)
@@ -81,7 +81,7 @@ struct HabitFormView: View {
                 .disabled(habitName.isEmpty || selectedEmoji.isEmpty)
             )
             .sheet(isPresented: $showEmojiPicker) {
-                EmojiPickerView(selectedEmoji: $selectedEmoji, backgroundColor: selectedBackgroundColor)
+                EmojiPickerView(selectedEmoji: $selectedEmoji, selectedBackgroundColor: $selectedBackgroundColor)
             }
         }
     }
@@ -180,27 +180,6 @@ struct HabitFormView: View {
                             )
                     }
                 }
-            }
-            
-            Section(header: Text("背景颜色")) {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
-                        ForEach(backgroundColors, id: \.self) { color in
-                            Circle()
-                                .fill(Color(hex: color))
-                                .frame(width: 30, height: 30)
-                                .overlay(
-                                    Circle()
-                                        .stroke(color == selectedBackgroundColor ? Color.primary : Color.clear, lineWidth: 2)
-                                )
-                                .onTapGesture {
-                                    selectedBackgroundColor = color
-                                }
-                        }
-                    }
-                    .padding(.vertical, 5)
-                }
-                .padding(.horizontal, -15)
             }
             
             Section(header: Text("颜色主题")) {
