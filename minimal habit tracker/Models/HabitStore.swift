@@ -64,8 +64,9 @@ class HabitStore: ObservableObject {
                 }
             }
         } else {
-            // 创建新记录
-            let newLog = HabitLog(habitId: habitId, date: normalizedDate, count: 1)
+            // 创建新记录，对于checkbox类型使用最深的颜色(count=4)
+            let initialCount = habit.habitType == .checkbox ? 4 : 1
+            let newLog = HabitLog(habitId: habitId, date: normalizedDate, count: initialCount)
             habitLogs.append(newLog)
         }
         

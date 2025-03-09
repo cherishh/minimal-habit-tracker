@@ -6,12 +6,10 @@ struct NewHabitView: View {
     @State private var habitName = ""
     @State private var selectedTheme: Habit.ColorThemeName = .github
     @State private var selectedEmoji = "📝"
+    @State private var showEmojiKeyboard = false
     @State private var selectedType: Habit.HabitType = .checkbox
     @State private var currentStep = 1
     @Environment(\.colorScheme) var colorScheme
-    
-    // 常用emoji列表
-    private let emojis = ["📝", "📚", "💪", "🏃", "🧘", "💧", "🥗", "😴", "🌱", "🎯", "🧠", "🎨", "🎸", "📱", "🧹", "💼"]
     
     var body: some View {
         NavigationView {
@@ -34,7 +32,7 @@ struct NewHabitView: View {
                 trailing: currentStep == 1 ? nil : Button("保存") {
                     saveHabit()
                 }
-                .disabled(habitName.isEmpty)
+                .disabled(habitName.isEmpty || selectedEmoji.isEmpty)
             )
         }
     }
@@ -91,36 +89,31 @@ struct NewHabitView: View {
     
     private var habitDetailsView: some View {
         Form {
-            Section(header: Text("习惯信息")) {
-                TextField("习惯名称", text: $habitName)
-                
-                // Emoji选择器
+            Section(header: Text("习惯名称")) {
+                TextField("例如: 每日锻炼", text: $habitName)
+            }
+            
+            Section(header: Text("选择图标")) {
                 HStack {
-                    Text("选择图标")
+                    Text("Emoji")
                     
                     Spacer()
                     
-                    Text(selectedEmoji)
+                    TextField("点击选择emoji", text: $selectedEmoji)
+                        .multilineTextAlignment(.trailing)
                         .font(.title)
+                        .frame(width: 100)
+                        .onTapGesture {
+                            // 这里不需要执行任何代码，iOS会自动显示键盘
+                            // 用户可以点击键盘上的emoji按钮切换到emoji键盘
+                            showEmojiKeyboard = true
+                        }
                 }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    // 这里可以添加更复杂的emoji选择器
-                }
-            }
-            
-            Section(header: Text("Emoji")) {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 8), spacing: 15) {
-                    ForEach(emojis, id: \.self) { emoji in
-                        Text(emoji)
-                            .font(.title)
-                            .padding(5)
-                            .background(selectedEmoji == emoji ? Color.accentColor.opacity(0.3) : Color.clear)
-                            .cornerRadius(8)
-                            .onTapGesture {
-                                selectedEmoji = emoji
-                            }
-                    }
+                
+                if !showEmojiKeyboard {
+                    Text("提示：点击上方图标区域后，可切换到emoji键盘选择表情")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
             
@@ -174,9 +167,11 @@ struct NewHabitView: View {
     }
     
     private func saveHabit() {
+        let finalEmoji = selectedEmoji.isEmpty ? "📝" : String(selectedEmoji.prefix(1))
+        
         let newHabit = Habit(
             name: habitName,
-            emoji: selectedEmoji,
+            emoji: finalEmoji,
             colorTheme: selectedTheme,
             habitType: selectedType
         )

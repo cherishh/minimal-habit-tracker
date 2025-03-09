@@ -218,6 +218,10 @@ struct DayCell: View {
     @EnvironmentObject var habitStore: HabitStore
     @Environment(\.colorScheme) var colorScheme
     
+    private var isFutureDate: Bool {
+        date > Date()
+    }
+    
     var body: some View {
         let calendar = Calendar.current
         let day = calendar.component(.day, from: date)
@@ -235,12 +239,19 @@ struct DayCell: View {
                 .frame(height: 40)
             
             Text("\(day)")
-                .foregroundColor(count > 0 ? (colorScheme == .dark ? .white : .primary) : .primary)
+                .foregroundColor(
+                    isFutureDate ? .gray.opacity(0.5) :
+                    (count > 0 ? (colorScheme == .dark ? .white : .primary) : .primary)
+                )
         }
         .contentShape(Circle())
         .onTapGesture {
-            habitStore.logHabit(habitId: habit.id, date: date)
+            if !isFutureDate {
+                habitStore.logHabit(habitId: habit.id, date: date)
+            }
         }
+        .disabled(isFutureDate)
+        .opacity(isFutureDate ? 0.5 : 1.0)
     }
 }
 
@@ -486,132 +497,9 @@ struct DayCellGitHub: View {
     }
     
     private func logHabit() {
-        habitStore.logHabit(habitId: habit.id, date: date)
-    }
-}
-
-struct HabitSettingsView: View {
-    let habit: Habit
-    @Binding var isPresented: Bool
-    @State private var habitName: String
-    @State private var emoji: String
-    @State private var colorTheme: Habit.ColorThemeName
-    @EnvironmentObject var habitStore: HabitStore
-    @Environment(\.colorScheme) var colorScheme
-    
-    // 常用emoji列表
-    private let emojis = ["📝", "📚", "💪", "🏃", "🧘", "💧", "🥗", "😴", "🌱", "🎯", "🧠", "🎨", "🎸", "📱", "🧹", "💼"]
-    
-    init(habit: Habit, isPresented: Binding<Bool>) {
-        self.habit = habit
-        self._isPresented = isPresented
-        self._habitName = State(initialValue: habit.name)
-        self._emoji = State(initialValue: habit.emoji)
-        self._colorTheme = State(initialValue: habit.colorTheme)
-    }
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("习惯信息")) {
-                    TextField("习惯名称", text: $habitName)
-                    
-                    // Emoji选择器
-                    HStack {
-                        Text("选择图标")
-                        
-                        Spacer()
-                        
-                        Text(emoji)
-                            .font(.title)
-                    }
-                }
-                
-                Section(header: Text("Emoji")) {
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 8), spacing: 15) {
-                        ForEach(emojis, id: \.self) { emojiItem in
-                            Text(emojiItem)
-                                .font(.title)
-                                .padding(5)
-                                .background(emoji == emojiItem ? Color.accentColor.opacity(0.3) : Color.clear)
-                                .cornerRadius(8)
-                                .onTapGesture {
-                                    emoji = emojiItem
-                                }
-                        }
-                    }
-                }
-                
-                Section(header: Text("颜色主题")) {
-                    ForEach(Habit.ColorThemeName.allCases, id: \.self) { themeName in
-                        let theme = ColorTheme.getTheme(for: themeName)
-                        
-                        Button(action: { colorTheme = themeName }) {
-                            HStack {
-                                Text(theme.name)
-                                
-                                Spacer()
-                                
-                                // 主题预览
-                                HStack(spacing: 2) {
-                                    ForEach(0..<5) { level in
-                                        RoundedRectangle(cornerRadius: 3)
-                                            .fill(theme.color(for: level, isDarkMode: colorScheme == .dark))
-                                            .frame(width: 20, height: 20)
-                                    }
-                                }
-                                
-                                if colorTheme == themeName {
-                                    Image(systemName: "checkmark")
-                                        .foregroundColor(.blue)
-                                        .padding(.leading, 5)
-                                }
-                            }
-                        }
-                        .foregroundColor(.primary)
-                    }
-                }
-                
-                Section {
-                    HStack {
-                        Text("习惯类型")
-                        Spacer()
-                        Text(habit.habitType == .checkbox ? "打卡型" : "计数型")
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 5) {
-                        if habit.habitType == .checkbox {
-                            Text("点击一次记录完成，再次点击取消")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        } else {
-                            Text("可多次点击增加计数，颜色会逐渐加深")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-            }
-            .navigationTitle("修改习惯")
-            .navigationBarItems(
-                leading: Button("取消") { isPresented = false },
-                trailing: Button("保存") {
-                    saveHabit()
-                }
-                .disabled(habitName.isEmpty)
-            )
+        if !isFutureDate {
+            habitStore.logHabit(habitId: habit.id, date: date)
         }
-    }
-    
-    private func saveHabit() {
-        var updatedHabit = habit
-        updatedHabit.name = habitName
-        updatedHabit.emoji = emoji
-        updatedHabit.colorTheme = colorTheme
-        
-        habitStore.updateHabit(updatedHabit)
-        isPresented = false
     }
 }
 

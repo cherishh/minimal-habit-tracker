@@ -13,4 +13,5 @@
 - [ ] 如果用户有多个 habit，则应该像ios 自带的 smart stack widget 一样，用户可以上下滑动切换不同的 habit。
 - [ ] 非 current year 颜色有 opacity，后期优化 current year 的逻辑，应该根据当前选择年份走。
 - [ ] 多语言支持
+- [ ] 支持数据导出
 - [ ] 用户可以设置每天的提醒时间，提醒用户打卡。 -->
