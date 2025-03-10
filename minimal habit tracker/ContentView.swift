@@ -133,9 +133,107 @@ struct ContentView: View {
                 }
             }
             .padding(.vertical, 16)
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 20)
         }
         .background(Color(colorScheme == .dark ? UIColor.systemBackground : UIColor.systemGroupedBackground))
+    }
+}
+
+// 微型热力图组件 - 显示过去100天的习惯记录
+struct MiniHeatmapView: View {
+    let habitId: UUID
+    @EnvironmentObject var habitStore: HabitStore
+    @Environment(\.colorScheme) var colorScheme
+    
+    // 热力图大小配置
+    private let cellSize: CGFloat = 8
+    private let cellSpacing: CGFloat = 3
+    
+    // 热力图日期配置
+    private let daysToShow = 100 // 显示过去100天，而不是365天
+    
+    // 获取习惯的主题颜色
+    private var theme: ColorTheme {
+        let habit = habitStore.habits.first(where: { $0.id == habitId }) ?? Habit(name: "未找到", emoji: "❓", colorTheme: .github, habitType: .checkbox)
+        return ColorTheme.getTheme(for: habit.colorTheme)
+    }
+    
+    // 生成过去100天的日期网格，按周组织
+    private var dateGrid: [[Date?]] {
+        let calendar = Calendar.current
+        let today = Date()
+        
+        // 1. 计算100天前的日期
+        guard let startDate100DaysAgo = calendar.date(byAdding: .day, value: -(daysToShow-1), to: today) else {
+            return []
+        }
+        
+        // 2. 找到起始日期所在周的周一
+        var startDate = startDate100DaysAgo
+        let startWeekday = calendar.component(.weekday, from: startDate)
+        // 将startDate调整为那周的周一（weekday=2是周一）
+        let daysToSubtract = (startWeekday == 1) ? 6 : (startWeekday - 2)
+        if daysToSubtract > 0 {
+            startDate = calendar.date(byAdding: .day, value: -daysToSubtract, to: startDate) ?? startDate
+        }
+        
+        // 3. 计算需要多少列（周）才能覆盖到今天
+        // 计算从起始日期到今天一共有多少天
+        let components = calendar.dateComponents([.day], from: startDate, to: today)
+        let totalDays = components.day ?? 0
+        // 加上7天确保有足够的列来显示，然后除以7得到周数
+        let totalColumns = (totalDays + 7) / 7 + 1
+        
+        // 4. 构建日期网格（比实际需要的多一点以确保所有日期都能显示）
+        var grid: [[Date?]] = Array(repeating: Array(repeating: nil, count: totalColumns), count: 7)
+        
+        // 5. 填充日期网格
+        for column in 0..<totalColumns {
+            for row in 0..<7 {
+                if let date = calendar.date(byAdding: .day, value: (column * 7) + row, to: startDate) {
+                    // 如果日期超过今天，则不添加
+                    if date <= today {
+                        grid[row][column] = date
+                    }
+                }
+            }
+        }
+        
+        return grid
+    }
+    
+    var body: some View {
+        // 计算总共需要显示的列数
+        let columnCount = dateGrid.isEmpty ? 0 : dateGrid[0].count
+        
+        // 移除滚动视图，直接显示内容
+        VStack(alignment: .leading, spacing: cellSpacing) {
+            // 每行代表星期几（0是周一，6是周日）
+            ForEach(0..<7, id: \.self) { row in
+                HStack(spacing: cellSpacing) {
+                    // 每列代表一周
+                    ForEach(0..<columnCount, id: \.self) { column in
+                        // 获取该位置的日期
+                        if let date = dateGrid[row][column] {
+                            let count = habitStore.getLogCountForDate(habitId: habitId, date: date)
+                            
+                            // 单个格子
+                            RoundedRectangle(cornerRadius: 1)
+                                .fill(theme.color(for: min(count, 4), isDarkMode: colorScheme == .dark))
+                                .frame(width: cellSize, height: cellSize)
+                        } else {
+                            // 没有日期的位置（例如超过今天的日期）
+                            RoundedRectangle(cornerRadius: 1)
+                                .fill(Color.clear)
+                                .frame(width: cellSize, height: cellSize)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(height: 7 * (cellSize + cellSpacing) - cellSpacing)
+        .frame(width: 190) // 保持相同宽度，适应100天的数据
+        .padding(.horizontal, 2) // 添加一点水平间距以确保边缘可见
     }
 }
 
@@ -147,13 +245,15 @@ struct HabitCardView: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var isAnimating = false
     @State private var todayCellAnimating = false
-    @State private var progressValue: CGFloat = 0
+    @State private var animatedCompletion: Double = 0
     @State private var offset: CGFloat = 0
     @State private var isSwiped = false
+    @State private var todayCompletionStatus: Int = 0
+    @State private var currentStreak: Int = 0
     
-    // 获取当前习惯的今日完成情况
-    private var todayCompletionStatus: Int {
-        habitStore.getLogCountForDate(habitId: habit.id, date: Date())
+    // 获取习惯对应的主题颜色
+    private var theme: ColorTheme {
+        ColorTheme.getTheme(for: habit.colorTheme)
     }
     
     // 判断今天是否已完成打卡
@@ -167,9 +267,31 @@ struct HabitCardView: View {
         return min(count / 4.0, 1.0)
     }
     
-    // 获取习惯对应的主题颜色
-    private var theme: ColorTheme {
-        ColorTheme.getTheme(for: habit.colorTheme)
+    // 更新卡片数据
+    private func updateCardData() {
+        todayCompletionStatus = habitStore.getLogCountForDate(habitId: habit.id, date: Date())
+        
+        // 计算连续打卡天数
+        let calendar = Calendar.current
+        let today = Date()
+        var dayCount = 0
+        
+        // 从今天开始向前查找连续打卡的天数
+        for dayOffset in 0..<100 { // 最多查找100天
+            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
+            
+            // 获取该日期的打卡记录
+            let count = habitStore.getLogCountForDate(habitId: habit.id, date: date)
+            
+            // 如果这天有打卡记录，增加计数
+            if count > 0 {
+                dayCount += 1
+            } else if dayOffset > 0 { // 遇到未打卡的日期且不是今天，结束计数
+                break
+            }
+        }
+        
+        currentStreak = dayCount
     }
     
     var body: some View {
@@ -206,9 +328,18 @@ struct HabitCardView: View {
             // 卡片主体
             mainCardView
                 .offset(x: offset)
-                .gesture(
+                .simultaneousGesture(
                     DragGesture(minimumDistance: 5)
                         .onChanged { value in
+                            // 只处理水平滑动，忽略垂直滑动
+                            let horizontalDrag = abs(value.translation.width)
+                            let verticalDrag = abs(value.translation.height)
+                            
+                            // 如果垂直滑动大于水平滑动，则不处理手势(让父ScrollView处理)
+                            if verticalDrag > horizontalDrag {
+                                return
+                            }
+                            
                             if value.translation.width < 0 {
                                 offset = value.translation.width
                                 if offset < -80 {
@@ -222,6 +353,15 @@ struct HabitCardView: View {
                             }
                         }
                         .onEnded { value in
+                            // 同样，只处理水平滑动
+                            let horizontalDrag = abs(value.translation.width)
+                            let verticalDrag = abs(value.translation.height)
+                            
+                            // 如果垂直滑动大于水平滑动，则不处理手势
+                            if verticalDrag > horizontalDrag {
+                                return
+                            }
+                            
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                 if value.translation.width < -20 || (isSwiped && value.translation.width < 20) {
                                     offset = -80
@@ -234,176 +374,207 @@ struct HabitCardView: View {
                         }
                 )
         }
+        .allowsHitTesting(true)
         .frame(maxWidth: .infinity)
+        .onAppear {
+            updateCardData()
+        }
     }
     
     // 提取卡片主视图
     private var mainCardView: some View {
-        HabitRowView
-            .contentShape(Rectangle())
-            .onTapGesture {
-                if isSwiped {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        offset = 0
-                        isSwiped = false
-                    }
-                } else {
-                    NotificationCenter.default.post(name: NSNotification.Name("NavigateToDetail"), object: habit)
-                }
-            }
-    }
-    
-    private var HabitRowView: some View {
-        // 卡片容器
         VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                // 左侧：图标和名称
-                HStack(spacing: 12) {
-                    // Emoji图标
-                    Text(habit.emoji)
-                        .font(.system(size: 30))
-                        .frame(width: 50, height: 50)
-                        .background(
-                            Circle()
-                                .fill(habit.backgroundColor != nil ? Color(hex: habit.backgroundColor!) : Color.gray.opacity(0.1))
-                        )
-                    
-                    // 习惯名称
-                    Text(habit.name)
-                        .font(.headline)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .lineLimit(2)
-                }
-                .padding(.leading, 16)
-                .padding(.vertical, 16)
-                .frame(width: UIScreen.main.bounds.width * 0.42, alignment: .leading)
+            // 上部分：习惯名称和连续打卡天数
+            HStack {
+                Text(habit.name)
+                    .font(.headline)
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 16)
                 
                 Spacer()
                 
-                // 右侧区域：分成两部分
-                VStack(alignment: .trailing, spacing: 16) {
-                    // 上方：最近10天小型热力图
-                    HStack(spacing: 5) {
-                        ForEach(0..<10, id: \.self) { dayOffset in
-                            let date = Calendar.current.date(byAdding: .day, value: -(9-dayOffset), to: Date())!
-                            let count = habitStore.getLogCountForDate(habitId: habit.id, date: date)
-                            let isToday = Calendar.current.isDateInToday(date)
-                            
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(theme.color(for: min(count, 4), isDarkMode: colorScheme == .dark))
-                                .frame(width: 14, height: 14)
-                                .overlay(
-                                    Group {
-                                        if isToday && todayCellAnimating {
-                                            Circle()
-                                                .stroke(Color.white, lineWidth: 2)
-                                                .scaleEffect(todayCellAnimating ? 2 : 1)
-                                                .opacity(todayCellAnimating ? 0 : 1)
-                                                .animation(
-                                                    Animation.easeOut(duration: 1).repeatCount(1, autoreverses: false),
-                                                    value: todayCellAnimating
-                                                )
-                                        }
-                                    }
-                                )
-                        }
+                // 连续打卡天数
+                if currentStreak > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(theme.color(for: 4, isDarkMode: colorScheme == .dark))
+                        
+                        Text("\(currentStreak)")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(theme.color(for: 4, isDarkMode: colorScheme == .dark))
                     }
-                    .padding(.bottom, 4)
-                    
-                    // 下方：打卡按钮
-                    Button(action: {
-                        // 如果滑开状态，先关闭
-                        if isSwiped {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                offset = 0
-                                isSwiped = false
-                            }
-                            return
-                        }
-                        
-                        // 触发动画
-                        isAnimating = true
-                        todayCellAnimating = true
-                        
-                        if habit.habitType == .count {
-                            // 计数模式：更新进度值
-                            let currentCount = todayCompletionStatus
-                            if currentCount < 4 {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                    progressValue = CGFloat(currentCount + 1) / 4.0
-                                }
-                            } else {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                    progressValue = 0
-                                }
-                            }
-                        }
-                        
-                        // 执行打卡操作
-                        habitStore.logHabit(habitId: habit.id, date: Date())
-                        
-                        // 动画完成后重置状态
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                            isAnimating = false
-                            todayCellAnimating = false
-                        }
-                    }) {
-                        if habit.habitType == .checkbox {
-                            // Checkbox模式按钮 - 圆角矩形
-                            Text(isCompletedToday ? "Done!" : "Check")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(isCompletedToday ? .white : theme.color(for: 4, isDarkMode: colorScheme == .dark))
-                                .frame(width: 130)
-                                .padding(.vertical, 12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(isCompletedToday 
-                                            ? theme.color(for: 4, isDarkMode: colorScheme == .dark) 
-                                            : theme.color(for: 0, isDarkMode: colorScheme == .dark))
-                                )
-                                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCompletedToday)
-                        } else {
-                            // Count模式按钮 - 完整圆角效果
-                            VStack(spacing: 0) {
-                                // 顶部进度条区域
-                                ZStack(alignment: .leading) {
-                                    // 背景轨道
-                                    Capsule()
-                                        .fill(theme.color(for: 0, isDarkMode: colorScheme == .dark).opacity(0.3))
-                                        .frame(width: 130, height: 4)
-                                    
-                                    // 进度条
-                                    Capsule()
-                                        .fill(theme.color(for: 4, isDarkMode: colorScheme == .dark))
-                                        .frame(width: 130 * countProgress, height: 4)
-                                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: countProgress)
-                                }
-                                .padding(.bottom, 4)
-                                
-                                // 按钮主体
-                                Text(todayCompletionStatus >= 4 ? "Done!" : "Check")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(isCompletedToday ? .white : theme.color(for: 4, isDarkMode: colorScheme == .dark))
-                                    .frame(width: 130)
-                                    .padding(.vertical, 12)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .fill(isCompletedToday 
-                                                ? theme.color(for: min(todayCompletionStatus, 4), isDarkMode: colorScheme == .dark) 
-                                                : theme.color(for: 0, isDarkMode: colorScheme == .dark))
-                                    )
-                            }
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                    .padding(.trailing, 16)
                 }
-                .padding(.trailing, 16)
-                .padding(.vertical, 16)
             }
+            .background(Color(colorScheme == .dark ? UIColor.secondarySystemBackground : UIColor.systemBackground))
+            
+            // 下部分：微型热力图和打卡按钮
+            HStack(spacing: 16) {
+                // 左侧：微型热力图使用equatable修饰符，避免不必要的重渲染
+                // 注意加上.equatable()修饰符
+                MiniHeatmapView(habitId: habit.id)
+                    .equatable()
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color(colorScheme == .dark ? UIColor.tertiarySystemBackground : UIColor.secondarySystemBackground))
+                    )
+                    .padding(.leading, 12)
+                    .padding(.top, 8)
+                    .padding(.bottom, 16)
+                
+                Spacer()
+                
+                // 右侧：Emoji和打卡按钮
+                checkInButton
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 12)
+            }
+            .background(Color(colorScheme == .dark ? UIColor.secondarySystemBackground : UIColor.systemBackground))
         }
-        .background(Color(colorScheme == .dark ? UIColor.secondarySystemBackground : UIColor.systemBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if isSwiped {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    offset = 0
+                    isSwiped = false
+                }
+            } else {
+                NotificationCenter.default.post(name: NSNotification.Name("NavigateToDetail"), object: habit)
+            }
+        }
+    }
+    
+    // Emoji打卡按钮
+    private var checkInButton: some View {
+        Button(action: {
+            checkInHabit()
+        }) {
+            ZStack {
+                // 圆环
+                if habit.habitType == .checkbox {
+                    // Checkbox型习惯的圆环 - 先显示底色轨道
+                    Circle()
+                        .stroke(
+                            theme.color(for: 1, isDarkMode: colorScheme == .dark).opacity(0.4),
+                            style: StrokeStyle(lineWidth: 10)
+                        )
+                        .frame(width: 64, height: 64)
+                    
+                    // 完成圆环
+                    Circle()
+                        .trim(from: 0, to: isCompletedToday ? 1 : 0)
+                        .stroke(
+                            theme.color(for: 4, isDarkMode: colorScheme == .dark),
+                            style: StrokeStyle(
+                                lineWidth: 10,
+                                lineCap: .round,
+                                lineJoin: .round
+                            )
+                        )
+                        .frame(width: 64, height: 64)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.easeInOut(duration: 0.5), value: isCompletedToday)
+                } else {
+                    // Count型习惯的圆环 - 先显示底色轨道
+                    Circle()
+                        .stroke(
+                            theme.color(for: 1, isDarkMode: colorScheme == .dark).opacity(0.4),
+                            style: StrokeStyle(lineWidth: 10)
+                        )
+                        .frame(width: 64, height: 64)
+                    
+                    // 进度环
+                    Circle()
+                        .trim(from: 0, to: isAnimating ? animatedCompletion : countProgress)
+                        .stroke(
+                            theme.color(for: 4, isDarkMode: colorScheme == .dark),
+                            style: StrokeStyle(
+                                lineWidth: 10,
+                                lineCap: .round,
+                                lineJoin: .round
+                            )
+                        )
+                        .frame(width: 64, height: 64)
+                        .rotationEffect(.degrees(-90))
+                }
+                
+                // Emoji
+                Text(habit.emoji)
+                    .font(.system(size: 28))
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .frame(width: 70, height: 70)
+    }
+    
+    // 打卡操作
+    private func checkInHabit() {
+        // 获取当前日期的计数
+        let currentCount = todayCompletionStatus
+        
+        // 计算点击后的新计数
+        var newCount = currentCount
+        if habit.habitType == .checkbox {
+            // 对于checkbox，如果已有计数则变为0，否则变为4
+            newCount = (currentCount > 0) ? 0 : 4
+        } else {
+            // 对于count，计数加1，如果达到4则重置为0
+            newCount = (currentCount >= 4) ? 0 : currentCount + 1
+        }
+        
+        // 设置动画的起点和终点
+        let startCompletion = Double(min(currentCount, 4)) / 4.0
+        let targetCompletion = Double(min(newCount, 4)) / 4.0
+        
+        // 设置动画
+        isAnimating = true
+        animatedCompletion = startCompletion
+        todayCellAnimating = true
+        
+        // 使用withAnimation创建流畅的动画效果
+        withAnimation(.easeInOut(duration: 0.5)) {
+            if newCount == 0 {
+                // 如果是取消打卡，动画应该从当前位置返回到0
+                animatedCompletion = 0
+            } else {
+                // 否则动画应该前进到新位置
+                animatedCompletion = targetCompletion
+            }
+        }
+        
+        // 执行实际的打卡操作
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            habitStore.logHabit(habitId: habit.id, date: Date())
+            
+            // 更新本地状态，避免触发整个卡片的重新渲染
+            todayCompletionStatus = newCount
+            
+            // 如果是添加打卡，增加连续打卡天数；如果是取消且今天是唯一的打卡日，则减少
+            if newCount > 0 && currentCount == 0 {
+                currentStreak += 1
+            } else if newCount == 0 && currentStreak == 1 {
+                currentStreak = 0
+            }
+            
+            // 重置动画状态（在动画完成后）
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                isAnimating = false
+                todayCellAnimating = false
+            }
+        }
+    }
+}
+
+// 为MiniHeatmapView添加Equatable实现，减少不必要的重新渲染
+extension MiniHeatmapView: Equatable {
+    static func == (lhs: MiniHeatmapView, rhs: MiniHeatmapView) -> Bool {
+        // 只有当habitId变化时，视图才需要重新渲染
+        lhs.habitId == rhs.habitId
     }
 }
 
