@@ -28,15 +28,24 @@ struct minimal_habit_trackerApp: App {
         guard url.scheme == "easyhabit" else { return }
         
         // 解析 URL 路径
-        if url.host == "widget" && url.path == "/checkin" {
+        if url.host == "widget" {
             // 从 URL 查询参数中获取习惯 ID
-            if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
-               let habitIdItem = components.queryItems?.first(where: { $0.name == "habitId" }),
-               let habitIdString = habitIdItem.value,
-               let habitId = UUID(uuidString: habitIdString) {
-                
+            guard let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
+                  let habitIdItem = components.queryItems?.first(where: { $0.name == "habitId" }),
+                  let habitIdString = habitIdItem.value,
+                  let habitId = UUID(uuidString: habitIdString) else {
+                return
+            }
+            
+            if url.path == "/checkin" {
                 // 执行打卡操作
                 habitStore.logHabit(habitId: habitId, date: Date())
+            } else if url.path == "/open" {
+                // 仅打开应用，可选择跳转到习惯详情页
+                if let habit = habitStore.habits.first(where: { $0.id == habitId }) {
+                    // 通过通知中心发送消息，触发导航到详情页
+                    NotificationCenter.default.post(name: NSNotification.Name("NavigateToDetail"), object: habit)
+                }
             }
         }
     }

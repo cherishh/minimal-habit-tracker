@@ -156,7 +156,7 @@ struct HabitWidgetEntryView: View {
                 .padding(.trailing, 16)
             }
             .padding(.vertical, 16)
-            .widgetURL(URL(string: "easyhabit://widget/checkin?habitId=\(entry.habit.id.uuidString)"))
+            .widgetURL(URL(string: "easyhabit://widget/open?habitId=\(entry.habit.id.uuidString)"))
             
         default:
             Text("不支持的 Widget 大小")
