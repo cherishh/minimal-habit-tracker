@@ -9,27 +9,25 @@
 5. 用户可以切换light/dark mode；
 
 ## todos
-- [ ] 列表页 UI 改版；
 - [ ] 用户可以在桌面添加该 app 的 widget。这个 widget 显示当前 habit 的 heatmap。如果用户点击 widget，直接默认在当前 habit 上 log+1。【不需要】进入 app。
 - [ ] 如果用户有多个 habit，则应该像ios 自带的 smart stack widget 一样，用户可以上下滑动切换不同的 habit。
+- [ ] dark mode 颜色优化（https://www.lifeofdiscipline.com/my-habits）
+- [ ] 文案优化
+- [ ] emoji 搜索
 - [ ] 热力图自动滚动到当前日期为最后一列
+- [ ] 支持数据导出
 - [ ] 设置页扩展
     - [ ] light dark 切换
     - [ ] 热力图颜色自定义
-- [ ] 文案优化
-- [ ] dark mode 颜色优化（https://www.lifeofdiscipline.com/my-habits）
-- [ ] emoji 搜索
-- [ ] 支持数据导出
-- [ ] 设置每天的提醒时间，提醒用户打卡
 - [ ] invite buddy
 - [ ] 添加增值服务
     - [ ] 自定义 color theme
     - [ ] note 功能
     - [ ] 数据云同步
     - [ ] 无限 habits 数量
+- [ ] 设置每天的提醒时间，提醒用户打卡
 - [ ] 多语言支持
-- [ ] 最长连续的计算优化
-- [ ] 非 current year 颜色有 opacity，后期优化 current year 的逻辑，应该根据当前选择年份走
 - [ ] 成果分享
+- [ ] 最长连续的计算优化（最多往前算 365 天可跨年）
 - [ ] audio 
 - [ ] 同步到 notion

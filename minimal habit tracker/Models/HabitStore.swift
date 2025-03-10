@@ -1,5 +1,7 @@
 import Foundation
 import Combine
+import WidgetKit
+import UIKit
 
 class HabitStore: ObservableObject {
     @Published var habits: [Habit] = []
@@ -8,8 +10,11 @@ class HabitStore: ObservableObject {
     private let habitsKey = "habits"
     private let habitLogsKey = "habitLogs"
     
+    // 使用 App Group 的 UserDefaults 来共享数据
+    private let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker") ?? UserDefaults.standard
+    
     // 定义最大习惯数量常量
-    static let maxHabitCount = 4
+    static let maxHabitCount = 10
     
     init() {
         loadData()
@@ -25,6 +30,7 @@ class HabitStore: ObservableObject {
         
         habits.append(habit)
         saveData()
+        refreshWidgets()
     }
     
     // 检查是否可以添加新习惯
@@ -37,12 +43,14 @@ class HabitStore: ObservableObject {
         // 同时删除相关的日志
         habitLogs.removeAll { $0.habitId == habit.id }
         saveData()
+        refreshWidgets()
     }
     
     func updateHabit(_ habit: Habit) {
         if let index = habits.firstIndex(where: { $0.id == habit.id }) {
             habits[index] = habit
             saveData()
+            refreshWidgets()
         }
     }
     
@@ -84,6 +92,7 @@ class HabitStore: ObservableObject {
         }
         
         saveData()
+        refreshWidgets()
     }
     
     func getLogCountForDate(habitId: UUID, date: Date) -> Int {
@@ -133,25 +142,41 @@ class HabitStore: ObservableObject {
         return longestStreak
     }
     
+    // MARK: - Widget 刷新
+    
+    /// 刷新所有相关的 Widget
+    private func refreshWidgets() {
+        // 刷新所有 Widget
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+    
     // MARK: - 持久化
     
     private func saveData() {
         if let encoded = try? JSONEncoder().encode(habits) {
-            UserDefaults.standard.set(encoded, forKey: habitsKey)
+            // 使用共享的 UserDefaults
+            sharedDefaults.set(encoded, forKey: habitsKey)
         }
         
         if let encoded = try? JSONEncoder().encode(habitLogs) {
-            UserDefaults.standard.set(encoded, forKey: habitLogsKey)
+            // 使用共享的 UserDefaults
+            sharedDefaults.set(encoded, forKey: habitLogsKey)
+        }
+        
+        // 确保数据变化通知发送给观察者
+        DispatchQueue.main.async {
+            self.objectWillChange.send()
         }
     }
     
     private func loadData() {
-        if let habitsData = UserDefaults.standard.data(forKey: habitsKey),
+        // 从共享的 UserDefaults 加载数据
+        if let habitsData = sharedDefaults.data(forKey: habitsKey),
            let decodedHabits = try? JSONDecoder().decode([Habit].self, from: habitsData) {
             habits = decodedHabits
         }
         
-        if let logsData = UserDefaults.standard.data(forKey: habitLogsKey),
+        if let logsData = sharedDefaults.data(forKey: habitLogsKey),
            let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
             habitLogs = decodedLogs
         }

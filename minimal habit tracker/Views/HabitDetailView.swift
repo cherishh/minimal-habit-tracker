@@ -4,6 +4,7 @@ struct HabitDetailView: View {
     let habitId: UUID
     @EnvironmentObject var habitStore: HabitStore
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.presentationMode) var presentationMode
     @State private var showingSettings = false
     
     // 获取当前年和月
@@ -46,11 +47,31 @@ struct HabitDetailView: View {
             }
             .padding(.vertical)
         }
-        .navigationTitle(habit.name)
+        .navigationTitle("\(habit.emoji) \(habit.name)")
+        .accentColor(.black)
+        .navigationBarBackButtonHidden(true)
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                    Image("left")
+                        .resizable()
+                        .renderingMode(.template)
+                        .scaledToFit()
+                        .frame(width: 28, height: 28)
+                        .foregroundColor(.black)
+                }
+            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: { showingSettings = true }) {
-                    Image(systemName: "gear")
+                    Image("settings")
+                        .resizable()
+                        .renderingMode(.template)
+                        .scaledToFit()
+                        .frame(width: 18, height: 18)
+                        .frame(width: 36, height: 36)
+                        .background(Color(UIColor.systemGray5).opacity(0.6))
+                        .cornerRadius(10)
+                        .foregroundColor(.primary)
                 }
             }
         }
@@ -168,8 +189,12 @@ struct MonthCalendarView: View {
             // 月份选择器
             HStack {
                 Button(action: previousMonth) {
-                    Image(systemName: "chevron.left")
-                        .foregroundColor(.black)
+                    Image("left")
+                        .resizable()
+                        .renderingMode(.template)
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                        .foregroundColor(.primary)
                 }
                 
                 Spacer()
@@ -180,17 +205,24 @@ struct MonthCalendarView: View {
                 Spacer()
                 
                 Button(action: nextMonth) {
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.black)
+                    Image("right")
+                        .resizable()
+                        .renderingMode(.template)
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                        .foregroundColor(.primary)
                 }
                 
                 Button(action: goToCurrentMonth) {
-                    Text("本月")
-                        .font(.subheadline)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(Color.secondary.opacity(0.2))
+                    Image("locate")
+                        .resizable()
+                        .renderingMode(.template)
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                        .frame(width: 32, height: 32)
+                        .background(Color(UIColor.systemGray5).opacity(0.6))
                         .cornerRadius(8)
+                        .foregroundColor(.primary)
                 }
                 .padding(.leading, 10)
             }
@@ -525,7 +557,12 @@ struct YearPicker: View {
     var body: some View {
         HStack {
             Button(action: previousYear) {
-                Image(systemName: "chevron.left")
+                Image("left")
+                    .resizable()
+                    .renderingMode(.template)
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
+                    .foregroundColor(.primary)
             }
             
             Spacer()
@@ -536,16 +573,24 @@ struct YearPicker: View {
             Spacer()
             
             Button(action: nextYear) {
-                Image(systemName: "chevron.right")
+                Image("right")
+                    .resizable()
+                    .renderingMode(.template)
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
+                    .foregroundColor(.primary)
             }
             
             Button(action: goToCurrentYear) {
-                Text("今年")
-                    .font(.subheadline)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Color.secondary.opacity(0.2))
+                Image("locate")
+                    .resizable()
+                    .renderingMode(.template)
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
+                    .frame(width: 32, height: 32)
+                    .background(Color(UIColor.systemGray5).opacity(0.6))
                     .cornerRadius(8)
+                    .foregroundColor(.primary)
             }
             .padding(.leading, 10)
         }

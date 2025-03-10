@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		0BBB1D5E2D7EFBE0004C628B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0BBB1D5D2D7EFBDF004C628B /* WidgetKit.framework */; };
+		0BBB1D602D7EFBE0004C628B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0BBB1D5F2D7EFBE0004C628B /* SwiftUI.framework */; };
+		0BBB1D712D7EFBE2004C628B /* mid-widgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0BBB1D5B2D7EFBDF004C628B /* mid-widgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		0B0422CC2D79E32B0011CBE8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,17 +27,65 @@
 			remoteGlobalIDString = 0B0422BA2D79E32A0011CBE8;
 			remoteInfo = "minimal habit tracker";
 		};
+		0BBB1D6F2D7EFBE2004C628B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0B0422B32D79E32A0011CBE8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0BBB1D5A2D7EFBDF004C628B;
+			remoteInfo = "mid-widgetExtension";
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		0BBB1D762D7EFBE2004C628B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				0BBB1D712D7EFBE2004C628B /* mid-widgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0B0422BB2D79E32A0011CBE8 /* minimal habit tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "minimal habit tracker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0B0422CB2D79E32B0011CBE8 /* minimal habit trackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "minimal habit trackerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0B0422D52D79E32B0011CBE8 /* minimal habit trackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "minimal habit trackerUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0BBB1D5B2D7EFBDF004C628B /* mid-widgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "mid-widgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0BBB1D5D2D7EFBDF004C628B /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		0BBB1D5F2D7EFBE0004C628B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		0BBB1D7F2D7F0EBD004C628B /* mid-widgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "mid-widgetExtension.entitlements"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0BBB1D722D7EFBE2004C628B /* Exceptions for "mid-widget" folder in "mid-widgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0BBB1D5A2D7EFBDF004C628B /* mid-widgetExtension */;
+		};
+		0BBB1D7B2D7F06FC004C628B /* Exceptions for "minimal habit tracker" folder in "mid-widgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/ColorTheme.swift,
+				Models/Habit.swift,
+				Models/HabitLog.swift,
+				Models/HabitStore.swift,
+			);
+			target = 0BBB1D5A2D7EFBDF004C628B /* mid-widgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		0B0422BD2D79E32A0011CBE8 /* minimal habit tracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0BBB1D7B2D7F06FC004C628B /* Exceptions for "minimal habit tracker" folder in "mid-widgetExtension" target */,
+			);
 			path = "minimal habit tracker";
 			sourceTree = "<group>";
 		};
@@ -43,6 +97,14 @@
 		0B0422D82D79E32B0011CBE8 /* minimal habit trackerUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "minimal habit trackerUITests";
+			sourceTree = "<group>";
+		};
+		0BBB1D612D7EFBE0004C628B /* mid-widget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0BBB1D722D7EFBE2004C628B /* Exceptions for "mid-widget" folder in "mid-widgetExtension" target */,
+			);
+			path = "mid-widget";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,15 +131,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0BBB1D582D7EFBDF004C628B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0BBB1D602D7EFBE0004C628B /* SwiftUI.framework in Frameworks */,
+				0BBB1D5E2D7EFBE0004C628B /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		0B0422B22D79E32A0011CBE8 = {
 			isa = PBXGroup;
 			children = (
+				0BBB1D7F2D7F0EBD004C628B /* mid-widgetExtension.entitlements */,
 				0B0422BD2D79E32A0011CBE8 /* minimal habit tracker */,
 				0B0422CE2D79E32B0011CBE8 /* minimal habit trackerTests */,
 				0B0422D82D79E32B0011CBE8 /* minimal habit trackerUITests */,
+				0BBB1D612D7EFBE0004C628B /* mid-widget */,
+				0BBB1D5C2D7EFBDF004C628B /* Frameworks */,
 				0B0422BC2D79E32A0011CBE8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,8 +162,18 @@
 				0B0422BB2D79E32A0011CBE8 /* minimal habit tracker.app */,
 				0B0422CB2D79E32B0011CBE8 /* minimal habit trackerTests.xctest */,
 				0B0422D52D79E32B0011CBE8 /* minimal habit trackerUITests.xctest */,
+				0BBB1D5B2D7EFBDF004C628B /* mid-widgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		0BBB1D5C2D7EFBDF004C628B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0BBB1D5D2D7EFBDF004C628B /* WidgetKit.framework */,
+				0BBB1D5F2D7EFBE0004C628B /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -102,10 +186,12 @@
 				0B0422B72D79E32A0011CBE8 /* Sources */,
 				0B0422B82D79E32A0011CBE8 /* Frameworks */,
 				0B0422B92D79E32A0011CBE8 /* Resources */,
+				0BBB1D762D7EFBE2004C628B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				0BBB1D702D7EFBE2004C628B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				0B0422BD2D79E32A0011CBE8 /* minimal habit tracker */,
@@ -163,6 +249,28 @@
 			productReference = 0B0422D52D79E32B0011CBE8 /* minimal habit trackerUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		0BBB1D5A2D7EFBDF004C628B /* mid-widgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0BBB1D732D7EFBE2004C628B /* Build configuration list for PBXNativeTarget "mid-widgetExtension" */;
+			buildPhases = (
+				0BBB1D572D7EFBDF004C628B /* Sources */,
+				0BBB1D582D7EFBDF004C628B /* Frameworks */,
+				0BBB1D592D7EFBDF004C628B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0BBB1D612D7EFBE0004C628B /* mid-widget */,
+			);
+			name = "mid-widgetExtension";
+			packageProductDependencies = (
+			);
+			productName = "mid-widgetExtension";
+			productReference = 0BBB1D5B2D7EFBDF004C628B /* mid-widgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -184,6 +292,9 @@
 						CreatedOnToolsVersion = 16.2;
 						TestTargetID = 0B0422BA2D79E32A0011CBE8;
 					};
+					0BBB1D5A2D7EFBDF004C628B = {
+						CreatedOnToolsVersion = 16.2;
+					};
 				};
 			};
 			buildConfigurationList = 0B0422B62D79E32A0011CBE8 /* Build configuration list for PBXProject "minimal habit tracker" */;
@@ -203,6 +314,7 @@
 				0B0422BA2D79E32A0011CBE8 /* minimal habit tracker */,
 				0B0422CA2D79E32B0011CBE8 /* minimal habit trackerTests */,
 				0B0422D42D79E32B0011CBE8 /* minimal habit trackerUITests */,
+				0BBB1D5A2D7EFBDF004C628B /* mid-widgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -223,6 +335,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		0B0422D32D79E32B0011CBE8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0BBB1D592D7EFBDF004C628B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -253,6 +372,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0BBB1D572D7EFBDF004C628B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -265,6 +391,11 @@
 			isa = PBXTargetDependency;
 			target = 0B0422BA2D79E32A0011CBE8 /* minimal habit tracker */;
 			targetProxy = 0B0422D62D79E32B0011CBE8 /* PBXContainerItemProxy */;
+		};
+		0BBB1D702D7EFBE2004C628B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0BBB1D5A2D7EFBDF004C628B /* mid-widgetExtension */;
+			targetProxy = 0BBB1D6F2D7EFBE2004C628B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -393,12 +524,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "minimal habit tracker/minimal habit tracker.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"minimal habit tracker/Preview Content\"";
 				DEVELOPMENT_TEAM = PS3XQRQ595;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "minimal-habit-tracker-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -422,12 +555,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "minimal habit tracker/minimal habit tracker.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"minimal habit tracker/Preview Content\"";
 				DEVELOPMENT_TEAM = PS3XQRQ595;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "minimal-habit-tracker-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -518,6 +653,62 @@
 			};
 			name = Release;
 		};
+		0BBB1D742D7EFBE2004C628B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "mid-widgetExtension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PS3XQRQ595;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "mid-widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "mid-widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.xi.HabitTracker.minimal-habit-tracker.mid-widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0BBB1D752D7EFBE2004C628B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "mid-widgetExtension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PS3XQRQ595;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "mid-widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "mid-widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.xi.HabitTracker.minimal-habit-tracker.mid-widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -553,6 +744,15 @@
 			buildConfigurations = (
 				0B0422E62D79E32B0011CBE8 /* Debug */,
 				0B0422E72D79E32B0011CBE8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0BBB1D732D7EFBE2004C628B /* Build configuration list for PBXNativeTarget "mid-widgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0BBB1D742D7EFBE2004C628B /* Debug */,
+				0BBB1D752D7EFBE2004C628B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

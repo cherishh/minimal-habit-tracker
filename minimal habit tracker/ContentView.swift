@@ -18,23 +18,25 @@ struct ContentView: View {
     @AppStorage("isDarkMode") private var isDarkMode = false
     @State private var showingMaxHabitsAlert = false
     
+    // 自定义更淡的背景色
+    private var lightBackgroundColor: Color {
+        colorScheme == .dark 
+            ? Color(UIColor.systemBackground) 
+            : Color(UIColor.systemGroupedBackground).opacity(0.4)
+    }
+    
     var body: some View {
         NavigationStack {
-            VStack() {
-                if habitStore.habits.isEmpty {
-                    emptyStateView
-                } else {
-                    habitListView
-                }
-            }
-            .navigationTitle("习惯追踪")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack {
-                        Button(action: { showingSettings = true }) {
-                            Image(systemName: "gear")
-                        }
-                        
+            VStack(spacing: 0) {
+                // 自定义标题栏
+                HStack {
+                    Text("EasyHabit")
+                        .font(.system(size: 32, weight: .regular, design: .rounded))
+                        .padding(.leading)
+                    
+                    Spacer()
+                    
+                    HStack(spacing: 16) {
                         Button(action: {
                             if habitStore.canAddHabit() {
                                 isAddingHabit = true
@@ -42,11 +44,42 @@ struct ContentView: View {
                                 showingMaxHabitsAlert = true
                             }
                         }) {
-                            Image(systemName: "plus")
+                            Image("plus")
+                                .resizable()
+                                .renderingMode(.template)
+                                .scaledToFit()
+                                .frame(width: 18, height: 18)
+                                .frame(width: 36, height: 36)
+                                .background(Color(UIColor.systemGray5).opacity(0.6))
+                                .cornerRadius(10)
+                                .foregroundColor(.primary)
+                        }
+                        
+                        Button(action: { showingSettings = true }) {
+                            Image("settings")
+                                .resizable()
+                                .renderingMode(.template)
+                                .scaledToFit()
+                                .frame(width: 18, height: 18)
+                                .frame(width: 36, height: 36)
+                                .background(Color(UIColor.systemGray5).opacity(0.6))
+                                .cornerRadius(10)
+                                .foregroundColor(.primary)
                         }
                     }
+                    .padding(.trailing)
+                }
+                .padding(.top, 8)
+                .padding(.bottom, 8)
+                .background(lightBackgroundColor)
+                
+                if habitStore.habits.isEmpty {
+                    emptyStateView
+                } else {
+                    habitListView
                 }
             }
+            .navigationBarHidden(true) // 隐藏系统的导航栏，使用自定义标题栏
             .sheet(isPresented: $isAddingHabit) {
                 NewHabitView(isPresented: $isAddingHabit)
             }
@@ -71,6 +104,7 @@ struct ContentView: View {
             .onDisappear {
                 removeNotificationObserver()
             }
+            .background(lightBackgroundColor)
         }
     }
     
@@ -135,7 +169,7 @@ struct ContentView: View {
             .padding(.vertical, 16)
             .padding(.horizontal, 20)
         }
-        .background(Color(colorScheme == .dark ? UIColor.systemBackground : UIColor.systemGroupedBackground))
+        .background(lightBackgroundColor)
     }
 }
 
@@ -244,33 +278,49 @@ struct HabitCardView: View {
     @EnvironmentObject var habitStore: HabitStore
     @Environment(\.colorScheme) var colorScheme
     @State private var isAnimating = false
-    @State private var todayCellAnimating = false
     @State private var animatedCompletion: Double = 0
     @State private var offset: CGFloat = 0
     @State private var isSwiped = false
-    @State private var todayCompletionStatus: Int = 0
-    @State private var currentStreak: Int = 0
     
+    // 移除本地状态变量，直接计算当前状态
     // 获取习惯对应的主题颜色
     private var theme: ColorTheme {
         ColorTheme.getTheme(for: habit.colorTheme)
     }
     
-    // 判断今天是否已完成打卡
+    // 判断今天是否已完成打卡 - 直接从 habitStore 获取
     private var isCompletedToday: Bool {
-        todayCompletionStatus > 0
+        habitStore.getLogCountForDate(habitId: habit.id, date: Date()) > 0
     }
     
-    // 获取计数型习惯的进度百分比 (0-1)
+    // 获取计数型习惯的进度百分比 (0-1) - 直接从 habitStore 获取
     private var countProgress: CGFloat {
-        let count = CGFloat(todayCompletionStatus)
+        let count = CGFloat(habitStore.getLogCountForDate(habitId: habit.id, date: Date()))
         return min(count / 4.0, 1.0)
     }
     
-    // 更新卡片数据
-    private func updateCardData() {
-        todayCompletionStatus = habitStore.getLogCountForDate(habitId: habit.id, date: Date())
-        updateStreakDays()
+    // 获取连续打卡天数 - 直接从 habitStore 获取
+    private var currentStreak: Int {
+        let calendar = Calendar.current
+        let today = Date()
+        var dayCount = 0
+        
+        // 从今天开始向前查找连续打卡的天数
+        for dayOffset in 0..<100 { // 最多查找100天
+            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
+            
+            // 获取该日期的打卡记录
+            let count = habitStore.getLogCountForDate(habitId: habit.id, date: date)
+            
+            // 如果这天有打卡记录，增加计数
+            if count > 0 {
+                dayCount += 1
+            } else if dayOffset > 0 { // 遇到未打卡的日期且不是今天，结束计数
+                break
+            }
+        }
+        
+        return dayCount
     }
     
     var body: some View {
@@ -289,12 +339,15 @@ struct HabitCardView: View {
                 } label: {
                     ZStack {
                         Circle()
-                            .fill(Color.red)
-                            .frame(width: 50, height: 50)
+                            .fill(Color.red.opacity(0.85))
+                            .frame(width: 44, height: 44)
                             .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
                         
-                        Image(systemName: "trash")
-                            .font(.system(size: 18))
+                        Image("trash")
+                            .resizable()
+                            .renderingMode(.template)
+                            .scaledToFit()
+                            .frame(width: 18, height: 18)
                             .foregroundColor(.white)
                     }
                     .contentShape(Circle()) // 确保整个圆形区域可点击
@@ -355,9 +408,6 @@ struct HabitCardView: View {
         }
         .allowsHitTesting(true)
         .frame(maxWidth: .infinity)
-        .onAppear {
-            updateCardData()
-        }
     }
     
     // 提取卡片主视图
@@ -494,7 +544,7 @@ struct HabitCardView: View {
     // 打卡操作
     private func checkInHabit() {
         // 获取当前日期的计数
-        let currentCount = todayCompletionStatus
+        let currentCount = habitStore.getLogCountForDate(habitId: habit.id, date: Date())
         
         // 计算点击后的新计数
         var newCount = currentCount
@@ -513,7 +563,6 @@ struct HabitCardView: View {
         // 设置动画
         isAnimating = true
         animatedCompletion = startCompletion
-        todayCellAnimating = true
         
         // 使用withAnimation创建流畅的动画效果
         withAnimation(.easeInOut(duration: 0.5)) {
@@ -530,42 +579,11 @@ struct HabitCardView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             habitStore.logHabit(habitId: habit.id, date: Date())
             
-            // 更新本地状态，避免触发整个卡片的重新渲染
-            todayCompletionStatus = newCount
-            
-            // 重新计算连续打卡天数，确保数据准确性
-            updateStreakDays()
-            
             // 重置动画状态（在动画完成后）
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 isAnimating = false
-                todayCellAnimating = false
             }
         }
-    }
-    
-    // 单独提取连续天数计算方法
-    private func updateStreakDays() {
-        let calendar = Calendar.current
-        let today = Date()
-        var dayCount = 0
-        
-        // 从今天开始向前查找连续打卡的天数
-        for dayOffset in 0..<100 { // 最多查找100天
-            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
-            
-            // 获取该日期的打卡记录
-            let count = habitStore.getLogCountForDate(habitId: habit.id, date: date)
-            
-            // 如果这天有打卡记录，增加计数
-            if count > 0 {
-                dayCount += 1
-            } else if dayOffset > 0 { // 遇到未打卡的日期且不是今天，结束计数
-                break
-            }
-        }
-        
-        currentStreak = dayCount
     }
 }
 
