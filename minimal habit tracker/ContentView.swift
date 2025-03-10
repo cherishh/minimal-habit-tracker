@@ -398,10 +398,10 @@ struct HabitCardView: View {
                     .padding(.horizontal, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(Color(colorScheme == .dark ? UIColor.tertiarySystemBackground : UIColor.secondarySystemBackground))
+                            .fill(Color(colorScheme == .dark ? UIColor.tertiarySystemBackground : UIColor.secondarySystemBackground).opacity(0.5))
                     )
                     .padding(.leading, 12)
-                    .padding(.top, 4)
+                    .padding(.top, 0)
                     .padding(.bottom, 12)
                 
                 Spacer()
