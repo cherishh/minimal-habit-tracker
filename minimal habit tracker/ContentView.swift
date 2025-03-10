@@ -158,7 +158,7 @@ struct ContentView: View {
     private var habitListView: some View {
         ScrollView {
             VStack(spacing: 16) {
-                ForEach(habitStore.habits) { habit in
+            ForEach(habitStore.habits) { habit in
                     HabitCardView(habit: habit, onDelete: {
                         withAnimation {
                             habitStore.removeHabit(habit)
@@ -340,7 +340,7 @@ struct HabitCardView: View {
                     ZStack {
                         Circle()
                             .fill(Color.red.opacity(0.85))
-                            .frame(width: 44, height: 44)
+                .frame(width: 44, height: 44)
                             .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
                         
                         Image("trash")
@@ -465,8 +465,8 @@ struct HabitCardView: View {
         }
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
-        .contentShape(Rectangle())
-        .onTapGesture {
+            .contentShape(Rectangle())
+            .onTapGesture {
             if isSwiped {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                     offset = 0
@@ -476,14 +476,14 @@ struct HabitCardView: View {
                 NotificationCenter.default.post(name: NSNotification.Name("NavigateToDetail"), object: habit)
             }
         }
-    }
-    
+            }
+            
     // Emoji打卡按钮
     private var checkInButton: some View {
-        Button(action: {
+            Button(action: {
             checkInHabit()
-        }) {
-            ZStack {
+            }) {
+                ZStack {
                 // 圆环
                 if habit.habitType == .checkbox {
                     // Checkbox型习惯的圆环 - 先显示底色轨道
@@ -495,7 +495,7 @@ struct HabitCardView: View {
                         .frame(width: 64, height: 64)
                     
                     // 完成圆环
-                    Circle()
+                        Circle()
                         .trim(from: 0, to: isCompletedToday ? 1 : 0)
                         .stroke(
                             theme.color(for: 4, isDarkMode: colorScheme == .dark),
@@ -518,7 +518,7 @@ struct HabitCardView: View {
                         .frame(width: 64, height: 64)
                     
                     // 进度环
-                    Circle()
+                            Circle()
                         .trim(from: 0, to: isAnimating ? animatedCompletion : countProgress)
                         .stroke(
                             theme.color(for: 4, isDarkMode: colorScheme == .dark),
@@ -536,8 +536,8 @@ struct HabitCardView: View {
                 Text(habit.emoji)
                     .font(.system(size: 28))
             }
-        }
-        .buttonStyle(PlainButtonStyle())
+            }
+            .buttonStyle(PlainButtonStyle())
         .frame(width: 70, height: 70)
     }
     
@@ -624,7 +624,7 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("完成") {
-                        isPresented = false
+                isPresented = false
                     }
                 }
             }

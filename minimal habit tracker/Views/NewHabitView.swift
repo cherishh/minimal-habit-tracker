@@ -13,6 +13,7 @@ struct HabitFormView: View {
     @State private var isEditMode: Bool
     @State private var originalHabit: Habit?
     @Environment(\.colorScheme) var colorScheme
+    @State private var showingCopiedMessage = false
     
     // 背景色列表
     let backgroundColors: [String] = [
@@ -211,6 +212,63 @@ struct HabitFormView: View {
                     .foregroundColor(.primary)
                 }
             }
+
+            // 只在编辑模式下显示 UUID 信息，用于配置 Widget
+            if isEditMode, let habit = originalHabit {
+                Section(header: Text("Widget 配置信息")) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("习惯 ID")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        HStack {
+                            Text(habit.id.uuidString)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .textSelection(.enabled)  // 允许选择和复制文本
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                UIPasteboard.general.string = habit.id.uuidString
+                                showingCopiedMessage = true
+                                
+                                // 2秒后自动隐藏复制成功消息
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                    showingCopiedMessage = false
+                                }
+                            }) {
+                                Image(systemName: "doc.on.doc")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        .padding(10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.secondary.opacity(0.1))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                        )
+                        
+                        if showingCopiedMessage {
+                            Text("已复制到剪贴板")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.top, 4)
+                                .transition(.opacity)
+                                .animation(.easeInOut, value: showingCopiedMessage)
+                        }
+                        
+                        Text("配置 Widget 时需要输入此ID")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.top, 4)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
             
             Section {
                 if isEditMode {
@@ -227,18 +285,19 @@ struct HabitFormView: View {
                     }
                 }
                 
-                VStack(alignment: .leading, spacing: 5) {
-                    if selectedType == .checkbox {
-                        Text("点击一次记录完成，再次点击取消")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    } else {
-                        Text("可多次点击增加计数，颜色会逐渐加深")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
+                // VStack(alignment: .leading, spacing: 5) {
+                //     if selectedType == .checkbox {
+                //         Text("点击一次记录完成，再次点击取消")
+                //             .font(.caption)
+                //             .foregroundColor(.secondary)
+                //     } else {
+                //         Text("可多次点击增加计数，颜色会逐渐加深")
+                //             .font(.caption)
+                //             .foregroundColor(.secondary)
+                //     }
+                // }
             }
+            
         }
     }
     

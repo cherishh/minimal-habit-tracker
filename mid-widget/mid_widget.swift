@@ -16,9 +16,6 @@ struct HabitSelectionIntent: WidgetConfigurationIntent {
     
     @Parameter(title: "习惯ID", default: "")
     var habitId: String
-    
-    @Parameter(title: "习惯名称", default: "")
-    var habitName: String
 }
 
 // Widget 的数据提供者
@@ -136,31 +133,98 @@ struct HabitWidgetEntryView: View {
     var body: some View {
         switch family {
         case .systemMedium:
-            HStack(spacing: 16) {
-                // 左侧：微型热力图
-                WidgetMiniHeatmapView(
-                    habit: entry.habit,
-                    logs: entry.logs,
-                    colorScheme: colorScheme
-                )
-                .padding(.leading, 16)
+            // 使用与主应用中 HabitCardView 相同的设计
+            VStack(spacing: 0) {
+                // 上部分：习惯名称和连续打卡天数
+                HStack {
+                    Text(entry.habit.name)
+                        .font(.headline)
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 16)
+                    
+                    Spacer()
+                    
+                    // 连续打卡天数（如果有的话）
+                    if let currentStreak = getStreak(habit: entry.habit, logs: entry.logs), currentStreak > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "flame.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(getTheme(habit: entry.habit).color(for: 4, isDarkMode: colorScheme == .dark))
+                            
+                            Text("\(currentStreak)")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(getTheme(habit: entry.habit).color(for: 4, isDarkMode: colorScheme == .dark))
+                        }
+                        .padding(.trailing, 16)
+                    }
+                }
+                .background(Color(colorScheme == .dark ? UIColor.secondarySystemBackground : UIColor.systemBackground))
                 
-                Spacer()
-                
-                // 右侧：打卡按钮
-                WidgetCheckInButton(
-                    habit: entry.habit,
-                    todayCount: entry.todayCount,
-                    colorScheme: colorScheme
-                )
-                .padding(.trailing, 16)
+                // 下部分：微型热力图和打卡按钮
+                HStack(spacing: 16) {
+                    // 左侧：微型热力图
+                    WidgetMiniHeatmapView(
+                        habit: entry.habit,
+                        logs: entry.logs,
+                        colorScheme: colorScheme
+                    )
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color(colorScheme == .dark ? UIColor.tertiarySystemBackground : UIColor.secondarySystemBackground).opacity(0.3))
+                    )
+                    .padding(.leading, 12)
+                    .padding(.top, 0)
+                    .padding(.bottom, 12)
+                    
+                    Spacer()
+                    
+                    // 右侧：打卡按钮
+                    WidgetCheckInButton(
+                        habit: entry.habit,
+                        todayCount: entry.todayCount,
+                        colorScheme: colorScheme
+                    )
+                    .padding(.trailing, 16)
+                }
+                .background(Color(colorScheme == .dark ? UIColor.secondarySystemBackground : UIColor.systemBackground))
             }
-            .padding(.vertical, 16)
+            .cornerRadius(8)
             .widgetURL(URL(string: "easyhabit://widget/open?habitId=\(entry.habit.id.uuidString)"))
             
         default:
             Text("不支持的 Widget 大小")
         }
+    }
+    
+    // 获取习惯对应的主题颜色
+    private func getTheme(habit: Habit) -> ColorTheme {
+        return ColorTheme.getTheme(for: habit.colorTheme)
+    }
+    
+    // 计算连续打卡天数
+    private func getStreak(habit: Habit, logs: [HabitLog]) -> Int? {
+        let calendar = Calendar.current
+        let today = Date()
+        var dayCount = 0
+        
+        // 从今天开始向前查找连续打卡的天数
+        for dayOffset in 0..<100 { // 最多查找100天
+            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
+            
+            // 查找该日期是否有打卡记录
+            let logsForDate = logs.filter { calendar.isDate($0.date, inSameDayAs: date) }
+            
+            // 如果这天有打卡记录，增加计数
+            if !logsForDate.isEmpty {
+                dayCount += 1
+            } else if dayOffset > 0 { // 遇到未打卡的日期且不是今天，结束计数
+                break
+            }
+        }
+        
+        return dayCount
     }
 }
 
@@ -171,8 +235,8 @@ struct WidgetMiniHeatmapView: View {
     let colorScheme: ColorScheme
     
     // 热力图大小配置
-    private let cellSize: CGFloat = 6
-    private let cellSpacing: CGFloat = 2
+    private let cellSize: CGFloat = 8
+    private let cellSpacing: CGFloat = 3
     
     // 热力图日期配置
     private let daysToShow = 100 // 显示过去100天
@@ -243,39 +307,33 @@ struct WidgetMiniHeatmapView: View {
         // 计算总共需要显示的列数
         let columnCount = dateGrid.isEmpty ? 0 : dateGrid[0].count
         
-        VStack(alignment: .leading, spacing: 8) {
-            // 习惯名称
-            Text(habit.name)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.primary)
-            
-            // 热力图
-            VStack(alignment: .leading, spacing: cellSpacing) {
-                // 每行代表星期几（0是周一，6是周日）
-                ForEach(0..<7, id: \.self) { row in
-                    HStack(spacing: cellSpacing) {
-                        // 每列代表一周
-                        ForEach(0..<columnCount, id: \.self) { column in
-                            // 获取该位置的日期
-                            if let date = dateGrid[row][column] {
-                                let count = getLogCountForDate(date: date)
-                                
-                                // 单个格子
-                                RoundedRectangle(cornerRadius: 1)
-                                    .fill(theme.color(for: min(count, 4), isDarkMode: colorScheme == .dark))
-                                    .frame(width: cellSize, height: cellSize)
-                            } else {
-                                // 没有日期的位置（例如超过今天的日期）
-                                RoundedRectangle(cornerRadius: 1)
-                                    .fill(Color.clear)
-                                    .frame(width: cellSize, height: cellSize)
-                            }
+        // 移除标题，直接显示热力图
+        VStack(alignment: .leading, spacing: cellSpacing) {
+            // 每行代表星期几（0是周一，6是周日）
+            ForEach(0..<7, id: \.self) { row in
+                HStack(spacing: cellSpacing) {
+                    // 每列代表一周
+                    ForEach(0..<columnCount, id: \.self) { column in
+                        // 获取该位置的日期
+                        if let date = dateGrid[row][column] {
+                            let count = getLogCountForDate(date: date)
+                            
+                            // 单个格子
+                            RoundedRectangle(cornerRadius: 1)
+                                .fill(theme.color(for: min(count, 4), isDarkMode: colorScheme == .dark))
+                                .frame(width: cellSize, height: cellSize)
+                        } else {
+                            // 没有日期的位置（例如超过今天的日期）
+                            RoundedRectangle(cornerRadius: 1)
+                                .fill(Color.clear)
+                                .frame(width: cellSize, height: cellSize)
                         }
                     }
                 }
             }
-            .frame(height: 7 * (cellSize + cellSpacing) - cellSpacing)
         }
+        .frame(height: 7 * (cellSize + cellSpacing) - cellSpacing)
+        .frame(width: 190) // 保持相同宽度，适应100天的数据
     }
 }
 
@@ -300,7 +358,7 @@ struct WidgetCheckInButton: View {
         let count = CGFloat(todayCount)
         return min(count / 4.0, 1.0)
     }
-    
+
     var body: some View {
         Link(destination: URL(string: "easyhabit://widget/checkin?habitId=\(habit.id.uuidString)")!) {
             ZStack {
@@ -310,9 +368,9 @@ struct WidgetCheckInButton: View {
                     Circle()
                         .stroke(
                             theme.color(for: 1, isDarkMode: colorScheme == .dark).opacity(0.4),
-                            style: StrokeStyle(lineWidth: 8)
+                            style: StrokeStyle(lineWidth: 10)
                         )
-                        .frame(width: 60, height: 60)
+                        .frame(width: 64, height: 64)
                     
                     // 完成圆环
                     Circle()
@@ -320,21 +378,21 @@ struct WidgetCheckInButton: View {
                         .stroke(
                             theme.color(for: 4, isDarkMode: colorScheme == .dark),
                             style: StrokeStyle(
-                                lineWidth: 8,
+                                lineWidth: 10,
                                 lineCap: .round,
                                 lineJoin: .round
                             )
                         )
-                        .frame(width: 60, height: 60)
+                        .frame(width: 64, height: 64)
                         .rotationEffect(.degrees(-90))
                 } else {
                     // Count型习惯的圆环 - 先显示底色轨道
                     Circle()
                         .stroke(
                             theme.color(for: 1, isDarkMode: colorScheme == .dark).opacity(0.4),
-                            style: StrokeStyle(lineWidth: 8)
+                            style: StrokeStyle(lineWidth: 10)
                         )
-                        .frame(width: 60, height: 60)
+                        .frame(width: 64, height: 64)
                     
                     // 进度环
                     Circle()
@@ -342,20 +400,21 @@ struct WidgetCheckInButton: View {
                         .stroke(
                             theme.color(for: 4, isDarkMode: colorScheme == .dark),
                             style: StrokeStyle(
-                                lineWidth: 8,
+                                lineWidth: 10,
                                 lineCap: .round,
                                 lineJoin: .round
                             )
                         )
-                        .frame(width: 60, height: 60)
+                        .frame(width: 64, height: 64)
                         .rotationEffect(.degrees(-90))
                 }
                 
                 // Emoji
                 Text(habit.emoji)
-                    .font(.system(size: 24))
+                    .font(.system(size: 28))
             }
         }
+        .frame(width: 70, height: 70)
     }
 }
 
@@ -393,7 +452,7 @@ struct CheckInHabitIntent: AppIntent {
 // Widget 配置
 struct HabitWidget: Widget {
     let kind: String = "HabitWidget"
-    
+
     var body: some WidgetConfiguration {
         AppIntentConfiguration(
             kind: kind,
@@ -426,6 +485,7 @@ struct SmartStackHabitWidget: Widget {
         .description("显示习惯热力图和打卡按钮，支持上下滑动切换不同习惯")
         .supportedFamilies([.systemMedium])
         .disfavoredLocations([.lockScreen], for: [.systemMedium])
+        .contentMarginsDisabled()
     }
 }
 
@@ -437,7 +497,6 @@ struct HabitWidget_Previews: PreviewProvider {
         let habit = Habit(name: "读书", emoji: "📚", colorTheme: .github, habitType: .checkbox)
         let intent = HabitSelectionIntent()
         intent.habitId = habit.id.uuidString
-        intent.habitName = habit.name
         
         // 创建一个条目用于预览
         let entry = HabitEntry(

@@ -7,15 +7,15 @@
 3. 创建 habit。habit 有两种类型，checkbox 和 count。确定类型后不可修改。用户选择类型后进入下一步，在下一步的创建中，用户选择 emoji、输入名称、选择颜色主题。checkbox 类型下，用户点击一次热力图对应的格子/打卡按钮即完成记录，默认使用用户选择的颜色主题中颜色最深的那个填充热力图；count 类型下，用户每点击一次，热力图颜色加深一点，最多有 4 档。创建成功后进入 detail view 界面。
 4. detail view 中，大致分为上下两部分。上半部分为 heatmap。heatmap 上每一个 block 代表一个日期。用户可以点击 block，从而 log 这一天的习惯已经打卡完成。用户可以多次点击同一个 block，每点击一次，该 block 的颜色加深一点，总共有 4 档。对于 checkbox 类型，在已经 log 的格子上再次点击则取消这天的 log；对于 count 类型，点击第 5 次时也清空 log。下半部分为普通日历，显示当月日期，用户也可以点击日历上的日期从而 log 这一天的习惯已经打卡完成。点击某日期后，该日期画圈。已经打卡的日期同样显示为已画圈。此外用户可随时点击齿轮按钮修改 habit 的名称、emoji、颜色主题。
 5. 用户可以切换light/dark mode；
+6. 用户可以创建widget。widget 可多个叠加（smart stack widget），用户可以上下滑动切换不同的 habit。
+
 
 ## todos
 - [ ] 用户可以在桌面添加该 app 的 widget。这个 widget 显示当前 habit 的 heatmap。如果用户点击 widget，直接默认在当前 habit 上 log+1。【不需要】进入 app。
-- [ ] 如果用户有多个 habit，则应该像ios 自带的 smart stack widget 一样，用户可以上下滑动切换不同的 habit。
 - [ ] dark mode 颜色优化（https://www.lifeofdiscipline.com/my-habits）
 - [ ] 文案优化
 - [ ] emoji 搜索
-- [ ] 热力图自动滚动到当前日期为最后一列
-- [ ] 支持数据导出
+- [ ] 支持数据导入导出
 - [ ] 设置页扩展
     - [ ] light dark 切换
     - [ ] 热力图颜色自定义
@@ -25,6 +25,7 @@
     - [ ] note 功能
     - [ ] 数据云同步
     - [ ] 无限 habits 数量
+- [ ] 热力图自动滚动到当前日期为最后一列
 - [ ] 设置每天的提醒时间，提醒用户打卡
 - [ ] 多语言支持
 - [ ] 成果分享
