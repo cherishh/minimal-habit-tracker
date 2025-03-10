@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var isAddingHabit = false
     @State private var showingSettings = false
     @State private var selectedHabit: Habit?
+    @State private var selectedHabitId: UUID?
     @State private var navigateToDetail = false
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("isDarkMode") private var isDarkMode = false
@@ -60,8 +61,8 @@ struct ContentView: View {
                 )
             }
             .navigationDestination(isPresented: $navigateToDetail) {
-                if let habit = selectedHabit {
-                    HabitDetailView(habit: habit)
+                if let habitId = selectedHabitId {
+                    HabitDetailView(habitId: habitId)
                 }
             }
             .onAppear {
@@ -76,7 +77,7 @@ struct ContentView: View {
     private func setupNotificationObserver() {
         NotificationCenter.default.addObserver(forName: NSNotification.Name("NavigateToDetail"), object: nil, queue: .main) { notification in
             if let habit = notification.object as? Habit {
-                selectedHabit = habit
+                selectedHabitId = habit.id
                 navigateToDetail = true
             }
         }

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct HabitDetailView: View {
-    let habit: Habit
+    let habitId: UUID
     @EnvironmentObject var habitStore: HabitStore
     @Environment(\.colorScheme) var colorScheme
     @State private var showingSettings = false
@@ -9,6 +9,11 @@ struct HabitDetailView: View {
     // 获取当前年和月
     @State private var selectedYear: Int = Calendar.current.component(.year, from: Date())
     @State private var selectedMonth: Int = Calendar.current.component(.month, from: Date())
+    
+    // 通过计算属性获取最新的习惯数据
+    private var habit: Habit {
+        habitStore.habits.first(where: { $0.id == habitId }) ?? Habit(name: "未找到", emoji: "❓", colorTheme: .github, habitType: .checkbox)
+    }
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -311,7 +316,8 @@ struct DayCell: View {
             // 日期文字
             Text("\(day)")
                 .foregroundColor(
-                    isFutureDate ? .gray.opacity(0.5) : .primary
+                    isFutureDate ? .gray.opacity(0.3) : // 未来日期 - 最浅
+                    (count == 0 ? .gray.opacity(0.6) : .primary) // 过去未打卡 - 中等，已打卡 - 最深
                 )
                 .font(.system(size: 14))
         }
@@ -362,7 +368,7 @@ struct DayCell: View {
             }
         }
         .disabled(isFutureDate)
-        .opacity(isFutureDate ? 0.5 : 1.0)
+        .opacity(isFutureDate ? 0.5 : 1.0) // 保持未来日期单元格的整体透明度
         // 确保在初始渲染时设置正确的animatedCompletion值
         .onAppear {
             animatedCompletion = completionPercentage
@@ -624,12 +630,7 @@ struct DayCellGitHub: View {
 
 #Preview {
     NavigationView {
-        HabitDetailView(habit: Habit(
-            name: "读书", 
-            emoji: "📚", 
-            colorTheme: .github, 
-            habitType: .checkbox
-        ))
+        HabitDetailView(habitId: UUID())
         .environmentObject(HabitStore())
     }
 } 
