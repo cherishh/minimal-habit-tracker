@@ -118,6 +118,9 @@ struct MonthCalendarView: View {
     let selectedYear: Int
     @Binding var selectedMonth: Int
     @EnvironmentObject var habitStore: HabitStore
+    @State private var dragOffset: CGFloat = 0
+    @State private var isAnimating: Bool = false
+    @Environment(\.colorScheme) var colorScheme
     
     // 一周的天数 - 从星期一开始
     private let daysOfWeek = ["一", "二", "三", "四", "五", "六", "日"]
@@ -164,29 +167,175 @@ struct MonthCalendarView: View {
                 }
             }
             
-            // 日历网格
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 10) {
-                ForEach(daysInMonth().indices, id: \.self) { index in
-                    let day = daysInMonth()[index]
-                    if day.day > 0 {
-                        DayCell(date: day.date, habit: habit)
-                    } else {
-                        Color.clear
-                            .frame(height: 40)
-                    }
-                }
+            // 日历网格 - 使用固定高度的ZStack
+            ZStack(alignment: .top) {
+                // 当前月
+                calendarGrid(for: selectedMonth)
+                    .offset(x: dragOffset)
+                
+                // 上个月（左侧）
+                calendarGrid(for: previousMonthNumber())
+                    .offset(x: dragOffset - UIScreen.main.bounds.width)
+                
+                // 下个月（右侧）
+                calendarGrid(for: nextMonthNumber())
+                    .offset(x: dragOffset + UIScreen.main.bounds.width)
             }
+            .frame(height: 280) // 增加高度，确保能完整显示所有内容
+            .padding(.top, 5) // 顶部增加一点内边距
+            .clipped() // 防止超出部分显示
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        if !isAnimating {
+                            dragOffset = value.translation.width
+                        }
+                    }
+                    .onEnded { value in
+                        isAnimating = true
+                        
+                        // 确定滑动方向和距离是否足够切换月份
+                        if value.translation.width > 50 {
+                            // 向右滑动超过阈值 - 切换到上个月
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                dragOffset = UIScreen.main.bounds.width
+                            }
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                previousMonth()
+                                dragOffset = 0
+                                isAnimating = false
+                            }
+                        } else if value.translation.width < -50 {
+                            // 向左滑动超过阈值 - 切换到下个月
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                dragOffset = -UIScreen.main.bounds.width
+                            }
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                nextMonth()
+                                dragOffset = 0
+                                isAnimating = false
+                            }
+                        } else {
+                            // 不足以切换，回到当前月
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                dragOffset = 0
+                                isAnimating = false
+                            }
+                        }
+                    }
+            )
+            
+            // 本月打卡统计
+            monthlyStatsView
+                .padding(.leading, 10)
         }
     }
     
-    // 获取当前月的所有日期
-    private func daysInMonth() -> [(day: Int, date: Date)] {
+    // 本月打卡统计视图
+    private var monthlyStatsView: some View {
+        let loggedDays = getMonthlyLoggedDays()
+        let totalDays = getDaysInCurrentMonth()
+        let theme = ColorTheme.getTheme(for: habit.colorTheme)
+        
+        return HStack {
+            // 左侧显示统计数据
+            HStack(spacing: 6) {
+                Text("本月打卡")
+                    .font(.caption)
+                    .foregroundColor(Color(hex: "#94a3b8"))
+                
+                Text("\(loggedDays)天")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(colorScheme == .dark ? Color(hex: "#e2e8f0") : Color(hex: "#334155"))
+            }
+            
+            Spacer()
+            
+            // 右侧显示总天数
+            // Text("\(loggedDays)/\(totalDays)")
+            //     .font(.caption)
+            //     .foregroundColor(.secondary)
+        }
+    }
+    
+    // 获取当月已打卡天数
+    private func getMonthlyLoggedDays() -> Int {
+        let calendar = Calendar.current
+        var count = 0
+        
+        // 创建当前月份的范围
+        let components = DateComponents(year: selectedYear, month: selectedMonth)
+        guard let firstDay = calendar.date(from: components),
+              let range = calendar.range(of: .day, in: .month, for: firstDay) else {
+            return 0
+        }
+        
+        // 遍历当月每一天，检查是否打卡
+        for day in range {
+            let components = DateComponents(year: selectedYear, month: selectedMonth, day: day)
+            if let date = calendar.date(from: components) {
+                if habitStore.getLogCountForDate(habitId: habit.id, date: date) > 0 {
+                    count += 1
+                }
+            }
+        }
+        
+        return count
+    }
+    
+    // 获取当月总天数
+    private func getDaysInCurrentMonth() -> Int {
+        let calendar = Calendar.current
+        let components = DateComponents(year: selectedYear, month: selectedMonth)
+        guard let date = calendar.date(from: components),
+              let range = calendar.range(of: .day, in: .month, for: date) else {
+            return 30
+        }
+        return range.count
+    }
+    
+    // 提取日历网格为单独的视图
+    private func calendarGrid(for month: Int) -> some View {
+        let currentYear = selectedYear
+        // 对于12月到1月跨年的情况，调整年份
+        let adjustedYear = (selectedMonth == 12 && month == 1) ? currentYear + 1 :
+                           (selectedMonth == 1 && month == 12) ? currentYear - 1 : currentYear
+        
+        return LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 10) {
+            ForEach(daysInMonth(for: month, year: adjustedYear).indices, id: \.self) { index in
+                let day = daysInMonth(for: month, year: adjustedYear)[index]
+                if day.day > 0 {
+                    DayCell(date: day.date, habit: habit)
+                } else {
+                    Color.clear
+                        .frame(height: 40)
+                }
+            }
+        }
+        .frame(minHeight: 230) // 确保最小高度足够
+    }
+    
+    // 获取前一个月的月份数
+    private func previousMonthNumber() -> Int {
+        selectedMonth > 1 ? selectedMonth - 1 : 12
+    }
+    
+    // 获取后一个月的月份数
+    private func nextMonthNumber() -> Int {
+        selectedMonth < 12 ? selectedMonth + 1 : 1
+    }
+    
+    // 获取指定月份和年份的所有日期
+    private func daysInMonth(for month: Int, year: Int) -> [(day: Int, date: Date)] {
         let calendar = Calendar.current
         
-        // 创建当前选择的年月的日期
+        // 创建指定年月的日期
         var components = DateComponents()
-        components.year = selectedYear
-        components.month = selectedMonth
+        components.year = year
+        components.month = month
         components.day = 1
         
         guard let firstDayOfMonth = calendar.date(from: components) else {
@@ -213,6 +362,15 @@ struct MonthCalendarView: View {
             components.day = day
             if let date = calendar.date(from: components) {
                 result.append((day, date))
+            }
+        }
+        
+        // 如果行数不足6行，添加额外的空白单元格以保持一致的高度
+        let totalCells = result.count
+        let cellsInCompleteWeeks = (totalCells + 6) / 7 * 7 // 向上取整到完整的周
+        if cellsInCompleteWeeks < 42 { // 6行 x 7列 = 42个单元格
+            for _ in totalCells..<42 {
+                result.append((0, Date()))
             }
         }
         
@@ -316,8 +474,9 @@ struct DayCell: View {
             // 日期文字
             Text("\(day)")
                 .foregroundColor(
-                    isFutureDate ? .gray.opacity(0.3) : // 未来日期 - 最浅
-                    (count == 0 ? .gray.opacity(0.6) : .primary) // 过去未打卡 - 中等，已打卡 - 最深
+                    isToday ? .primary : // 今日日期 - 始终使用主色
+                    (isFutureDate ? .gray.opacity(0.2) : // 未来日期 - 最浅
+                    (count == 0 ? .gray.opacity(0.6) : .primary)) // 过去未打卡 - 中等，已打卡 - 最深
                 )
                 .font(.system(size: 14))
         }
@@ -368,7 +527,6 @@ struct DayCell: View {
             }
         }
         .disabled(isFutureDate)
-        .opacity(isFutureDate ? 0.5 : 1.0) // 保持未来日期单元格的整体透明度
         // 确保在初始渲染时设置正确的animatedCompletion值
         .onAppear {
             animatedCompletion = completionPercentage
