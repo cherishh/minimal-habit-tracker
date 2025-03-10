@@ -270,28 +270,7 @@ struct HabitCardView: View {
     // 更新卡片数据
     private func updateCardData() {
         todayCompletionStatus = habitStore.getLogCountForDate(habitId: habit.id, date: Date())
-        
-        // 计算连续打卡天数
-        let calendar = Calendar.current
-        let today = Date()
-        var dayCount = 0
-        
-        // 从今天开始向前查找连续打卡的天数
-        for dayOffset in 0..<100 { // 最多查找100天
-            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
-            
-            // 获取该日期的打卡记录
-            let count = habitStore.getLogCountForDate(habitId: habit.id, date: date)
-            
-            // 如果这天有打卡记录，增加计数
-            if count > 0 {
-                dayCount += 1
-            } else if dayOffset > 0 { // 遇到未打卡的日期且不是今天，结束计数
-                break
-            }
-        }
-        
-        currentStreak = dayCount
+        updateStreakDays()
     }
     
     var body: some View {
@@ -415,21 +394,21 @@ struct HabitCardView: View {
                 // 注意加上.equatable()修饰符
                 MiniHeatmapView(habitId: habit.id)
                     .equatable()
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 8)
                     .padding(.horizontal, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
                             .fill(Color(colorScheme == .dark ? UIColor.tertiarySystemBackground : UIColor.secondarySystemBackground))
                     )
                     .padding(.leading, 12)
-                    .padding(.top, 8)
-                    .padding(.bottom, 16)
+                    .padding(.top, 4)
+                    .padding(.bottom, 12)
                 
                 Spacer()
                 
                 // 右侧：Emoji和打卡按钮
                 checkInButton
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 8)
                     .padding(.horizontal, 12)
             }
             .background(Color(colorScheme == .dark ? UIColor.secondarySystemBackground : UIColor.systemBackground))
@@ -554,12 +533,8 @@ struct HabitCardView: View {
             // 更新本地状态，避免触发整个卡片的重新渲染
             todayCompletionStatus = newCount
             
-            // 如果是添加打卡，增加连续打卡天数；如果是取消且今天是唯一的打卡日，则减少
-            if newCount > 0 && currentCount == 0 {
-                currentStreak += 1
-            } else if newCount == 0 && currentStreak == 1 {
-                currentStreak = 0
-            }
+            // 重新计算连续打卡天数，确保数据准确性
+            updateStreakDays()
             
             // 重置动画状态（在动画完成后）
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -567,6 +542,30 @@ struct HabitCardView: View {
                 todayCellAnimating = false
             }
         }
+    }
+    
+    // 单独提取连续天数计算方法
+    private func updateStreakDays() {
+        let calendar = Calendar.current
+        let today = Date()
+        var dayCount = 0
+        
+        // 从今天开始向前查找连续打卡的天数
+        for dayOffset in 0..<100 { // 最多查找100天
+            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
+            
+            // 获取该日期的打卡记录
+            let count = habitStore.getLogCountForDate(habitId: habit.id, date: date)
+            
+            // 如果这天有打卡记录，增加计数
+            if count > 0 {
+                dayCount += 1
+            } else if dayOffset > 0 { // 遇到未打卡的日期且不是今天，结束计数
+                break
+            }
+        }
+        
+        currentStreak = dayCount
     }
 }
 

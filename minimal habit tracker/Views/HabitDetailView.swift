@@ -60,55 +60,93 @@ struct HabitDetailView: View {
     }
     
     private var heatmapLegendView: some View {
-        HStack {
-            // 左侧显示统计数据
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text("总计天数")
-                        .font(.caption)
-                        .foregroundColor(Color(hex: "#94a3b8"))
-                    
-                    Text("\(habitStore.getTotalLoggedDays(habitId: habit.id))天")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(colorScheme == .dark ? Color(hex: "#e2e8f0") : Color(hex: "#334155"))
-                }
-                
-                HStack(spacing: 6) {
-                    Text("最长连续")
-                        .font(.caption)
-                        .foregroundColor(Color(hex: "#94a3b8"))
-                    
-                    Text("\(habitStore.getLongestStreak(habitId: habit.id))天")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(colorScheme == .dark ? Color(hex: "#e2e8f0") : Color(hex: "#334155"))
-                }
-            }
-            
-            Spacer()
-            
-            // 图例，仅在count类型时显示
-            if habit.habitType == .count {
-                HStack(spacing: 4) {
-                    Text("少")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                    
-                    ForEach(1..<5) { level in
-                        let theme = ColorTheme.getTheme(for: habit.colorTheme)
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(theme.color(for: level, isDarkMode: colorScheme == .dark))
-                            .frame(width: 12, height: 12)
+        VStack(spacing: 10) {
+            HStack {
+                // 左侧显示统计数据
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text("总计天数")
+                            .font(.caption)
+                            .foregroundColor(Color(hex: "#94a3b8"))
+                        
+                        Text("\(habitStore.getTotalLoggedDays(habitId: habit.id))天")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(colorScheme == .dark ? Color(hex: "#e2e8f0") : Color(hex: "#334155"))
                     }
                     
-                    Text("多")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                    HStack(spacing: 6) {
+                        Text("最长连续")
+                            .font(.caption)
+                            .foregroundColor(Color(hex: "#94a3b8"))
+                        
+                        Text("\(habitStore.getLongestStreak(habitId: habit.id))天")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(colorScheme == .dark ? Color(hex: "#e2e8f0") : Color(hex: "#334155"))
+                    }
+                    
+                    HStack(spacing: 6) {
+                        Text("本月打卡")
+                            .font(.caption)
+                            .foregroundColor(Color(hex: "#94a3b8"))
+                        
+                        Text("\(getMonthlyLoggedDays(year: selectedYear, month: selectedMonth))天")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(colorScheme == .dark ? Color(hex: "#e2e8f0") : Color(hex: "#334155"))
+                    }
+                }
+                
+                Spacer()
+                
+                // 图例，仅在count类型时显示
+                if habit.habitType == .count {
+                    HStack(spacing: 4) {
+                        Text("少")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        
+                        ForEach(1..<5) { level in
+                            let theme = ColorTheme.getTheme(for: habit.colorTheme)
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(theme.color(for: level, isDarkMode: colorScheme == .dark))
+                                .frame(width: 12, height: 12)
+                        }
+                        
+                        Text("多")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
         }
         .padding(.horizontal)
+    }
+    
+    // 获取指定年月的打卡天数
+    private func getMonthlyLoggedDays(year: Int, month: Int) -> Int {
+        let calendar = Calendar.current
+        var count = 0
+        
+        // 创建当前月份的范围
+        let components = DateComponents(year: year, month: month)
+        guard let firstDay = calendar.date(from: components),
+              let range = calendar.range(of: .day, in: .month, for: firstDay) else {
+            return 0
+        }
+        
+        // 遍历当月每一天，检查是否打卡
+        for day in range {
+            let components = DateComponents(year: year, month: month, day: day)
+            if let date = calendar.date(from: components) {
+                if habitStore.getLogCountForDate(habitId: habit.id, date: date) > 0 {
+                    count += 1
+                }
+            }
+        }
+        
+        return count
     }
 }
 
@@ -226,64 +264,7 @@ struct MonthCalendarView: View {
                         }
                     }
             )
-            
-            // 本月打卡统计
-            monthlyStatsView
-                .padding(.leading, 10)
         }
-    }
-    
-    // 本月打卡统计视图
-    private var monthlyStatsView: some View {
-        let loggedDays = getMonthlyLoggedDays()
-        let totalDays = getDaysInCurrentMonth()
-        let theme = ColorTheme.getTheme(for: habit.colorTheme)
-        
-        return HStack {
-            // 左侧显示统计数据
-            HStack(spacing: 6) {
-                Text("本月打卡")
-                    .font(.caption)
-                    .foregroundColor(Color(hex: "#94a3b8"))
-                
-                Text("\(loggedDays)天")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(colorScheme == .dark ? Color(hex: "#e2e8f0") : Color(hex: "#334155"))
-            }
-            
-            Spacer()
-            
-            // 右侧显示总天数
-            // Text("\(loggedDays)/\(totalDays)")
-            //     .font(.caption)
-            //     .foregroundColor(.secondary)
-        }
-    }
-    
-    // 获取当月已打卡天数
-    private func getMonthlyLoggedDays() -> Int {
-        let calendar = Calendar.current
-        var count = 0
-        
-        // 创建当前月份的范围
-        let components = DateComponents(year: selectedYear, month: selectedMonth)
-        guard let firstDay = calendar.date(from: components),
-              let range = calendar.range(of: .day, in: .month, for: firstDay) else {
-            return 0
-        }
-        
-        // 遍历当月每一天，检查是否打卡
-        for day in range {
-            let components = DateComponents(year: selectedYear, month: selectedMonth, day: day)
-            if let date = calendar.date(from: components) {
-                if habitStore.getLogCountForDate(habitId: habit.id, date: date) > 0 {
-                    count += 1
-                }
-            }
-        }
-        
-        return count
     }
     
     // 获取当月总天数
