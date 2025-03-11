@@ -131,70 +131,92 @@ struct HabitWidgetEntryView: View {
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        switch family {
-        case .systemMedium:
-            // 使用与主应用中 HabitCardView 相同的设计
-            VStack(spacing: 0) {
-                // 上部分：习惯名称和连续打卡天数
-                HStack {
-                    Text(entry.habit.name)
-                        .font(.headline)
-                        .padding(.vertical, 16)
-                        .padding(.horizontal, 16)
-                    
-                    Spacer()
-                    
-                    // 连续打卡天数（如果有的话）
-                    if let currentStreak = getStreak(habit: entry.habit, logs: entry.logs), currentStreak > 0 {
-                        HStack(spacing: 4) {
-                            Image(systemName: "flame.fill")
-                                .font(.system(size: 14))
-                                .foregroundColor(getTheme(habit: entry.habit).color(for: 4, isDarkMode: colorScheme == .dark))
-                            
-                            Text("\(currentStreak)")
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(getTheme(habit: entry.habit).color(for: 4, isDarkMode: colorScheme == .dark))
-                        }
-                        .padding(.trailing, 16)
-                    }
-                }
-                .background(Color(colorScheme == .dark ? UIColor.secondarySystemBackground : UIColor.systemBackground))
-                
-                // 下部分：微型热力图和打卡按钮
-                HStack(spacing: 16) {
-                    // 左侧：微型热力图
-                    WidgetMiniHeatmapView(
-                        habit: entry.habit,
-                        logs: entry.logs,
-                        colorScheme: colorScheme
-                    )
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(Color(colorScheme == .dark ? UIColor.tertiarySystemBackground : UIColor.secondarySystemBackground).opacity(0.3))
-                    )
-                    .padding(.leading, 12)
-                    .padding(.top, 0)
-                    .padding(.bottom, 12)
-                    
-                    Spacer()
-                    
-                    // 右侧：打卡按钮
-                    WidgetCheckInButton(
-                        habit: entry.habit,
-                        todayCount: entry.todayCount,
-                        colorScheme: colorScheme
-                    )
-                    .padding(.trailing, 16)
-                }
-                .background(Color(colorScheme == .dark ? UIColor.secondarySystemBackground : UIColor.systemBackground))
-            }
-            .cornerRadius(8)
-            .widgetURL(URL(string: "easyhabit://widget/open?habitId=\(entry.habit.id.uuidString)"))
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let height = geometry.size.height
             
-        default:
-            Text("不支持的 Widget 大小")
+            switch family {
+            case .systemMedium:
+                // 使用水平分割的方式隔离交互区域
+                HStack(spacing: 0) {
+                    // 左侧区域：标题和热力图，点击时打开应用
+                    VStack(spacing: 0) {
+                        // 上部分：习惯名称和连续打卡天数
+                        HStack {
+                            Text(entry.habit.name)
+                                .font(.headline)
+                                .padding(.vertical, 16)
+                                .padding(.horizontal, 16)
+                            
+                            Spacer()
+                            
+                            // 连续打卡天数（如果有的话）
+                            if let currentStreak = getStreak(habit: entry.habit, logs: entry.logs), currentStreak > 0 {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "flame.fill")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(getTheme(habit: entry.habit).color(for: 4, isDarkMode: colorScheme == .dark))
+                                    
+                                    Text("\(currentStreak)")
+                                        .font(.system(size: 15, weight: .semibold))
+                                        .foregroundColor(getTheme(habit: entry.habit).color(for: 4, isDarkMode: colorScheme == .dark))
+                                }
+                                .padding(.trailing, 16)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .background(Color(colorScheme == .dark ? UIColor.secondarySystemBackground : UIColor.systemBackground))
+                        
+                        Spacer()
+                        
+                        // 热力图区域
+                        HStack {
+                            // 左侧：微型热力图
+                            WidgetMiniHeatmapView(
+                                habit: entry.habit,
+                                logs: entry.logs,
+                                colorScheme: colorScheme
+                            )
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(Color(colorScheme == .dark ? UIColor.tertiarySystemBackground : UIColor.secondarySystemBackground).opacity(0.3))
+                            )
+                            .padding(.leading, 12)
+                            .padding(.bottom, 12)
+                            
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity)
+                        .background(Color(colorScheme == .dark ? UIColor.secondarySystemBackground : UIColor.systemBackground))
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    // 打开应用的链接
+                    .widgetURL(URL(string: "easyhabit://widget/open?habitId=\(entry.habit.id.uuidString)"))
+                    
+                    // 右侧区域：使用 iOS 17 交互按钮
+                    VStack {
+                        Spacer()
+                        
+                        // 打卡按钮
+                        CheckInButtonContainer(
+                            habit: entry.habit,
+                            todayCount: entry.todayCount,
+                            colorScheme: colorScheme
+                        )
+                        .padding(.horizontal, 8)
+                        
+                        Spacer()
+                    }
+                    .frame(width: 120)
+                    .background(Color(colorScheme == .dark ? UIColor.tertiarySystemBackground : UIColor.secondarySystemBackground).opacity(0.5))
+                }
+                .cornerRadius(8)
+                
+            default:
+                Text("不支持的 Widget 大小")
+            }
         }
     }
     
@@ -225,6 +247,55 @@ struct HabitWidgetEntryView: View {
         }
         
         return dayCount
+    }
+}
+
+// 独立的打卡按钮容器
+struct CheckInButtonContainer: View {
+    let habit: Habit
+    let todayCount: Int
+    let colorScheme: ColorScheme
+    
+    var body: some View {
+        // iOS 17 新方式：使用 Button(intent:) 进行直接交互
+        Button(intent: CheckInHabitIntent(habitId: habit.id.uuidString)) {
+            VStack {
+                Text(habit.emoji)
+                    .font(.system(size: 36))
+                
+                if todayCount > 0 {
+                    Text("已完成")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                } else {
+                    Text("点击打卡")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(UIColor.systemBackground))
+                    .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+            )
+        }
+        // 确保交互内容能触发刷新
+        .invalidatableContent()
+    }
+}
+
+// Widget 打卡按钮 - 现在只包含视觉部分，不包含交互逻辑 - 这个组件现在不再使用
+struct WidgetCheckInButton: View {
+    let habit: Habit
+    let todayCount: Int
+    let colorScheme: ColorScheme
+    
+    var body: some View {
+        // 简化版本
+        Text(habit.emoji)
+            .font(.system(size: 36))
+            .frame(width: 70, height: 70)
     }
 }
 
@@ -337,90 +408,10 @@ struct WidgetMiniHeatmapView: View {
     }
 }
 
-// Widget 打卡按钮
-struct WidgetCheckInButton: View {
-    let habit: Habit
-    let todayCount: Int
-    let colorScheme: ColorScheme
-    
-    // 获取习惯对应的主题颜色
-    private var theme: ColorTheme {
-        ColorTheme.getTheme(for: habit.colorTheme)
-    }
-    
-    // 判断今天是否已完成打卡
-    private var isCompletedToday: Bool {
-        todayCount > 0
-    }
-    
-    // 获取计数型习惯的进度百分比 (0-1)
-    private var countProgress: CGFloat {
-        let count = CGFloat(todayCount)
-        return min(count / 4.0, 1.0)
-    }
-
-    var body: some View {
-        Link(destination: URL(string: "easyhabit://widget/checkin?habitId=\(habit.id.uuidString)")!) {
-            ZStack {
-                // 圆环
-                if habit.habitType == .checkbox {
-                    // Checkbox型习惯的圆环 - 先显示底色轨道
-                    Circle()
-                        .stroke(
-                            theme.color(for: 1, isDarkMode: colorScheme == .dark).opacity(0.4),
-                            style: StrokeStyle(lineWidth: 10)
-                        )
-                        .frame(width: 64, height: 64)
-                    
-                    // 完成圆环
-                    Circle()
-                        .trim(from: 0, to: isCompletedToday ? 1 : 0)
-                        .stroke(
-                            theme.color(for: 4, isDarkMode: colorScheme == .dark),
-                            style: StrokeStyle(
-                                lineWidth: 10,
-                                lineCap: .round,
-                                lineJoin: .round
-                            )
-                        )
-                        .frame(width: 64, height: 64)
-                        .rotationEffect(.degrees(-90))
-                } else {
-                    // Count型习惯的圆环 - 先显示底色轨道
-                    Circle()
-                        .stroke(
-                            theme.color(for: 1, isDarkMode: colorScheme == .dark).opacity(0.4),
-                            style: StrokeStyle(lineWidth: 10)
-                        )
-                        .frame(width: 64, height: 64)
-                    
-                    // 进度环
-                    Circle()
-                        .trim(from: 0, to: countProgress)
-                        .stroke(
-                            theme.color(for: 4, isDarkMode: colorScheme == .dark),
-                            style: StrokeStyle(
-                                lineWidth: 10,
-                                lineCap: .round,
-                                lineJoin: .round
-                            )
-                        )
-                        .frame(width: 64, height: 64)
-                        .rotationEffect(.degrees(-90))
-                }
-                
-                // Emoji
-                Text(habit.emoji)
-                    .font(.system(size: 28))
-            }
-        }
-        .frame(width: 70, height: 70)
-    }
-}
-
 // 打卡操作的 Intent
 struct CheckInHabitIntent: AppIntent {
     static var title: LocalizedStringResource = "打卡习惯"
+    static var description = IntentDescription("记录习惯打卡")
     
     @Parameter(title: "习惯ID")
     var habitId: String
@@ -431,21 +422,68 @@ struct CheckInHabitIntent: AppIntent {
         self.habitId = habitId
     }
     
+    // 执行打卡操作
     func perform() async throws -> some IntentResult {
-        // 从 UserDefaults 加载习惯数据
-        let habitStore = HabitStore()
+        // 共享 UserDefaults - 和主应用使用相同的组标识
+        let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker") ?? UserDefaults.standard
         
-        // 查找对应的习惯
-        if let uuid = UUID(uuidString: habitId),
-           let _ = habitStore.habits.first(where: { $0.id == uuid }) {
-            // 执行打卡操作
-            habitStore.logHabit(habitId: uuid, date: Date())
-            
-            // 请求刷新所有 Widget
-            WidgetCenter.shared.reloadAllTimelines()
+        // 当前时间
+        let now = Date()
+        
+        // 从 UserDefaults 加载日志数据
+        let habitLogsKey = "habitLogs"
+        var habitLogs: [HabitLog] = []
+        
+        if let logsData = sharedDefaults.data(forKey: habitLogsKey),
+           let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
+            habitLogs = decodedLogs
         }
         
-        return .result()
+        // 解析 habitId 并创建日志
+        if let uuid = UUID(uuidString: habitId) {
+            // 创建新日志
+            let newLog = HabitLog(id: UUID(), habitId: uuid, date: now, count: 1)
+            
+            // 查找同一天的日志
+            let calendar = Calendar.current
+            let sameDayLogs = habitLogs.filter { 
+                calendar.isDate($0.date, inSameDayAs: now) && $0.habitId == uuid 
+            }
+            
+            if let existingLog = sameDayLogs.first {
+                // 今天已有日志，更新计数
+                if let index = habitLogs.firstIndex(where: { $0.id == existingLog.id }) {
+                    habitLogs[index].count += 1
+                }
+            } else {
+                // 今天没有日志，添加新日志
+                habitLogs.append(newLog)
+            }
+            
+            // 保存更新后的日志数据
+            do {
+                let encodedData = try JSONEncoder().encode(habitLogs)
+                
+                // 保存到共享 UserDefaults
+                sharedDefaults.set(encodedData, forKey: habitLogsKey)
+                sharedDefaults.synchronize()
+                
+                // 关键步骤：写入特殊键值对，标记数据更新时间
+                // 这将触发主应用的 UserDefaults 通知监听器
+                let updateTimestampKey = "widgetDataUpdateTimestamp"
+                sharedDefaults.set(Date().timeIntervalSince1970, forKey: updateTimestampKey)
+                sharedDefaults.synchronize()
+                
+                // 刷新所有 Widget
+                WidgetCenter.shared.reloadAllTimelines()
+                
+                return .result()
+            } catch {
+                return .result()
+            }
+        } else {
+            return .result()
+        }
     }
 }
 

@@ -16,8 +16,68 @@ class HabitStore: ObservableObject {
     // 定义最大习惯数量常量
     static let maxHabitCount = 10
     
+    // 添加一个跟踪最后一次从Widget收到更新的时间戳
+    private var lastWidgetUpdateTimestamp: Double = 0
+    
     init() {
+        // 加载已保存的数据
         loadData()
+        
+        // 设置通知监听器，以便检测应用进入前台时更新数据
+        setupObservers()
+    }
+    
+    private func setupObservers() {
+        // 监听应用进入前台的通知
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
+        
+        // 监听UserDefaults变化，用于检测Widget的更新
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(userDefaultsDidChange),
+            name: UserDefaults.didChangeNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func appWillEnterForeground() {
+        // 当应用进入前台时，检查Widget是否更新了数据
+        checkForWidgetUpdates()
+    }
+    
+    @objc private func userDefaultsDidChange(_ notification: Notification) {
+        // 当UserDefaults变化时，检查是否由Widget更新了数据
+        checkForWidgetUpdates()
+    }
+    
+    private func checkForWidgetUpdates() {
+        // 获取shared UserDefaults
+        let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker") ?? UserDefaults.standard
+        
+        // 检查Widget更新时间戳
+        let updateTimestampKey = "widgetDataUpdateTimestamp"
+        let currentTimestamp = sharedDefaults.double(forKey: updateTimestampKey)
+        
+        // 如果时间戳比上次记录的更新，则重新加载数据
+        if currentTimestamp > lastWidgetUpdateTimestamp && currentTimestamp > 0 {
+            lastWidgetUpdateTimestamp = currentTimestamp
+            
+            // 重新加载数据
+            loadData()
+            
+            // 发出通知，表示已从Widget更新数据
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(
+                    name: Notification.Name("WidgetDataSynced"),
+                    object: nil
+                )
+            }
+        }
     }
     
     // MARK: - Habits 操作
@@ -146,26 +206,45 @@ class HabitStore: ObservableObject {
     
     /// 刷新所有相关的 Widget
     private func refreshWidgets() {
-        // 刷新所有 Widget
-        WidgetCenter.shared.reloadAllTimelines()
+        #if canImport(WidgetKit)
+        if #available(iOS 14.0, *) {
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+        #endif
     }
     
     // MARK: - 持久化
     
-    private func saveData() {
-        if let encoded = try? JSONEncoder().encode(habits) {
-            // 使用共享的 UserDefaults
-            sharedDefaults.set(encoded, forKey: habitsKey)
-        }
+    func saveData() {
+        // 获取shared UserDefaults
+        let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker") ?? UserDefaults.standard
         
-        if let encoded = try? JSONEncoder().encode(habitLogs) {
-            // 使用共享的 UserDefaults
-            sharedDefaults.set(encoded, forKey: habitLogsKey)
-        }
-        
-        // 确保数据变化通知发送给观察者
-        DispatchQueue.main.async {
-            self.objectWillChange.send()
+        do {
+            // 保存习惯列表
+            let habitsData = try JSONEncoder().encode(habits)
+            sharedDefaults.set(habitsData, forKey: habitsKey)
+            
+            // 保存习惯日志
+            let habitLogsData = try JSONEncoder().encode(habitLogs)
+            sharedDefaults.set(habitLogsData, forKey: habitLogsKey)
+            
+            // 更新时间戳，标记数据已经更新
+            let updateTimestampKey = "widgetDataUpdateTimestamp"
+            lastWidgetUpdateTimestamp = Date().timeIntervalSince1970
+            sharedDefaults.set(lastWidgetUpdateTimestamp, forKey: updateTimestampKey)
+            
+            // 同步确保数据写入
+            sharedDefaults.synchronize()
+            
+            // 确保数据变化通知发送给观察者
+            DispatchQueue.main.async {
+                self.objectWillChange.send()
+            }
+            
+            // 刷新所有Widget
+            refreshWidgets()
+        } catch {
+            print("保存数据失败: \(error)")
         }
     }
     
