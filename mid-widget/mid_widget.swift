@@ -320,7 +320,7 @@ struct WidgetMiniHeatmapView: View {
                             
                             // 单个格子
                             RoundedRectangle(cornerRadius: 1)
-                                .fill(theme.color(for: min(count, HabitStore.maxCheckInCount), isDarkMode: colorScheme == .dark))
+                                .fill(theme.colorForCount(count: count, maxCount: habit.maxCheckInCount, isDarkMode: colorScheme == .dark))
                                 .frame(width: cellSize, height: cellSize)
                         } else {
                             // 没有日期的位置（例如超过今天的日期）
@@ -356,7 +356,7 @@ struct WidgetCheckInButton: View {
     // 获取计数型习惯的进度百分比 (0-1)
     private var countProgress: CGFloat {
         let count = CGFloat(todayCount)
-        return min(count / CGFloat(HabitStore.maxCheckInCount), 1.0)
+        return min(count / CGFloat(habit.maxCheckInCount), 1.0)
     }
 
     var body: some View {
@@ -376,7 +376,7 @@ struct WidgetCheckInButton: View {
                     Circle()
                         .trim(from: 0, to: isCompletedToday ? 1 : 0)
                         .stroke(
-                            theme.color(for: HabitStore.maxCheckInCount, isDarkMode: colorScheme == .dark),
+                            theme.color(for: habit.maxCheckInCount > 5 ? 5 : habit.maxCheckInCount, isDarkMode: colorScheme == .dark),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,
@@ -398,7 +398,7 @@ struct WidgetCheckInButton: View {
                     Circle()
                         .trim(from: 0, to: countProgress)
                         .stroke(
-                            theme.color(for: HabitStore.maxCheckInCount, isDarkMode: colorScheme == .dark),
+                            theme.color(for: habit.maxCheckInCount > 5 ? 5 : habit.maxCheckInCount, isDarkMode: colorScheme == .dark),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,

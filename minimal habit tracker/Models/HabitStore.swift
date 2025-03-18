@@ -94,16 +94,16 @@ class HabitStore: ObservableObject {
                     habitLogs.remove(at: existingLogIndex)
                 }
             case .count:
-                // 对于count类型，第6次点击会清零记录
-                if currentCount >= HabitStore.maxCheckInCount {
+                // 对于count类型，超过自定义上限时点击会清零记录
+                if currentCount >= habit.maxCheckInCount {
                     habitLogs.remove(at: existingLogIndex)
                 } else {
                     habitLogs[existingLogIndex].count += 1
                 }
             }
         } else {
-            // 创建新记录，对于checkbox类型使用最深的颜色(count=5)
-            let initialCount = habit.habitType == .checkbox ? HabitStore.maxCheckInCount : 1
+            // 创建新记录，对于checkbox类型使用最深的颜色
+            let initialCount = habit.habitType == .checkbox ? habit.maxCheckInCount : 1
             let newLog = HabitLog(habitId: habitId, date: normalizedDate, count: initialCount)
             habitLogs.append(newLog)
         }
@@ -197,5 +197,20 @@ class HabitStore: ObservableObject {
            let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
             habitLogs = decodedLogs
         }
+    }
+    
+    // 调整习惯记录的打卡次数（当用户减少打卡次数上限时）
+    func adjustLogCounts(habitId: UUID, newMaxCount: Int) {
+        // 获取所有相关的打卡记录
+        for index in habitLogs.indices {
+            if habitLogs[index].habitId == habitId && habitLogs[index].count > newMaxCount {
+                // 如果打卡次数超过新上限，则调整为新上限
+                habitLogs[index].count = newMaxCount
+            }
+        }
+        
+        // 保存更新后的数据
+        saveData()
+        refreshWidgets()
     }
 } 

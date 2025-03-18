@@ -161,10 +161,13 @@ struct HabitDetailView: View {
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         
-                        ForEach(1...HabitStore.maxCheckInCount, id: \.self) { level in
+                        ForEach(1...min(habit.maxCheckInCount, 5), id: \.self) { level in
                             let theme = ColorTheme.getTheme(for: habit.colorTheme)
+                            let colorLevel = habit.maxCheckInCount <= 5 ? 
+                                (6 - habit.maxCheckInCount + (level - 1)) : // 小于等于5时的策略
+                                (level <= habit.maxCheckInCount - 5 ? level : (habit.maxCheckInCount - 5) + level - (habit.maxCheckInCount - 5)) // 大于5时的策略
                             RoundedRectangle(cornerRadius: 2)
-                                .fill(theme.color(for: level, isDarkMode: colorScheme == .dark))
+                                .fill(theme.color(for: colorLevel, isDarkMode: colorScheme == .dark))
                                 .frame(width: 12, height: 12)
                         }
                         
@@ -492,7 +495,7 @@ struct DayCell: View {
         let count = habitStore.getLogCountForDate(habitId: habit.id, date: date)
         let theme = ColorTheme.getTheme(for: habit.colorTheme)
         let isToday = calendar.isDateInToday(date)
-        let completionPercentage = Double(min(count, HabitStore.maxCheckInCount)) / Double(HabitStore.maxCheckInCount) // 完成进度百分比
+        let completionPercentage = Double(min(count, habit.maxCheckInCount)) / Double(habit.maxCheckInCount) // 完成进度百分比
         
         ZStack {
             // 今日背景 - 使用主题第二浅的颜色(level 1)但添加透明度
@@ -508,7 +511,7 @@ struct DayCell: View {
                     Circle()
                         .trim(from: 0, to: isAnimating ? animatedCompletion : 1.0)
                         .stroke(
-                            theme.color(for: HabitStore.maxCheckInCount, isDarkMode: colorScheme == .dark),
+                            theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: colorScheme == .dark),
                             style: StrokeStyle(
                                 lineWidth: 3.5,
                                 lineCap: .round,    // 圆形线帽
@@ -530,7 +533,7 @@ struct DayCell: View {
                     Circle()
                         .trim(from: 0, to: isAnimating ? animatedCompletion : completionPercentage)
                         .stroke(
-                            theme.color(for: HabitStore.maxCheckInCount, isDarkMode: colorScheme == .dark),
+                            theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: colorScheme == .dark),
                             style: StrokeStyle(
                                 lineWidth: 3.5,
                                 lineCap: .round,    // 圆形线帽
@@ -560,16 +563,16 @@ struct DayCell: View {
                 // 计算点击后的新计数
                 var newCount = currentCount
                 if habit.habitType == .checkbox {
-                    // 对于checkbox，如果已有计数则变为0，否则变为5（最大值）
-                    newCount = (currentCount > 0) ? 0 : HabitStore.maxCheckInCount
+                    // 对于checkbox，如果已有计数则变为0，否则变为自定义的最大值
+                    newCount = (currentCount > 0) ? 0 : habit.maxCheckInCount
                 } else {
-                    // 对于count，计数加1，如果达到5则重置为0
-                    newCount = (currentCount >= HabitStore.maxCheckInCount) ? 0 : currentCount + 1
+                    // 对于count，计数加1，如果达到自定义的最大值则重置为0
+                    newCount = (currentCount >= habit.maxCheckInCount) ? 0 : currentCount + 1
                 }
                 
                 // 设置动画的起点和终点
-                let startCompletion = Double(min(currentCount, HabitStore.maxCheckInCount)) / Double(HabitStore.maxCheckInCount)
-                let targetCompletion = Double(min(newCount, HabitStore.maxCheckInCount)) / Double(HabitStore.maxCheckInCount)
+                let startCompletion = Double(min(currentCount, habit.maxCheckInCount)) / Double(habit.maxCheckInCount)
+                let targetCompletion = Double(min(newCount, habit.maxCheckInCount)) / Double(habit.maxCheckInCount)
                 
                 // 设置动画
                 isAnimating = true
@@ -604,7 +607,7 @@ struct DayCell: View {
         }
         // 确保在count改变时更新animatedCompletion值
         .onChange(of: count) { oldValue, newValue in
-            animatedCompletion = Double(min(newValue, HabitStore.maxCheckInCount)) / Double(HabitStore.maxCheckInCount)
+            animatedCompletion = Double(min(newValue, habit.maxCheckInCount)) / Double(habit.maxCheckInCount)
         }
     }
 }
@@ -838,7 +841,7 @@ struct DayCellGitHub: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 2)
-                .fill(theme.color(for: logCount, isDarkMode: colorScheme == .dark))
+                .fill(theme.colorForCount(count: logCount, maxCount: habit.maxCheckInCount, isDarkMode: colorScheme == .dark))
                 .opacity(isCurrentYear ? 1.0 : 0.6)
             
             if isToday {

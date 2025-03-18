@@ -11,6 +11,39 @@ struct ColorTheme: Identifiable {
         guard level >= 0 && level < HabitStore.maxCheckInCount+1 else { return isDarkMode ? darkColors[0] : lightColors[0] }
         return isDarkMode ? darkColors[level] : lightColors[level]
     }
+    
+    // 根据用户自定义打卡次数获取颜色
+    func colorForCount(count: Int, maxCount: Int, isDarkMode: Bool) -> Color {
+        // 如果未打卡，返回基础颜色
+        if count == 0 {
+            return isDarkMode ? darkColors[0] : lightColors[0]
+        }
+        
+        // 如果打卡次数超过了最大值，使用最深的颜色
+        if count >= maxCount {
+            return isDarkMode ? darkColors[5] : lightColors[5]
+        }
+        
+        // 根据打卡次数上限的不同策略处理
+        if maxCount <= 5 {
+            // 当打卡次数上限小于等于5时，颜色从较深的一端开始倒序选择
+            // 计算对应的颜色索引：索引 = 6 - maxCount + (count - 1)
+            let colorIndex = 6 - maxCount + (count - 1)
+            return isDarkMode ? darkColors[colorIndex] : lightColors[colorIndex]
+        } else {
+            // 当打卡次数上限大于5时，颜色会重复使用
+            if count <= (maxCount - 5) * 2 {
+                // 前maxCount-5种颜色每种用两次
+                let repeatedColorIndex = (count + 1) / 2
+                return isDarkMode ? darkColors[repeatedColorIndex] : lightColors[repeatedColorIndex]
+            } else {
+                // 剩余次数使用剩下的颜色
+                let remaining = count - (maxCount - 5) * 2
+                let colorIndex = (maxCount - 5) + remaining
+                return isDarkMode ? darkColors[colorIndex] : lightColors[colorIndex]
+            }
+        }
+    }
 }
 
 extension ColorTheme {
@@ -79,7 +112,7 @@ extension ColorTheme {
             id: .purpleRain,
             name: "Purple Rain",
             lightColors: [
-                Color(hex: "e9e7f3"), // custom
+                Color(hex: "f1f5f9"), // custom
                 Color(hex: "f3e8ff"), // bg-purple-100
                 Color(hex: "e9d5ff"), // bg-purple-200
                 Color(hex: "d8b4fe"), // bg-purple-300
