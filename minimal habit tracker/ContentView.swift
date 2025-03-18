@@ -125,6 +125,7 @@ struct ContentView: View {
             }
             .background(lightBackgroundColor)
         }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
     
     private func setupNotificationObserver() {
@@ -653,6 +654,7 @@ struct SettingsView: View {
                 }
             }
         }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }
 

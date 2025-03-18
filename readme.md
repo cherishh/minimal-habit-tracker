@@ -13,13 +13,12 @@
 
 
 ## todos
-- [ ] 增加打卡次数上限；增加颜色等级；
 - [ ] dark mode 颜色优化（https://www.lifeofdiscipline.com/my-habits）
 - [ ] 文案优化
 - [ ] emoji 搜索
 - [ ] 多语言支持
-- [ ] 用户可以在桌面添加该 app 的 widget。这个 widget 显示当前 habit 的 heatmap。如果用户点击 widget，直接默认在当前 habit 上 log+1。【不需要】进入 app。
 - [ ] 支持数据导入导出
+- [ ] 用户可以在桌面添加该 app 的 widget。这个 widget 显示当前 habit 的 heatmap。如果用户点击 widget，直接默认在当前 habit 上 log+1。【不需要】进入 app。
 - [ ] 设置页扩展
     - [ ] light dark 切换
     - [ ] bug 反馈

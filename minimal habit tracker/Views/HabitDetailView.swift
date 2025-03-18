@@ -63,7 +63,7 @@ struct HabitDetailView: View {
                         .renderingMode(.template)
                         .scaledToFit()
                         .frame(width: 28, height: 28)
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -111,6 +111,7 @@ struct HabitDetailView: View {
             // 移除通知监听
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name("HabitDeleted"), object: nil)
         }
+        .preferredColorScheme(UserDefaults.standard.bool(forKey: "isDarkMode") ? .dark : .light)
     }
     
     private var heatmapLegendView: some View {

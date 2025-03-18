@@ -18,6 +18,7 @@ struct HabitFormView: View {
     @State private var maxCheckInCount: Int
     @State private var showingMaxCountChangeAlert = false
     @State private var previousMaxCount: Int = 5
+    @AppStorage("isDarkMode") private var isDarkMode = false
     
     // 背景色列表
     let backgroundColors: [String] = [
@@ -123,6 +124,7 @@ struct HabitFormView: View {
                 )
             }
         }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
     
     private var navigationTitle: String {
@@ -430,9 +432,11 @@ struct HabitFormView: View {
 // 为了保持向后兼容性，我们保留原来的NewHabitView的名称，但它现在只是一个HabitFormView的包装器
 struct NewHabitView: View {
     @Binding var isPresented: Bool
+    @AppStorage("isDarkMode") private var isDarkMode = false
     
     var body: some View {
         HabitFormView(isPresented: $isPresented)
+            .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }
 
