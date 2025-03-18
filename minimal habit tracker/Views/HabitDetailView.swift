@@ -22,6 +22,7 @@ struct HabitDetailView: View {
                 // 年份选择器
                 YearPicker(selectedYear: $selectedYear)
                     .padding(.horizontal)
+                    .contentShape(Rectangle()) // 确保整个区域可点击
                 
                 // GitHub风格热力图
                 GitHubStyleHeatmapView(
@@ -30,6 +31,7 @@ struct HabitDetailView: View {
                     colorScheme: colorScheme
                 )
                 .padding(.horizontal)
+                .allowsHitTesting(true) // 确保内部视图可接收点击
                 
                 // 热力图说明和操作栏
                 heatmapLegendView
@@ -46,7 +48,10 @@ struct HabitDetailView: View {
                 .padding(.horizontal)
             }
             .padding(.vertical)
+            .frame(maxWidth: .infinity) // 确保占据最大宽度
         }
+        .scrollContentBackground(.hidden) // 隐藏滚动背景
+        .background(Color.clear) // 设置背景为透明
         .navigationTitle("\(habit.emoji) \(habit.name)")
         .accentColor(.black)
         .navigationBarBackButtonHidden(true)
@@ -78,6 +83,21 @@ struct HabitDetailView: View {
         .sheet(isPresented: $showingSettings) {
             HabitFormView(isPresented: $showingSettings, habit: habit)
         }
+        // 添加边缘滑动手势
+        .gesture(
+            DragGesture()
+                .onEnded { gesture in
+                    // 判断是否是从左向右滑动，并且起始点在屏幕左侧边缘区域
+                    let startX = gesture.startLocation.x
+                    let endX = gesture.location.x
+                    let isEdgeSwipe = startX < 50 // 屏幕左侧50点的区域
+                    let isRightSwipe = endX - startX > 100 // 滑动距离大于100（原130点）
+                    
+                    if isEdgeSwipe && isRightSwipe {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+        )
         .onAppear {
             // 添加对习惯删除通知的监听
             NotificationCenter.default.addObserver(forName: NSNotification.Name("HabitDeleted"), object: nil, queue: .main) { notification in
@@ -268,44 +288,69 @@ struct MonthCalendarView: View {
             .padding(.top, 5) // 顶部增加一点内边距
             .clipped() // 防止超出部分显示
             .gesture(
-                DragGesture()
+                DragGesture(minimumDistance: 15) // 增加最小识别距离，减少误触
                     .onChanged { value in
-                        if !isAnimating {
+                        // 只有在水平滑动且未在动画过程中才处理手势
+                        // 判断水平滑动 - 水平位移大于垂直位移的1.5倍
+                        let isHorizontalDrag = abs(value.translation.width) > abs(value.translation.height) * 1.5
+                        
+                        if isHorizontalDrag && !isAnimating {
                             dragOffset = value.translation.width
+                        } else {
+                            // 如果不是水平滑动或已经在动画中，则重置偏移
+                            if dragOffset != 0 {
+                                withAnimation(.spring()) {
+                                    dragOffset = 0
+                                }
+                            }
                         }
                     }
                     .onEnded { value in
-                        isAnimating = true
+                        // 判断水平滑动 - 水平位移大于垂直位移的1.5倍
+                        let isHorizontalDrag = abs(value.translation.width) > abs(value.translation.height) * 1.5
                         
-                        // 确定滑动方向和距离是否足够切换月份
-                        if value.translation.width > 50 {
-                            // 向右滑动超过阈值 - 切换到上个月
-                            withAnimation(.easeOut(duration: 0.2)) {
-                                dragOffset = UIScreen.main.bounds.width
-                            }
+                        // 只有在水平滑动时才处理月份切换
+                        if isHorizontalDrag {
+                            isAnimating = true
                             
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                previousMonth()
-                                dragOffset = 0
-                                isAnimating = false
-                            }
-                        } else if value.translation.width < -50 {
-                            // 向左滑动超过阈值 - 切换到下个月
-                            withAnimation(.easeOut(duration: 0.2)) {
-                                dragOffset = -UIScreen.main.bounds.width
-                            }
-                            
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                nextMonth()
-                                dragOffset = 0
-                                isAnimating = false
+                            // 确定滑动方向和距离是否足够切换月份
+                            if value.translation.width > 50 {
+                                // 向右滑动超过阈值 - 切换到上个月
+                                withAnimation(.easeOut(duration: 0.2)) {
+                                    dragOffset = UIScreen.main.bounds.width
+                                }
+                                
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                    previousMonth()
+                                    dragOffset = 0
+                                    isAnimating = false
+                                }
+                            } else if value.translation.width < -50 {
+                                // 向左滑动超过阈值 - 切换到下个月
+                                withAnimation(.easeOut(duration: 0.2)) {
+                                    dragOffset = -UIScreen.main.bounds.width
+                                }
+                                
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                    nextMonth()
+                                    dragOffset = 0
+                                    isAnimating = false
+                                }
+                            } else {
+                                // 不足以切换，回到当前月
+                                withAnimation(.easeOut(duration: 0.2)) {
+                                    dragOffset = 0
+                                    isAnimating = false
+                                }
                             }
                         } else {
-                            // 不足以切换，回到当前月
-                            withAnimation(.easeOut(duration: 0.2)) {
-                                dragOffset = 0
-                                isAnimating = false
+                            // 非水平滑动时重置状态
+                            if dragOffset != 0 {
+                                withAnimation(.easeOut(duration: 0.2)) {
+                                    dragOffset = 0
+                                }
                             }
+                            isAnimating = false
                         }
                     }
             )
@@ -688,6 +733,11 @@ struct GitHubStyleHeatmapView: View {
                     // 固定内容宽度以确保显示完整的一年
                     .frame(width: CGFloat(53) * (cellWidth + cellSpacing))
                 }
+                .simultaneousGesture(
+                    // 添加手势修饰符，防止ScrollView的手势阻止整体页面的滚动
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { _ in }
+                )
             }
         }
     }
@@ -786,28 +836,30 @@ struct DayCellGitHub: View {
     }
     
     var body: some View {
-        Button(action: { logHabit() }) {
-            ZStack {
+        ZStack {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(theme.color(for: logCount, isDarkMode: colorScheme == .dark))
+                .opacity(isCurrentYear ? 1.0 : 0.6)
+            
+            if isToday {
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(theme.color(for: logCount, isDarkMode: colorScheme == .dark))
-                    .opacity(isCurrentYear ? 1.0 : 0.6)
-                
-                if isToday {
-                    RoundedRectangle(cornerRadius: 2)
-                        .stroke(Color.primary, lineWidth: 1)
-                }
-                
-                // 在每月1号的格子中显示数字"1"
-                if isFirstDayOfMonth {
-                    Text("1")
-                        .font(.system(size: 8))
-                        .foregroundColor(logCount > 2 ? .white : (colorScheme == .dark ? .white : .black))
-                        .opacity(0.8)
-                }
+                    .stroke(Color.primary, lineWidth: 1)
             }
-            .frame(width: 12, height: 12)
-            .help(tooltipText)
+            
+            // 在每月1号的格子中显示数字"1"
+            if isFirstDayOfMonth {
+                Text("1")
+                    .font(.system(size: 8))
+                    .foregroundColor(logCount > 2 ? .white : (colorScheme == .dark ? .white : .black))
+                    .opacity(0.8)
+            }
         }
+        .frame(width: 12, height: 12)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            logHabit()
+        }
+        .help(tooltipText)
         .disabled(isFutureDate)
     }
     
