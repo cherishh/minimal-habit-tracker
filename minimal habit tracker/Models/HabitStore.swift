@@ -93,16 +93,16 @@ class HabitStore: ObservableObject {
                     habitLogs.remove(at: existingLogIndex)
                 }
             case .count:
-                // 对于count类型，第5次点击会清零记录
-                if currentCount >= 4 {
+                // 对于count类型，第6次点击会清零记录
+                if currentCount >= 5 {
                     habitLogs.remove(at: existingLogIndex)
                 } else {
                     habitLogs[existingLogIndex].count += 1
                 }
             }
         } else {
-            // 创建新记录，对于checkbox类型使用最深的颜色(count=4)
-            let initialCount = habit.habitType == .checkbox ? 4 : 1
+            // 创建新记录，对于checkbox类型使用最深的颜色(count=5)
+            let initialCount = habit.habitType == .checkbox ? 5 : 1
             let newLog = HabitLog(habitId: habitId, date: normalizedDate, count: initialCount)
             habitLogs.append(newLog)
         }

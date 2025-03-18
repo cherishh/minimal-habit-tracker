@@ -272,7 +272,7 @@ struct MiniHeatmapView: View {
                             
                             // 单个格子
                             RoundedRectangle(cornerRadius: 1)
-                                .fill(theme.color(for: min(count, 4), isDarkMode: colorScheme == .dark))
+                                .fill(theme.color(for: min(count, 5), isDarkMode: colorScheme == .dark))
                                 .frame(width: cellSize, height: cellSize)
                         } else {
                             // 没有日期的位置（例如超过今天的日期）
@@ -315,7 +315,7 @@ struct HabitCardView: View {
     // 获取计数型习惯的进度百分比 (0-1) - 直接从 habitStore 获取
     private var countProgress: CGFloat {
         let count = CGFloat(habitStore.getLogCountForDate(habitId: habit.id, date: Date()))
-        return min(count / 4.0, 1.0)
+        return min(count / 5.0, 1.0)
     }
     
     // 获取连续打卡天数 - 直接从 habitStore 获取
@@ -446,11 +446,11 @@ struct HabitCardView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "flame.fill")
                             .font(.system(size: 14))
-                            .foregroundColor(theme.color(for: 4, isDarkMode: colorScheme == .dark))
+                            .foregroundColor(theme.color(for: 5, isDarkMode: colorScheme == .dark))
                         
                         Text("\(currentStreak)")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(theme.color(for: 4, isDarkMode: colorScheme == .dark))
+                            .foregroundColor(theme.color(for: 5, isDarkMode: colorScheme == .dark))
                     }
                     .padding(.trailing, 16)
                 }
@@ -517,7 +517,7 @@ struct HabitCardView: View {
                         Circle()
                         .trim(from: 0, to: isCompletedToday ? 1 : 0)
                         .stroke(
-                            theme.color(for: 4, isDarkMode: colorScheme == .dark),
+                            theme.color(for: 5, isDarkMode: colorScheme == .dark),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,
@@ -540,7 +540,7 @@ struct HabitCardView: View {
                             Circle()
                         .trim(from: 0, to: isAnimating ? animatedCompletion : countProgress)
                         .stroke(
-                            theme.color(for: 4, isDarkMode: colorScheme == .dark),
+                            theme.color(for: 5, isDarkMode: colorScheme == .dark),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,
@@ -568,16 +568,16 @@ struct HabitCardView: View {
         // 计算点击后的新计数
         var newCount = currentCount
         if habit.habitType == .checkbox {
-            // 对于checkbox，如果已有计数则变为0，否则变为4
-            newCount = (currentCount > 0) ? 0 : 4
+            // 对于checkbox，如果已有计数则变为0，否则变为5
+            newCount = (currentCount > 0) ? 0 : 5
         } else {
-            // 对于count，计数加1，如果达到4则重置为0
-            newCount = (currentCount >= 4) ? 0 : currentCount + 1
+            // 对于count，计数加1，如果达到5则重置为0
+            newCount = (currentCount >= 5) ? 0 : currentCount + 1
         }
         
         // 设置动画的起点和终点
-        let startCompletion = Double(min(currentCount, 4)) / 4.0
-        let targetCompletion = Double(min(newCount, 4)) / 4.0
+        let startCompletion = Double(min(currentCount, 5)) / 5.0
+        let targetCompletion = Double(min(newCount, 5)) / 5.0
         
         // 设置动画
         isAnimating = true

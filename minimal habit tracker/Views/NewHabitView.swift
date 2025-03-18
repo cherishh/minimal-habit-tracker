@@ -213,10 +213,10 @@ struct HabitFormView: View {
                             
                             // 主题预览
                             HStack(spacing: 2) {
-                                ForEach(0..<5) { level in
+                                ForEach(0..<6) { level in
                                     RoundedRectangle(cornerRadius: 3)
                                         .fill(theme.color(for: level, isDarkMode: colorScheme == .dark))
-                                        .frame(width: 20, height: 20)
+                                        .frame(width: 16, height: 16)
                                 }
                             }
                             

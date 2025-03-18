@@ -13,7 +13,6 @@
 
 
 ## todos
-- [ ] 详情页右滑退出；列表页顺序调整；
 - [ ] 增加打卡次数上限；增加颜色等级；
 - [ ] dark mode 颜色优化（https://www.lifeofdiscipline.com/my-habits）
 - [ ] 文案优化
