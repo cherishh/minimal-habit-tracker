@@ -238,8 +238,12 @@ struct HabitFormView: View {
                                     showingCopiedMessage = false
                                 }
                             }) {
-                                Image(systemName: "doc.on.doc")
-                                    .foregroundColor(.blue)
+                                Image("copy")
+                                    .resizable()
+                                    .renderingMode(.template)
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
+                                    .foregroundColor(.primary)
                             }
                         }
                         .padding(10)
