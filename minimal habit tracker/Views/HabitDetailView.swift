@@ -856,11 +856,12 @@ struct DayCellGitHub: View {
         }
         .frame(width: 12, height: 12)
         .contentShape(Rectangle())
-        .onTapGesture {
-            logHabit()
-        }
+        // .onTapGesture {
+        //     logHabit()
+        // }
         .help(tooltipText)
-        .disabled(isFutureDate)
+        // .disabled(isFutureDate)
+        .disabled(true)
     }
     
     private var tooltipText: String {
@@ -870,11 +871,11 @@ struct DayCellGitHub: View {
         return "\(dateFormatter.string(from: date)): \(logCount)次"
     }
     
-    private func logHabit() {
-        if !isFutureDate {
-            habitStore.logHabit(habitId: habit.id, date: date)
-        }
-    }
+    // private func logHabit() {
+    //     if !isFutureDate {
+    //         habitStore.logHabit(habitId: habit.id, date: date)
+    //     }
+    // }
 }
 
 #Preview {

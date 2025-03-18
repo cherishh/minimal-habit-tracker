@@ -54,6 +54,22 @@ class HabitStore: ObservableObject {
         }
     }
     
+    func moveHabit(from source: IndexSet, to destination: Int) {
+        habits.move(fromOffsets: source, toOffset: destination)
+        saveData()
+        refreshWidgets()
+    }
+    
+    // 更新习惯顺序
+    func updateHabitOrder(_ newHabits: [Habit]) {
+        // 检查数量是否一致，避免数据丢失
+        if newHabits.count == habits.count {
+            habits = newHabits
+            saveData()
+            refreshWidgets()
+        }
+    }
+    
     // MARK: - Habit Logs 操作
     
     func logHabit(habitId: UUID, date: Date) {

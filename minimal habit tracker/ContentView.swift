@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var selectedHabit: Habit?
     @State private var selectedHabitId: UUID?
     @State private var navigateToDetail = false
+    @State private var showingSortSheet = false
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("isDarkMode") private var isDarkMode = false
     @State private var showingMaxHabitsAlert = false
@@ -55,6 +56,19 @@ struct ContentView: View {
                                 .foregroundColor(.primary)
                         }
                         
+                        Button(action: { showingSortSheet = true }) {
+                            Image(systemName: "arrow.up.arrow.down")
+                                .resizable()
+                                .renderingMode(.template)
+                                .scaledToFit()
+                                .frame(width: 18, height: 18)
+                                .frame(width: 36, height: 36)
+                                .background(Color(UIColor.systemGray5).opacity(0.6))
+                                .cornerRadius(10)
+                                .foregroundColor(.primary)
+                        }
+                        .disabled(habitStore.habits.isEmpty)
+                        
                         Button(action: { showingSettings = true }) {
                             Image("settings")
                                 .resizable()
@@ -87,6 +101,9 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView(isPresented: $showingSettings)
+            }
+            .sheet(isPresented: $showingSortSheet) {
+                HabitSortView(isPresented: $showingSortSheet)
             }
             .alert(isPresented: $showingMaxHabitsAlert) {
                 Alert(
@@ -631,6 +648,59 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+}
+
+// 习惯排序视图
+struct HabitSortView: View {
+    @Binding var isPresented: Bool
+    @EnvironmentObject var habitStore: HabitStore
+    @State private var habits: [Habit] = []
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(habits) { habit in
+                    HStack {
+                        Text(habit.emoji)
+                            .font(.title2)
+                            .padding(.trailing, 8)
+                        
+                        Text(habit.name)
+                            .font(.body)
+                    }
+                    .padding(.vertical, 8)
+                }
+                .onMove { from, to in
+                    habits.move(fromOffsets: from, toOffset: to)
+                }
+            }
+            .environment(\.editMode, .constant(.active))
+            .navigationTitle("排序习惯")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消") {
+                        isPresented = false
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("保存") {
+                        saveHabitOrder()
+                        isPresented = false
+                    }
+                }
+            }
+            .onAppear {
+                habits = habitStore.habits
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+    
+    private func saveHabitOrder() {
+        // 保存新的习惯顺序到HabitStore
+        habitStore.updateHabitOrder(habits)
     }
 }
 
