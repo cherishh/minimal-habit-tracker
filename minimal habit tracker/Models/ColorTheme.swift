@@ -8,7 +8,7 @@ struct ColorTheme: Identifiable {
     
     // 获取特定强度级别的颜色
     func color(for level: Int, isDarkMode: Bool) -> Color {
-        guard level >= 0 && level < 6 else { return isDarkMode ? darkColors[0] : lightColors[0] }
+        guard level >= 0 && level < HabitStore.maxCheckInCount+1 else { return isDarkMode ? darkColors[0] : lightColors[0] }
         return isDarkMode ? darkColors[level] : lightColors[level]
     }
 }

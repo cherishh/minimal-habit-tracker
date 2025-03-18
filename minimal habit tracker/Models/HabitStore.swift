@@ -13,8 +13,9 @@ class HabitStore: ObservableObject {
     // 使用 App Group 的 UserDefaults 来共享数据
     private let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker") ?? UserDefaults.standard
     
-    // 定义最大习惯数量常量
-    static let maxHabitCount = 10
+    // 定义常量
+    static let maxHabitCount = 10 // 最大习惯数量
+    static let maxCheckInCount = 5 // 最大打卡次数
     
     init() {
         loadData()
@@ -94,7 +95,7 @@ class HabitStore: ObservableObject {
                 }
             case .count:
                 // 对于count类型，第6次点击会清零记录
-                if currentCount >= 5 {
+                if currentCount >= HabitStore.maxCheckInCount {
                     habitLogs.remove(at: existingLogIndex)
                 } else {
                     habitLogs[existingLogIndex].count += 1
@@ -102,7 +103,7 @@ class HabitStore: ObservableObject {
             }
         } else {
             // 创建新记录，对于checkbox类型使用最深的颜色(count=5)
-            let initialCount = habit.habitType == .checkbox ? 5 : 1
+            let initialCount = habit.habitType == .checkbox ? HabitStore.maxCheckInCount : 1
             let newLog = HabitLog(habitId: habitId, date: normalizedDate, count: initialCount)
             habitLogs.append(newLog)
         }

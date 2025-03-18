@@ -272,7 +272,7 @@ struct MiniHeatmapView: View {
                             
                             // 单个格子
                             RoundedRectangle(cornerRadius: 1)
-                                .fill(theme.color(for: min(count, 5), isDarkMode: colorScheme == .dark))
+                                .fill(theme.color(for: min(count, HabitStore.maxCheckInCount), isDarkMode: colorScheme == .dark))
                                 .frame(width: cellSize, height: cellSize)
                         } else {
                             // 没有日期的位置（例如超过今天的日期）
@@ -315,7 +315,7 @@ struct HabitCardView: View {
     // 获取计数型习惯的进度百分比 (0-1) - 直接从 habitStore 获取
     private var countProgress: CGFloat {
         let count = CGFloat(habitStore.getLogCountForDate(habitId: habit.id, date: Date()))
-        return min(count / 5.0, 1.0)
+        return min(count / CGFloat(HabitStore.maxCheckInCount), 1.0)
     }
     
     // 获取连续打卡天数 - 直接从 habitStore 获取
@@ -569,15 +569,15 @@ struct HabitCardView: View {
         var newCount = currentCount
         if habit.habitType == .checkbox {
             // 对于checkbox，如果已有计数则变为0，否则变为5
-            newCount = (currentCount > 0) ? 0 : 5
+            newCount = (currentCount > 0) ? 0 : HabitStore.maxCheckInCount
         } else {
             // 对于count，计数加1，如果达到5则重置为0
-            newCount = (currentCount >= 5) ? 0 : currentCount + 1
+            newCount = (currentCount >= HabitStore.maxCheckInCount) ? 0 : currentCount + 1
         }
         
         // 设置动画的起点和终点
-        let startCompletion = Double(min(currentCount, 5)) / 5.0
-        let targetCompletion = Double(min(newCount, 5)) / 5.0
+        let startCompletion = Double(min(currentCount, HabitStore.maxCheckInCount)) / Double(HabitStore.maxCheckInCount)
+        let targetCompletion = Double(min(newCount, HabitStore.maxCheckInCount)) / Double(HabitStore.maxCheckInCount)
         
         // 设置动画
         isAnimating = true
