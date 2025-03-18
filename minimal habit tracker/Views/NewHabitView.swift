@@ -14,6 +14,7 @@ struct HabitFormView: View {
     @State private var originalHabit: Habit?
     @Environment(\.colorScheme) var colorScheme
     @State private var showingCopiedMessage = false
+    @State private var showingDeleteConfirmation = false
     
     // 背景色列表
     let backgroundColors: [String] = [
@@ -83,6 +84,23 @@ struct HabitFormView: View {
             )
             .sheet(isPresented: $showEmojiPicker) {
                 EmojiPickerView(selectedEmoji: $selectedEmoji, selectedBackgroundColor: $selectedBackgroundColor)
+            }
+            .alert(isPresented: $showingDeleteConfirmation) {
+                Alert(
+                    title: Text("确认删除"),
+                    message: Text("确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。"),
+                    primaryButton: .destructive(Text("删除")) {
+                        if let habit = originalHabit {
+                            // 从store中删除习惯
+                            habitStore.removeHabit(habit)
+                            // 关闭编辑视图
+                            isPresented = false
+                            // 发送通知，让详情页面返回到列表页
+                            NotificationCenter.default.post(name: NSNotification.Name("HabitDeleted"), object: habit.id)
+                        }
+                    },
+                    secondaryButton: .cancel(Text("取消"))
+                )
             }
         }
     }
@@ -272,6 +290,7 @@ struct HabitFormView: View {
                     }
                     .padding(.vertical, 4)
                 }
+                
             }
             
             Section {
@@ -301,8 +320,28 @@ struct HabitFormView: View {
                 //     }
                 // }
             }
-            
+
+            // 删除按钮
+            if isEditMode, let habit = originalHabit {
+                Section {
+                    Button(action: {
+                        // 显示确认删除对话框
+                        presentDeleteConfirmation()
+                    }) {
+                        HStack {
+                            Spacer()
+                            Text("删除习惯")
+                                .foregroundColor(.red)
+                            Spacer()
+                        }
+                    }
+                }
+            }
         }
+    }
+    
+    private func presentDeleteConfirmation() {
+        showingDeleteConfirmation = true
     }
     
     private func saveHabit() {

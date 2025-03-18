@@ -9,7 +9,7 @@
 5. 用户可以切换light/dark mode；
 
 ## Next Step
-简单优化几处体验，然后添加/修改完整的 dark mode 的配色方案。目前的 dark mode 使用一些mock 默认配色。
+简单优化几处体验，然后添加/修改完整的 dark mode 的配色方案。目前的 dark mode 使用 mock 默认配色，not good enough
 
 
 ## todos

@@ -75,6 +75,8 @@ struct ContentView: View {
                 
                 if habitStore.habits.isEmpty {
                     emptyStateView
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(lightBackgroundColor)
                 } else {
                     habitListView
                 }
@@ -122,20 +124,20 @@ struct ContentView: View {
     }
     
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "calendar.badge.clock")
-                .font(.system(size: 80))
+        VStack {
+            Spacer()
+            
+            // 简化后的文案
+            Text("空空如也")
+                .font(.system(size: 28, weight: .bold))
+                .padding(.bottom, 4)
+            
+            Text("添加第一个习惯")
+                .font(.body)
                 .foregroundColor(.secondary)
+                .padding(.bottom, 40)
             
-            Text("开始追踪您的习惯")
-                .font(.title2)
-                .fontWeight(.medium)
-            
-            Text("添加您想要培养的习惯，每天记录进度，形成可视化热力图。")
-                .multilineTextAlignment(.center)
-                .foregroundColor(.secondary)
-                .padding(.horizontal)
-            
+            // 大一点的添加按钮
             Button(action: { 
                 if habitStore.canAddHabit() {
                     isAddingHabit = true
@@ -143,16 +145,16 @@ struct ContentView: View {
                     showingMaxHabitsAlert = true
                 }
             }) {
-                Text("添加第一个习惯")
-                    .fontWeight(.medium)
-                    .padding()
-                    .background(Color.accentColor)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
+                Image(systemName: "plus")
+                    .font(.system(size: 24))
+                    .foregroundColor(.primary)
+                    .frame(width: 60, height: 60)
+                    .background(Color(UIColor.systemGray5).opacity(0.6))
+                    .cornerRadius(30)
             }
-            .padding(.top)
+            
+            Spacer()
         }
-        .padding()
     }
     
     private var habitListView: some View {
