@@ -18,6 +18,11 @@ struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("isDarkMode") private var isDarkMode = false
     @State private var showingMaxHabitsAlert = false
+    @State private var showAddHabit = false
+    @State private var showSettings = false
+    @State private var showSortOverlay = false
+    @State private var showDeleteConfirmation = false
+    @State private var habitToDelete: Habit? = nil
     
     // 自定义更淡的背景色
     private var lightBackgroundColor: Color {
@@ -181,7 +186,9 @@ struct ContentView: View {
             ForEach(habitStore.habits) { habit in
                     HabitCardView(habit: habit, onDelete: {
                         withAnimation {
-                            habitStore.removeHabit(habit)
+                            // 设置要删除的习惯并显示确认对话框
+                            habitToDelete = habit
+                            showDeleteConfirmation = true
                         }
                     })
                 }
@@ -190,6 +197,19 @@ struct ContentView: View {
             .padding(.horizontal, 20)
         }
         .background(lightBackgroundColor)
+        // 添加删除习惯的确认对话框
+        .alert("确认删除", isPresented: $showDeleteConfirmation) {
+            Button("取消", role: .cancel) { }
+            Button("删除", role: .destructive) {
+                if let habit = habitToDelete {
+                    withAnimation {
+                        habitStore.removeHabit(habit)
+                    }
+                }
+            }
+        } message: {
+            Text("确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。")
+        }
     }
 }
 

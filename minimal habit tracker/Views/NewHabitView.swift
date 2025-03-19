@@ -91,37 +91,35 @@ struct HabitFormView: View {
             .sheet(isPresented: $showEmojiPicker) {
                 EmojiPickerView(selectedEmoji: $selectedEmoji, selectedBackgroundColor: $selectedBackgroundColor)
             }
-            .alert(isPresented: $showingDeleteConfirmation) {
-                Alert(
-                    title: Text("确认删除"),
-                    message: Text("确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。"),
-                    primaryButton: .destructive(Text("删除")) {
-                        if let habit = originalHabit {
-                            // 从store中删除习惯
-                            habitStore.removeHabit(habit)
-                            // 关闭编辑视图
-                            isPresented = false
-                            // 发送通知，让详情页面返回到列表页
-                            NotificationCenter.default.post(name: NSNotification.Name("HabitDeleted"), object: habit.id)
-                        }
-                    },
-                    secondaryButton: .cancel(Text("取消"))
-                )
-            }
-            .alert(isPresented: $showingMaxCountChangeAlert) {
-                Alert(
-                    title: Text("确认修改打卡次数"),
-                    message: Text("修改打卡次数将影响所有已存在的记录。" + 
-                                  (previousMaxCount > maxCheckInCount ? "超过新上限的记录将被调整为新的上限值。" : "")) +
-                                  Text("\n是否继续？"),
-                    primaryButton: .default(Text("确认")) {
-                        // 用户确认修改，保持当前设置的值
-                    },
-                    secondaryButton: .cancel(Text("取消")) {
-                        // 用户取消修改，恢复原来的值
-                        maxCheckInCount = previousMaxCount
+            // 删除习惯的确认对话框
+            .alert("确认删除", isPresented: $showingDeleteConfirmation) {
+                Button("取消", role: .cancel) { }
+                Button("删除", role: .destructive) {
+                    if let habit = originalHabit {
+                        // 从store中删除习惯
+                        habitStore.removeHabit(habit)
+                        // 发送通知，让详情页面返回到列表页
+                        NotificationCenter.default.post(name: NSNotification.Name("HabitDeleted"), object: habit.id)
+                        // 关闭编辑视图
+                        isPresented = false
                     }
-                )
+                }
+            } message: {
+                Text("确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。")
+            }
+            // 修改打卡次数的确认对话框
+            .alert("确认修改打卡次数", isPresented: $showingMaxCountChangeAlert) {
+                Button("取消", role: .cancel) {
+                    // 用户取消修改，恢复原来的值
+                    maxCheckInCount = previousMaxCount
+                }
+                Button("确认") {
+                    // 用户确认修改，保持当前设置的值
+                }
+            } message: {
+                Text("修改打卡次数将影响所有已存在的记录。" + 
+                     (previousMaxCount > maxCheckInCount ? "超过新上限的记录将被调整为新的上限值。" : "") +
+                     "\n是否继续？")
             }
         }
         .preferredColorScheme(isDarkMode ? .dark : .light)
@@ -365,7 +363,7 @@ struct HabitFormView: View {
                 Section {
                     Button(action: {
                         // 显示确认删除对话框
-                        presentDeleteConfirmation()
+                        showingDeleteConfirmation = true
                     }) {
                         HStack {
                             Spacer()
@@ -377,10 +375,6 @@ struct HabitFormView: View {
                 }
             }
         }
-    }
-    
-    private func presentDeleteConfirmation() {
-        showingDeleteConfirmation = true
     }
     
     private func saveHabit() {
