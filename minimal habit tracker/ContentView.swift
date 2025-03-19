@@ -344,6 +344,7 @@ struct MiniHeatmapView: View {
         .frame(height: 7 * (cellSize + cellSpacing) - cellSpacing)
         .frame(width: 190) // 保持相同宽度，适应100天的数据
         .padding(.horizontal, 2) // 添加一点水平间距以确保边缘可见
+        .opacity(0.85) // 整体添加0.85透明度，使热力图不那么刺眼
     }
 }
 
@@ -504,11 +505,15 @@ struct HabitCardView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "flame.fill")
                             .font(.system(size: 14))
-                            .foregroundColor(theme.color(for: 5, isDarkMode: colorScheme == .dark))
+                            .foregroundColor(colorScheme == .dark 
+                                ? theme.color(for: 4, isDarkMode: true)
+                                : theme.color(for: 5, isDarkMode: false))
                         
                         Text("\(currentStreak)")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(theme.color(for: 5, isDarkMode: colorScheme == .dark))
+                            .foregroundColor(colorScheme == .dark 
+                                ? theme.color(for: 4, isDarkMode: true)
+                                : theme.color(for: 5, isDarkMode: false))
                     }
                     .padding(.trailing, 16)
                 }
@@ -566,7 +571,9 @@ struct HabitCardView: View {
                     // Checkbox型习惯的圆环 - 先显示底色轨道
                     Circle()
                         .stroke(
-                            theme.color(for: 1, isDarkMode: colorScheme == .dark).opacity(0.4),
+                            colorScheme == .dark ?
+                                theme.color(for: 1, isDarkMode: true).opacity(0.7) :
+                                theme.color(for: 1, isDarkMode: false).opacity(0.4),
                             style: StrokeStyle(lineWidth: 10)
                         )
                         .frame(width: 64, height: 64)
@@ -575,7 +582,9 @@ struct HabitCardView: View {
                         Circle()
                         .trim(from: 0, to: isCompletedToday ? 1 : 0)
                         .stroke(
-                            theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: colorScheme == .dark),
+                            colorScheme == .dark 
+                                ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
+                                : theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,
@@ -589,7 +598,9 @@ struct HabitCardView: View {
                     // Count型习惯的圆环 - 先显示底色轨道
                     Circle()
                         .stroke(
-                            theme.color(for: 1, isDarkMode: colorScheme == .dark).opacity(0.4),
+                            colorScheme == .dark ?
+                                theme.color(for: 1, isDarkMode: true).opacity(0.7) :
+                                theme.color(for: 1, isDarkMode: false).opacity(0.4),
                             style: StrokeStyle(lineWidth: 10)
                         )
                         .frame(width: 64, height: 64)
@@ -598,7 +609,9 @@ struct HabitCardView: View {
                             Circle()
                         .trim(from: 0, to: isAnimating ? animatedCompletion : countProgress)
                         .stroke(
-                            theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: colorScheme == .dark),
+                            colorScheme == .dark 
+                                ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
+                                : theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,

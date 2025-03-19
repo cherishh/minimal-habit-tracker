@@ -538,7 +538,9 @@ struct DayCell: View {
                     Circle()
                         .trim(from: 0, to: isAnimating ? animatedCompletion : 1.0)
                         .stroke(
-                            theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: colorScheme == .dark),
+                            colorScheme == .dark 
+                                ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
+                                : theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
                             style: StrokeStyle(
                                 lineWidth: 3.5,
                                 lineCap: .round,    // 圆形线帽
@@ -560,7 +562,9 @@ struct DayCell: View {
                     Circle()
                         .trim(from: 0, to: isAnimating ? animatedCompletion : completionPercentage)
                         .stroke(
-                            theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: colorScheme == .dark),
+                            colorScheme == .dark 
+                                ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
+                                : theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
                             style: StrokeStyle(
                                 lineWidth: 3.5,
                                 lineCap: .round,    // 圆形线帽
