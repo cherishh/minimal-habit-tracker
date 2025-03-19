@@ -347,10 +347,6 @@ struct EmojiPickerView: View {
                 } else {
                     // Text模式
                     VStack(spacing: 20) {
-                        // Text("输入文字")
-                        //     .font(.headline)
-                        //     .padding(.top, 20)
-                        
                         TextField("输入文字", text: $textInput)
                             .font(.system(size: 28))
                             .multilineTextAlignment(.center)
@@ -366,7 +362,7 @@ struct EmojiPickerView: View {
                                 }
                             }
                         
-                        Text("将取第一个字符作为习惯图标。你也可以输入自定义的emoji")
+                        Text("将取第一个字作为习惯图标。你也可以输入自定义的 emoji")
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .padding(.top, 5)

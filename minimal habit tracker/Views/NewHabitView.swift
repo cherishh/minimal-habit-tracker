@@ -152,8 +152,7 @@ struct HabitFormView: View {
     
     private var typeSelectionView: some View {
         VStack(spacing: 20) {
-            Text("")
-                .font(.headline)
+            HabitTypeDemo()
                 .padding(.top)
             
             Text("选择后不可更改")
@@ -258,6 +257,51 @@ struct HabitFormView: View {
                 }
             }
 
+            Section {
+                if isEditMode {
+                    HStack {
+                        Text("习惯类型")
+                        Spacer()
+                        Text(selectedType == .checkbox ? "打卡" : "计数")
+                            .foregroundColor(.secondary)
+                    }
+                } else {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("选择的类型: \(selectedType == .checkbox ? "打卡" : "计数")")
+                            .font(.subheadline)
+                    }
+                }
+                
+                // 计数型习惯的最大打卡次数选择
+                if selectedType == .count {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("打卡次数上限")
+                            .font(.subheadline)
+                        
+                        Picker("打卡次数上限", selection: $maxCheckInCount) {
+                            ForEach(1...10, id: \.self) { count in
+                                Text("\(count)").tag(count)
+                            }
+                        }
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(height: 120)
+                        .onChange(of: maxCheckInCount) { oldValue, newValue in
+                            if isEditMode && originalHabit != nil {
+                                // 保存旧值，用于后续比较
+                                previousMaxCount = oldValue
+                                // 显示确认对话框
+                                showingMaxCountChangeAlert = true
+                            }
+                        }
+                        
+                        Text("设置每日打卡的最大次数")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 8)
+                }
+            }
+
             // 只在编辑模式下显示 UUID 信息，用于配置 Widget
             if isEditMode, let habit = originalHabit {
                 Section(header: Text("Widget 配置信息")
@@ -319,51 +363,6 @@ struct HabitFormView: View {
                     .padding(.vertical, 4)
                 }
                 
-            }
-            
-            Section {
-                if isEditMode {
-                    HStack {
-                        Text("习惯类型")
-                        Spacer()
-                        Text(selectedType == .checkbox ? "打卡型" : "计数型")
-                            .foregroundColor(.secondary)
-                    }
-                } else {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("选择的类型: \(selectedType == .checkbox ? "打卡型" : "计数型")")
-                            .font(.subheadline)
-                    }
-                }
-                
-                // 计数型习惯的最大打卡次数选择
-                if selectedType == .count {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("打卡次数上限")
-                            .font(.subheadline)
-                        
-                        Picker("打卡次数上限", selection: $maxCheckInCount) {
-                            ForEach(1...10, id: \.self) { count in
-                                Text("\(count)次").tag(count)
-                            }
-                        }
-                        .pickerStyle(WheelPickerStyle())
-                        .frame(height: 120)
-                        .onChange(of: maxCheckInCount) { oldValue, newValue in
-                            if isEditMode && originalHabit != nil {
-                                // 保存旧值，用于后续比较
-                                previousMaxCount = oldValue
-                                // 显示确认对话框
-                                showingMaxCountChangeAlert = true
-                            }
-                        }
-                        
-                        Text("设置每日打卡的最大次数")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.vertical, 8)
-                }
             }
 
             // 删除按钮
@@ -459,4 +458,139 @@ struct NewHabitView: View {
         )
     )
     .environmentObject(HabitStore())
+}
+
+// 习惯类型演示组件
+struct HabitTypeDemo: View {
+    @Environment(\.colorScheme) var colorScheme
+    @State private var checkboxProgress: CGFloat = 0
+    @State private var countProgress: CGFloat = 0
+    @State private var countTaps = 0
+    @State private var maxCount = 3
+    
+    // 获取Github主题（默认主题）
+    private var github: ColorTheme {
+        ColorTheme.getTheme(for: .github)
+    }
+
+    private var blueOcean: ColorTheme {
+        ColorTheme.getTheme(for: .blueOcean)
+    }
+    
+    var body: some View {
+        HStack(spacing: 30) {
+            // 打卡型演示
+            VStack(spacing: 5) {
+                Text("打卡")
+                    .font(.headline)
+                
+                ZStack {
+                    // 底色轨道
+                    Circle()
+                        .stroke(
+                            github.color(for: 0, isDarkMode: colorScheme == .dark),
+                            style: StrokeStyle(lineWidth: 10)
+                        )
+                        .frame(width: 64, height: 64)
+                    
+                    // 完成圆环
+                    Circle()
+                        .trim(from: 0, to: checkboxProgress)
+                        .stroke(
+                            checkboxProgress > 0 ? 
+                                github.color(for: 5, isDarkMode: colorScheme == .dark) :
+                                Color.clear,
+                            style: StrokeStyle(
+                                lineWidth: 10,
+                                lineCap: .round,
+                                lineJoin: .round
+                            )
+                        )
+                        .frame(width: 64, height: 64)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.easeInOut(duration: 0.5), value: checkboxProgress)
+                    
+                    // Emoji
+                    Text("✅")
+                        .font(.system(size: 30))
+                }
+                .frame(height: 80)
+                .onTapGesture {
+                    if checkboxProgress < 1.0 {
+                        checkboxProgress = 1.0
+                    } else {
+                        checkboxProgress = 0
+                    }
+                }
+                
+                Text("打卡一次即完成")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .frame(width: 130, height: 140)
+            
+            // 计数型演示
+            VStack(spacing: 5) {
+                Text("计数")
+                    .font(.headline)
+                
+                ZStack {
+                    // 底色轨道
+                    Circle()
+                        .stroke(
+                            blueOcean.color(for: 0, isDarkMode: colorScheme == .dark),
+                            style: StrokeStyle(lineWidth: 10)
+                        )
+                        .frame(width: 64, height: 64)
+                    
+                    // 进度环
+                    Circle()
+                        .trim(from: 0, to: countProgress)
+                        .stroke(
+                            checkboxProgress > 0 ? 
+                                blueOcean.color(for: 5, isDarkMode: colorScheme == .dark) :
+                                Color.clear,
+                            style: StrokeStyle(
+                                lineWidth: 10,
+                                lineCap: .round,
+                                lineJoin: .round
+                            )
+                        )
+                        .frame(width: 64, height: 64)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.easeInOut(duration: 0.3), value: countProgress)
+                    
+                    // Emoji和计数
+                    VStack(spacing: 0) {
+                        Text("🥤")
+                            .font(.system(size: 30))
+                        
+                        Text("\(countTaps)/\(maxCount)")
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .frame(height: 80)
+                .onTapGesture {
+                    if countTaps < maxCount {
+                        countTaps += 1
+                        countProgress = CGFloat(countTaps) / CGFloat(maxCount)
+                    } else {
+                        // 重置
+                        countTaps = 0
+                        countProgress = 0
+                    }
+                }
+                
+                Text("多次打卡完成目标")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .frame(width: 130, height: 140)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .background(Color(UIColor.secondarySystemBackground).opacity(0.5))
+        .cornerRadius(15)
+    }
 } 

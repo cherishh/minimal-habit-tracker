@@ -660,7 +660,7 @@ struct YearPicker: View {
             
             Spacer()
             
-            Text("\(selectedYear)年")
+            Text(String(format: "%d年", selectedYear))
                 .font(.headline)
                 .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
             

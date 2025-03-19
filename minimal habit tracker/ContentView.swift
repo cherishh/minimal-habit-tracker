@@ -567,6 +567,7 @@ struct HabitCardView: View {
             checkInHabit()
             }) {
                 ZStack {
+                let currentCount = habitStore.getLogCountForDate(habitId: habit.id, date: Date())
                 // 圆环
                 if habit.habitType == .checkbox {
                     // Checkbox型习惯的圆环 - 先显示底色轨道
@@ -623,9 +624,17 @@ struct HabitCardView: View {
                         .rotationEffect(.degrees(-90))
                 }
                 
-                // Emoji
-                Text(habit.emoji)
-                    .font(.system(size: 28))
+                VStack(spacing: 0) {
+                    // Emoji
+                    Text(habit.emoji)
+                        .font(.system(size: 28))
+
+                    /* if habit.habitType == .count {
+                        Text("\(currentCount)/\(habit.maxCheckInCount)")
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                    } */
+                }
             }
             }
             .buttonStyle(PlainButtonStyle())
@@ -640,10 +649,8 @@ struct HabitCardView: View {
         // 计算点击后的新计数
         var newCount = currentCount
         if habit.habitType == .checkbox {
-            // 对于checkbox，如果已有计数则变为0，否则变为5
             newCount = (currentCount > 0) ? 0 : habit.maxCheckInCount
         } else {
-            // 对于count，计数加1，如果达到5则重置为0
             newCount = (currentCount >= habit.maxCheckInCount) ? 0 : currentCount + 1
         }
         
@@ -694,7 +701,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("显示")) {
+                Section(header: Text("主题设置")) {
                     Toggle("暗黑模式", isOn: $isDarkMode)
                 }
                 
