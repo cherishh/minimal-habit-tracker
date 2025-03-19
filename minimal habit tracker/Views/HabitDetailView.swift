@@ -1,5 +1,43 @@
 import SwiftUI
 
+// 修改支持系统侧滑返回手势的扩展
+struct EnableSwipeBackModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background(SwipeBackController())
+    }
+}
+
+struct SwipeBackController: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> UIViewController {
+        SwipeBackControllerVC()
+    }
+    
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+    
+    class SwipeBackControllerVC: UIViewController {
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            self.parent?.navigationController?.interactivePopGestureRecognizer?.delegate = nil
+            self.parent?.navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+        }
+    }
+}
+
+extension View {
+    func enableSwipeBack() -> some View {
+        self.modifier(EnableSwipeBackModifier())
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func primaryWithOpacity(colorScheme: ColorScheme) -> some View {
+        self.foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
+    }
+}
+
+/// 习惯详情页面，包含热力图和月历视图
 struct HabitDetailView: View {
     let habitId: UUID
     @EnvironmentObject var habitStore: HabitStore
@@ -53,8 +91,10 @@ struct HabitDetailView: View {
         .scrollContentBackground(.hidden) // 隐藏滚动背景
         .background(Color.clear) // 设置背景为透明
         .navigationTitle("\(habit.emoji) \(habit.name)")
+        .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
         .accentColor(.black)
         .navigationBarBackButtonHidden(true)
+        .enableSwipeBack() // 启用系统的滑动返回手势
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: { presentationMode.wrappedValue.dismiss() }) {
@@ -63,7 +103,7 @@ struct HabitDetailView: View {
                         .renderingMode(.template)
                         .scaledToFit()
                         .frame(width: 28, height: 28)
-                        .foregroundColor(.primary)
+                        .primaryWithOpacity(colorScheme: colorScheme)
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -83,21 +123,6 @@ struct HabitDetailView: View {
         .sheet(isPresented: $showingSettings) {
             HabitFormView(isPresented: $showingSettings, habit: habit)
         }
-        // 添加边缘滑动手势
-        .gesture(
-            DragGesture()
-                .onEnded { gesture in
-                    // 判断是否是从左向右滑动，并且起始点在屏幕左侧边缘区域
-                    let startX = gesture.startLocation.x
-                    let endX = gesture.location.x
-                    let isEdgeSwipe = startX < 50 // 屏幕左侧50点的区域
-                    let isRightSwipe = endX - startX > 100 // 滑动距离大于100（原130点）
-                    
-                    if isEdgeSwipe && isRightSwipe {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                }
-        )
         .onAppear {
             // 添加对习惯删除通知的监听
             NotificationCenter.default.addObserver(forName: NSNotification.Name("HabitDeleted"), object: nil, queue: .main) { notification in
@@ -231,13 +256,14 @@ struct MonthCalendarView: View {
                         .renderingMode(.template)
                         .scaledToFit()
                         .frame(width: 16, height: 16)
-                        .foregroundColor(.primary)
+                        .primaryWithOpacity(colorScheme: colorScheme)
                 }
                 
                 Spacer()
                 
                 Text("\(selectedMonth)月")
                     .font(.headline)
+                    .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                 
                 Spacer()
                 
@@ -247,7 +273,7 @@ struct MonthCalendarView: View {
                         .renderingMode(.template)
                         .scaledToFit()
                         .frame(width: 16, height: 16)
-                        .foregroundColor(.primary)
+                        .primaryWithOpacity(colorScheme: colorScheme)
                 }
                 
                 Button(action: goToCurrentMonth) {
@@ -615,6 +641,7 @@ struct DayCell: View {
 
 struct YearPicker: View {
     @Binding var selectedYear: Int
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         HStack {
@@ -624,13 +651,14 @@ struct YearPicker: View {
                     .renderingMode(.template)
                     .scaledToFit()
                     .frame(width: 16, height: 16)
-                    .foregroundColor(.primary)
+                    .primaryWithOpacity(colorScheme: colorScheme)
             }
             
             Spacer()
             
             Text("\(selectedYear)年")
                 .font(.headline)
+                .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
             
             Spacer()
             
@@ -640,7 +668,7 @@ struct YearPicker: View {
                     .renderingMode(.template)
                     .scaledToFit()
                     .frame(width: 16, height: 16)
-                    .foregroundColor(.primary)
+                    .primaryWithOpacity(colorScheme: colorScheme)
             }
             
             Button(action: goToCurrentYear) {
@@ -860,11 +888,7 @@ struct DayCellGitHub: View {
         }
         .frame(width: 12, height: 12)
         .contentShape(Rectangle())
-        // .onTapGesture {
-        //     logHabit()
-        // }
         .help(tooltipText)
-        // .disabled(isFutureDate)
         .disabled(true)
     }
     
@@ -874,12 +898,6 @@ struct DayCellGitHub: View {
         
         return "\(dateFormatter.string(from: date)): \(logCount)次"
     }
-    
-    // private func logHabit() {
-    //     if !isFutureDate {
-    //         habitStore.logHabit(habitId: habit.id, date: date)
-    //     }
-    // }
 }
 
 #Preview {

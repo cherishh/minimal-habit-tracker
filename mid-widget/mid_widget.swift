@@ -160,7 +160,7 @@ struct HabitWidgetEntryView: View {
                     }
                 }
                 .background(colorScheme == .dark ? Color.black : Color(UIColor.systemBackground))
-                .foregroundColor(colorScheme == .dark ? .white : .primary) // 根据模式调整文本颜色
+                .foregroundColor(colorScheme == .dark ? .white.opacity(0.8) : .primary) // 根据模式调整文本颜色，黑暗模式下添加0.8透明度
                 
                 // 下部分：微型热力图和打卡按钮
                 HStack(spacing: 5) {

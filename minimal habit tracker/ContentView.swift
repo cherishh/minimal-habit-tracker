@@ -7,6 +7,35 @@
 
 import SwiftUI
 
+// 添加支持系统侧滑返回手势的扩展
+extension View {
+    func interactivePopGestureRecognizer(_ enabled: Bool) -> some View {
+        self.modifier(InteractivePopGestureRecognizerModifier(enabled: enabled))
+    }
+}
+
+struct InteractivePopGestureRecognizerModifier: ViewModifier {
+    let enabled: Bool
+    
+    func body(content: Content) -> some View {
+        content
+            .background(InteractivePopGestureRecognizerHelper(enabled: enabled))
+    }
+}
+
+struct InteractivePopGestureRecognizerHelper: UIViewControllerRepresentable {
+    let enabled: Bool
+    
+    func makeUIViewController(context: Context) -> UIViewController {
+        UIViewController()
+    }
+    
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        guard let navigationController = uiViewController.navigationController else { return }
+        navigationController.interactivePopGestureRecognizer?.isEnabled = enabled
+    }
+}
+
 struct ContentView: View {
     @EnvironmentObject var habitStore: HabitStore
     @State private var isAddingHabit = false
@@ -39,6 +68,7 @@ struct ContentView: View {
                     Text("EasyHabit")
                         .font(.system(size: 32, weight: .regular, design: .rounded))
                         .padding(.leading)
+                        .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                     
                     Spacer()
                     
@@ -58,7 +88,7 @@ struct ContentView: View {
                                 .frame(width: 36, height: 36)
                                 .background(Color(UIColor.systemGray5).opacity(0.6))
                                 .cornerRadius(10)
-                                .foregroundColor(.primary)
+                                .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                         }
                         
                         Button(action: { showingSortSheet = true }) {
@@ -70,7 +100,7 @@ struct ContentView: View {
                                 .frame(width: 36, height: 36)
                                 .background(Color(UIColor.systemGray5).opacity(0.6))
                                 .cornerRadius(10)
-                                .foregroundColor(.primary)
+                                .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                         }
                         .disabled(habitStore.habits.isEmpty)
                         
@@ -83,7 +113,7 @@ struct ContentView: View {
                                 .frame(width: 36, height: 36)
                                 .background(Color(UIColor.systemGray5).opacity(0.6))
                                 .cornerRadius(10)
-                                .foregroundColor(.primary)
+                                .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                         }
                     }
                     .padding(.trailing)
@@ -463,6 +493,7 @@ struct HabitCardView: View {
             HStack {
                 Text(habit.name)
                     .font(.headline)
+                    .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                     .padding(.vertical, 16)
                     .padding(.horizontal, 16)
                 
@@ -657,7 +688,7 @@ struct SettingsView: View {
                     HStack {
                         Text("版本")
                         Spacer()
-                        Text("1.0.0")
+                        Text("0.1.0")
                             .foregroundColor(.secondary)
                     }
                     

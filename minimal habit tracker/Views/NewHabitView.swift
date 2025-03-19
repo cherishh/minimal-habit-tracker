@@ -202,11 +202,13 @@ struct HabitFormView: View {
     
     private var habitDetailsView: some View {
         Form {
-            Section(header: Text("习惯名称")) {
+            Section(header: Text("习惯名称")
+                        .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)) {
                 TextField("例如: 每日锻炼", text: $habitName)
             }
             
-            Section(header: Text("选择图标")) {
+            Section(header: Text("选择图标")
+                        .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)) {
                 Button(action: {
                     showEmojiPicker = true
                 }) {
@@ -226,7 +228,8 @@ struct HabitFormView: View {
                 }
             }
             
-            Section(header: Text("颜色主题")) {
+            Section(header: Text("颜色主题")
+                        .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)) {
                 ForEach(Habit.ColorThemeName.allCases, id: \.self) { themeName in
                     let theme = ColorTheme.getTheme(for: themeName)
                     
@@ -258,7 +261,8 @@ struct HabitFormView: View {
 
             // 只在编辑模式下显示 UUID 信息，用于配置 Widget
             if isEditMode, let habit = originalHabit {
-                Section(header: Text("Widget 配置信息")) {
+                Section(header: Text("Widget 配置信息")
+                            .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("习惯 ID")
                             .font(.subheadline)
