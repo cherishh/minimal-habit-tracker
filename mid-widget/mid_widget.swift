@@ -139,8 +139,9 @@ struct HabitWidgetEntryView: View {
                 HStack {
                     Text(entry.habit.name)
                         .font(.headline)
-                        .padding(.vertical, 16)
+                        .padding(.vertical, 18)
                         .padding(.horizontal, 16)
+                        .opacity(0.8)
                     
                     Spacer()
                     
@@ -158,10 +159,11 @@ struct HabitWidgetEntryView: View {
                         .padding(.trailing, 16)
                     }
                 }
-                .background(Color(colorScheme == .dark ? UIColor.secondarySystemBackground : UIColor.systemBackground))
+                .background(colorScheme == .dark ? Color.black : Color(UIColor.systemBackground))
+                .foregroundColor(colorScheme == .dark ? .white : .primary) // 根据模式调整文本颜色
                 
                 // 下部分：微型热力图和打卡按钮
-                HStack(spacing: 16) {
+                HStack(spacing: 5) {
                     // 左侧：微型热力图
                     WidgetMiniHeatmapView(
                         habit: entry.habit,
@@ -169,10 +171,12 @@ struct HabitWidgetEntryView: View {
                         colorScheme: colorScheme
                     )
                     .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
+                    .padding(.horizontal, 16)
                     .background(
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(Color(colorScheme == .dark ? UIColor.tertiarySystemBackground : UIColor.secondarySystemBackground).opacity(0.3))
+                            .fill(colorScheme == .dark 
+                                 ? Color.black.opacity(0.3) 
+                                 : Color(UIColor.secondarySystemBackground).opacity(0.3))
                     )
                     .padding(.leading, 12)
                     .padding(.top, 0)
@@ -187,8 +191,9 @@ struct HabitWidgetEntryView: View {
                         colorScheme: colorScheme
                     )
                     .padding(.trailing, 16)
+                    .padding(.vertical, 2)
                 }
-                .background(Color(colorScheme == .dark ? UIColor.secondarySystemBackground : UIColor.systemBackground))
+                .background(colorScheme == .dark ? Color.black : Color(UIColor.systemBackground))
             }
             .cornerRadius(8)
             .widgetURL(URL(string: "easyhabit://widget/open?habitId=\(entry.habit.id.uuidString)"))
@@ -307,7 +312,6 @@ struct WidgetMiniHeatmapView: View {
         // 计算总共需要显示的列数
         let columnCount = dateGrid.isEmpty ? 0 : dateGrid[0].count
         
-        // 移除标题，直接显示热力图
         VStack(alignment: .leading, spacing: cellSpacing) {
             // 每行代表星期几（0是周一，6是周日）
             ForEach(0..<7, id: \.self) { row in
@@ -333,7 +337,7 @@ struct WidgetMiniHeatmapView: View {
             }
         }
         .frame(height: 7 * (cellSize + cellSpacing) - cellSpacing)
-        .frame(width: 190) // 保持相同宽度，适应100天的数据
+        .frame(width: 185) // 从190减小到185，提供更多边距空间
     }
 }
 
@@ -370,7 +374,7 @@ struct WidgetCheckInButton: View {
                             theme.color(for: 1, isDarkMode: colorScheme == .dark).opacity(0.4),
                             style: StrokeStyle(lineWidth: 10)
                         )
-                        .frame(width: 64, height: 64)
+                        .frame(width: 68, height: 68)
                     
                     // 完成圆环
                     Circle()
@@ -383,7 +387,7 @@ struct WidgetCheckInButton: View {
                                 lineJoin: .round
                             )
                         )
-                        .frame(width: 64, height: 64)
+                        .frame(width: 68, height: 68)
                         .rotationEffect(.degrees(-90))
                 } else {
                     // Count型习惯的圆环 - 先显示底色轨道
@@ -392,7 +396,7 @@ struct WidgetCheckInButton: View {
                             theme.color(for: 1, isDarkMode: colorScheme == .dark).opacity(0.4),
                             style: StrokeStyle(lineWidth: 10)
                         )
-                        .frame(width: 64, height: 64)
+                        .frame(width: 68, height: 68)
                     
                     // 进度环
                     Circle()
@@ -405,16 +409,16 @@ struct WidgetCheckInButton: View {
                                 lineJoin: .round
                             )
                         )
-                        .frame(width: 64, height: 64)
+                        .frame(width: 68, height: 68)
                         .rotationEffect(.degrees(-90))
                 }
                 
                 // Emoji
                 Text(habit.emoji)
-                    .font(.system(size: 28))
+                    .font(.system(size: 30))
             }
         }
-        .frame(width: 70, height: 70)
+        .frame(width: 74, height: 74)
     }
 }
 
@@ -512,7 +516,13 @@ struct HabitWidget_Previews: PreviewProvider {
             HabitWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
                 .previewContext(WidgetPreviewContext(family: .systemMedium))
-                .previewDisplayName("习惯小组件")
+                .previewDisplayName("习惯小组件 (浅色)")
+                
+            HabitWidgetEntryView(entry: entry)
+                .containerBackground(.fill.tertiary, for: .widget)
+                .previewContext(WidgetPreviewContext(family: .systemMedium))
+                .environment(\.colorScheme, .dark)
+                .previewDisplayName("习惯小组件 (深色)")
         }
     }
 }

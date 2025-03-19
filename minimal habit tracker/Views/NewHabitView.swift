@@ -40,8 +40,13 @@ struct HabitFormView: View {
         let commonEmojis = ["😀", "🎯", "💪", "🏃", "📚", "💤", "🍎", "💧", "🧘", "✍️", "🏋️", "🚴", "🧠", "🌱", "🚫", "💊"]
         // 随机选择一个emoji作为初始值
         self._selectedEmoji = State(initialValue: commonEmojis.randomElement() ?? "📝")
-        // 固定默认背景色为#FDF5E7
-        self._selectedBackgroundColor = State(initialValue: "#FDF5E7")
+        
+        // 从UserDefaults获取当前的主题模式
+        let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
+        // 根据主题模式选择默认背景色
+        let defaultBackgroundColor = isDarkMode ? "#C0C0C0" : "#FDF5E7"
+        self._selectedBackgroundColor = State(initialValue: defaultBackgroundColor)
+        
         self._habitName = State(initialValue: "")
         self._selectedTheme = State(initialValue: .github)
         self._selectedType = State(initialValue: .checkbox)

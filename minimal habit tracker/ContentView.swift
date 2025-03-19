@@ -196,6 +196,7 @@ struct ContentView: View {
             .padding(.vertical, 16)
             .padding(.horizontal, 20)
         }
+        .scrollIndicators(.hidden)
         .background(lightBackgroundColor)
         // 添加删除习惯的确认对话框
         .alert("确认删除", isPresented: $showDeleteConfirmation) {
