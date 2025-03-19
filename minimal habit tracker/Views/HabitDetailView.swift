@@ -44,6 +44,7 @@ struct HabitDetailView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.presentationMode) var presentationMode
     @State private var showingSettings = false
+    @State private var showingShareAlert = false
     
     // 获取当前年和月
     @State private var selectedYear: Int = Calendar.current.component(.year, from: Date())
@@ -107,16 +108,34 @@ struct HabitDetailView: View {
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: { showingSettings = true }) {
-                    Image("settings")
-                        .resizable()
-                        .renderingMode(.template)
-                        .scaledToFit()
-                        .frame(width: 18, height: 18)
-                        .frame(width: 36, height: 36)
-                        .background(Color(UIColor.systemGray5).opacity(0.6))
-                        .cornerRadius(10)
-                        .foregroundColor(.primary)
+                HStack(spacing: 8) {
+                    // 分享按钮
+                    Button(action: { 
+                        // 显示"coming soon"提示
+                        showShareAlert()
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
+                            .frame(width: 36, height: 36)
+                            .background(Color(UIColor.systemGray5).opacity(0.6))
+                            .cornerRadius(10)
+                            .foregroundColor(.primary)
+                    }
+                    
+                    // 编辑按钮(设置按钮)
+                    Button(action: { showingSettings = true }) {
+                        Image("settings")
+                            .resizable()
+                            .renderingMode(.template)
+                            .scaledToFit()
+                            .frame(width: 18, height: 18)
+                            .frame(width: 36, height: 36)
+                            .background(Color(UIColor.systemGray5).opacity(0.6))
+                            .cornerRadius(10)
+                            .foregroundColor(.primary)
+                    }
                 }
             }
         }
@@ -135,6 +154,11 @@ struct HabitDetailView: View {
         .onDisappear {
             // 移除通知监听
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name("HabitDeleted"), object: nil)
+        }
+        .alert("分享功能即将推出", isPresented: $showingShareAlert) {
+            Button("好的", role: .cancel) { }
+        } message: {
+            Text("正在开发中，敬请期待")
         }
         .preferredColorScheme(UserDefaults.standard.bool(forKey: "isDarkMode") ? .dark : .light)
     }
@@ -230,6 +254,11 @@ struct HabitDetailView: View {
         }
         
         return count
+    }
+    
+    // 显示分享功能即将推出的提示
+    private func showShareAlert() {
+        showingShareAlert = true
     }
 }
 

@@ -698,12 +698,58 @@ struct SettingsView: View {
     @Binding var isPresented: Bool
     @AppStorage("isDarkMode") private var isDarkMode = false
     @State private var showingImportExport = false
+    @State private var showingComingSoon = false
+    @State private var comingSoonMessage = ""
+    
+    // 这些开关不会实际保存设置，仅作为UI展示
+    @State private var iCloudSync = false
+    @State private var unlimitedHabits = false
+    @State private var noteFeature = false
     
     var body: some View {
         NavigationStack {
             Form {
                 Section(header: Text("主题设置")) {
                     Toggle("暗黑模式", isOn: $isDarkMode)
+                    
+                    Button(action: {
+                        comingSoonMessage = "自定义颜色主题功能即将推出"
+                        showingComingSoon = true
+                    }) {
+                        HStack {
+                            Text("高级 & 自定义颜色主题")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                
+                Section(header: Text("高级功能")) {
+                    Toggle("iCloud云同步", isOn: $iCloudSync)
+                        .onChange(of: iCloudSync) { newValue in
+                            // 恢复到原始状态
+                            iCloudSync = false
+                            comingSoonMessage = "iCloud云同步功能即将推出"
+                            showingComingSoon = true
+                        }
+                    
+                    Toggle("无限习惯数量", isOn: $unlimitedHabits)
+                        .onChange(of: unlimitedHabits) { newValue in
+                            // 恢复到原始状态
+                            unlimitedHabits = false
+                            comingSoonMessage = "无限习惯数量功能即将推出"
+                            showingComingSoon = true
+                        }
+                        
+                    Toggle("习惯笔记功能", isOn: $noteFeature)
+                        .onChange(of: noteFeature) { newValue in
+                            // 恢复到原始状态
+                            noteFeature = false
+                            comingSoonMessage = "习惯笔记功能即将推出"
+                            showingComingSoon = true
+                        }
                 }
                 
                 Section(header: Text("数据管理")) {
@@ -735,6 +781,9 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showingImportExport) {
                 ImportExportView()
+            }
+            .alert(comingSoonMessage, isPresented: $showingComingSoon) {
+                Button("好的", role: .cancel) { }
             }
         }
         .preferredColorScheme(isDarkMode ? .dark : .light)
