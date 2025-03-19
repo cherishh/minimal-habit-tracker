@@ -134,7 +134,7 @@ struct HabitFormView: View {
         if isEditMode {
             return "编辑习惯"
         } else {
-            return currentStep == 1 ? "选择习惯类型" : "新建习惯"
+            return currentStep == 1 ? "确定习惯类型" : "新建习惯"
         }
     }
     
@@ -152,7 +152,7 @@ struct HabitFormView: View {
     
     private var typeSelectionView: some View {
         VStack(spacing: 20) {
-            Text("选择习惯类型")
+            Text("")
                 .font(.headline)
                 .padding(.top)
             
@@ -163,9 +163,8 @@ struct HabitFormView: View {
             Spacer()
             
             VStack(spacing: 20) {
-                typeButton(type: .checkbox, title: "打卡型", description: "完成一次打卡就记录为完成")
-                
-                typeButton(type: .count, title: "计数型", description: "可重复打卡，打卡次数越多颜色越深")
+                typeButton(type: .checkbox, title: "打卡", description: "完成一次打卡就记录为完成。如：每天吃早餐")
+                typeButton(type: .count, title: "计数", description: "设置每日目标次数，可多次打卡。如：每天X杯喝水")
             }
             
             Spacer()

@@ -91,18 +91,19 @@ struct ContentView: View {
                                 .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                         }
                         
-                        Button(action: { showingSortSheet = true }) {
-                            Image(systemName: "arrow.up.arrow.down")
-                                .resizable()
-                                .renderingMode(.template)
-                                .scaledToFit()
-                                .frame(width: 18, height: 18)
-                                .frame(width: 36, height: 36)
-                                .background(Color(UIColor.systemGray5).opacity(0.6))
-                                .cornerRadius(10)
-                                .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
+                        if !habitStore.habits.isEmpty {
+                            Button(action: { showingSortSheet = true }) {
+                                Image(systemName: "arrow.up.arrow.down")
+                                    .resizable()
+                                    .renderingMode(.template)
+                                    .scaledToFit()
+                                    .frame(width: 18, height: 18)
+                                    .frame(width: 36, height: 36)
+                                    .background(Color(UIColor.systemGray5).opacity(0.6))
+                                    .cornerRadius(10)
+                                    .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
+                            }
                         }
-                        .disabled(habitStore.habits.isEmpty)
                         
                         Button(action: { showingSettings = true }) {
                             Image("settings")
@@ -185,7 +186,7 @@ struct ContentView: View {
                 .font(.system(size: 28, weight: .bold))
                 .padding(.bottom, 4)
             
-            Text("添加第一个习惯")
+            Text("👇开始记录追踪你的习惯")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .padding(.bottom, 40)

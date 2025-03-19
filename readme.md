@@ -17,7 +17,6 @@
 
 ## todos
 - [ ] 文案优化
-- [ ] emoji 搜索
 - [ ] 支持数据导入导出
 - [ ] 用户可以在桌面添加该 app 的 widget。这个 widget 显示当前 habit 的 heatmap。如果用户点击 widget，直接默认在当前 habit 上 log+1。【不需要】进入 app。
 - [ ] 设置页扩展
