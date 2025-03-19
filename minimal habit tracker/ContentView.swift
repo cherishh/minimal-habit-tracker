@@ -697,12 +697,19 @@ extension MiniHeatmapView: Equatable {
 struct SettingsView: View {
     @Binding var isPresented: Bool
     @AppStorage("isDarkMode") private var isDarkMode = false
+    @State private var showingImportExport = false
     
     var body: some View {
         NavigationStack {
             Form {
                 Section(header: Text("主题设置")) {
                     Toggle("暗黑模式", isOn: $isDarkMode)
+                }
+                
+                Section(header: Text("数据管理")) {
+                    Button("导入 & 导出") {
+                        showingImportExport = true
+                    }
                 }
                 
                 Section(header: Text("关于")) {
@@ -725,6 +732,9 @@ struct SettingsView: View {
                 isPresented = false
                     }
                 }
+            }
+            .sheet(isPresented: $showingImportExport) {
+                ImportExportView()
             }
         }
         .preferredColorScheme(isDarkMode ? .dark : .light)

@@ -169,7 +169,8 @@ class HabitStore: ObservableObject {
     
     // MARK: - 持久化
     
-    private func saveData() {
+    // 公开保存数据方法，供导入导出功能使用
+    func saveData() {
         if let encoded = try? JSONEncoder().encode(habits) {
             // 使用共享的 UserDefaults
             sharedDefaults.set(encoded, forKey: habitsKey)
@@ -184,6 +185,9 @@ class HabitStore: ObservableObject {
         DispatchQueue.main.async {
             self.objectWillChange.send()
         }
+        
+        // 刷新所有小组件
+        refreshWidgets()
     }
     
     private func loadData() {

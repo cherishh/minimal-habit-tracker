@@ -479,29 +479,8 @@ struct HabitWidget: Widget {
                 .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("习惯追踪")
-        .description("显示习惯热力图和打卡按钮")
+        .description("主应用中点击想要添加挂件的习惯，进入编辑-WIDGET配置信息 获取习惯ID。")
         .supportedFamilies([.systemMedium])
-    }
-}
-
-// 支持 Smart Stack 样式上下滑动切换的 Widget
-struct SmartStackHabitWidget: Widget {
-    let kind: String = "SmartStackHabitWidget"
-    
-    var body: some WidgetConfiguration {
-        AppIntentConfiguration(
-            kind: kind,
-            intent: HabitSelectionIntent.self,
-            provider: Provider()
-        ) { entry in
-            HabitWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
-        }
-        .configurationDisplayName("习惯追踪 (Smart Stack)")
-        .description("显示习惯热力图和打卡按钮，支持上下滑动切换不同习惯")
-        .supportedFamilies([.systemMedium])
-        .disfavoredLocations([.lockScreen], for: [.systemMedium])
-        .contentMarginsDisabled()
     }
 }
 

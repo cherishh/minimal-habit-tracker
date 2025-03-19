@@ -13,21 +13,22 @@
 
 
 ## Next Step
+允许用户导入导出数据。导出数据格式为 csv，内容为 habit 的名称、类型、颜色主题、emoji、日期、打卡次数。
 
 
 ## todos
-- [ ] 文案优化
 - [ ] 支持数据导入导出
 - [ ] 用户可以在桌面添加该 app 的 widget。这个 widget 显示当前 habit 的 heatmap。如果用户点击 widget，直接默认在当前 habit 上 log+1。【不需要】进入 app。
 - [ ] 设置页扩展
     - [ ] light dark 切换
     - [ ] 热力图颜色自定义
+    - [ ] coming soon
+        - [ ] 自定义 color theme
+        - [ ] 数据云同步
+        - [ ] 无限 habits 数量
+        - [ ] note 功能
+
 - [ ] invite buddy
-- [ ] 添加增值服务
-    - [ ] 自定义 color theme
-    - [ ] note 功能
-    - [ ] 数据云同步
-    - [ ] 无限 habits 数量
 - [ ] 热力图自动滚动到当前日期为最后一列
 - [ ] 设置每天的提醒时间，提醒用户打卡
 - [ ] 最长连续的计算优化（最多往前算 365 天可跨年）

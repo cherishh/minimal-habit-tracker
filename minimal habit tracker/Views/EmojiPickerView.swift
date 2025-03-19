@@ -242,20 +242,20 @@ struct EmojiPickerView: View {
                 // 当前选择的emoji预览区域及随机按钮
                 ZStack(alignment: .center) {
                     // 当前选择的emoji (居中)
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(Color(hex: selectedBackgroundColor))
-                            .frame(width: 80, height: 80)
-                        
-                        Text(tempSelectedEmoji)
-                            .font(.system(size: 40))
-                            
+                ZStack {
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(Color(hex: selectedBackgroundColor))
+                        .frame(width: 80, height: 80)
+                    
+                    Text(tempSelectedEmoji)
+                        .font(.system(size: 40))
+                
                         // 随机按钮 (预览右下角)
-                        Button(action: {
-                            // 随机选择一个新emoji
-                            tempSelectedEmoji = randomEmoji()
-                            // 不再立即保存到最近使用列表，而是在确认时保存
-                        }) {
+                    Button(action: {
+                        // 随机选择一个新emoji
+                        tempSelectedEmoji = randomEmoji()
+                        // 不再立即保存到最近使用列表，而是在确认时保存
+                    }) {
                             Image("dices")
                                 .resizable()
                                 .renderingMode(.template)
@@ -303,7 +303,7 @@ struct EmojiPickerView: View {
                                 Button(action: {
                                     // 切换分类时加载对应的emoji
                                     if selectedCategoryIndex != index {
-                                        selectedCategoryIndex = index
+                                    selectedCategoryIndex = index
                                         loadCurrentCategoryEmojis()
                                     }
                                 }) {
@@ -333,7 +333,7 @@ struct EmojiPickerView: View {
                                     tempSelectedEmoji = emoji
                                     // 不再立即保存到最近使用，而是在确认时保存
                                 }) {
-                                    Text(emoji)
+                                        Text(emoji)
                                         .font(.system(size: 28))
                                         .frame(width: 44, height: 44)
                                         .background(tempSelectedEmoji == emoji ? Color.accentColor.opacity(0.2) : Color.clear)
@@ -381,7 +381,7 @@ struct EmojiPickerView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("取消") {
-                        presentationMode.wrappedValue.dismiss()
+                    presentationMode.wrappedValue.dismiss()
                     }
                 }
                 

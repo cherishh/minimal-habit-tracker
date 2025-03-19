@@ -11,8 +11,6 @@ import SwiftUI
 @main
 struct mid_widgetBundle: WidgetBundle {
     var body: some Widget {
-        // 只包含我们的习惯 Widget
         HabitWidget()
-        SmartStackHabitWidget()
     }
 }
