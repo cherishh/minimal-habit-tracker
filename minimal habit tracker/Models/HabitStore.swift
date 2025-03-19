@@ -13,8 +13,9 @@ class HabitStore: ObservableObject {
     // 使用 App Group 的 UserDefaults 来共享数据
     private let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker") ?? UserDefaults.standard
     
-    // 定义最大习惯数量常量
-    static let maxHabitCount = 10
+    // 定义常量
+    static let maxHabitCount = 10 // 最大习惯数量
+    static let maxCheckInCount = 5 // 最大打卡次数
     
     init() {
         loadData()
@@ -54,6 +55,22 @@ class HabitStore: ObservableObject {
         }
     }
     
+    func moveHabit(from source: IndexSet, to destination: Int) {
+        habits.move(fromOffsets: source, toOffset: destination)
+        saveData()
+        refreshWidgets()
+    }
+    
+    // 更新习惯顺序
+    func updateHabitOrder(_ newHabits: [Habit]) {
+        // 检查数量是否一致，避免数据丢失
+        if newHabits.count == habits.count {
+            habits = newHabits
+            saveData()
+            refreshWidgets()
+        }
+    }
+    
     // MARK: - Habit Logs 操作
     
     func logHabit(habitId: UUID, date: Date) {
@@ -77,16 +94,16 @@ class HabitStore: ObservableObject {
                     habitLogs.remove(at: existingLogIndex)
                 }
             case .count:
-                // 对于count类型，第5次点击会清零记录
-                if currentCount >= 4 {
+                // 对于count类型，超过自定义上限时点击会清零记录
+                if currentCount >= habit.maxCheckInCount {
                     habitLogs.remove(at: existingLogIndex)
                 } else {
                     habitLogs[existingLogIndex].count += 1
                 }
             }
         } else {
-            // 创建新记录，对于checkbox类型使用最深的颜色(count=4)
-            let initialCount = habit.habitType == .checkbox ? 4 : 1
+            // 创建新记录，对于checkbox类型使用最深的颜色
+            let initialCount = habit.habitType == .checkbox ? habit.maxCheckInCount : 1
             let newLog = HabitLog(habitId: habitId, date: normalizedDate, count: initialCount)
             habitLogs.append(newLog)
         }
@@ -180,5 +197,20 @@ class HabitStore: ObservableObject {
            let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
             habitLogs = decodedLogs
         }
+    }
+    
+    // 调整习惯记录的打卡次数（当用户减少打卡次数上限时）
+    func adjustLogCounts(habitId: UUID, newMaxCount: Int) {
+        // 获取所有相关的打卡记录
+        for index in habitLogs.indices {
+            if habitLogs[index].habitId == habitId && habitLogs[index].count > newMaxCount {
+                // 如果打卡次数超过新上限，则调整为新上限
+                habitLogs[index].count = newMaxCount
+            }
+        }
+        
+        // 保存更新后的数据
+        saveData()
+        refreshWidgets()
     }
 } 

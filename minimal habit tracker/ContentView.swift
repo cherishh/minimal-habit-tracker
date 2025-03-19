@@ -7,6 +7,35 @@
 
 import SwiftUI
 
+// 添加支持系统侧滑返回手势的扩展
+extension View {
+    func interactivePopGestureRecognizer(_ enabled: Bool) -> some View {
+        self.modifier(InteractivePopGestureRecognizerModifier(enabled: enabled))
+    }
+}
+
+struct InteractivePopGestureRecognizerModifier: ViewModifier {
+    let enabled: Bool
+    
+    func body(content: Content) -> some View {
+        content
+            .background(InteractivePopGestureRecognizerHelper(enabled: enabled))
+    }
+}
+
+struct InteractivePopGestureRecognizerHelper: UIViewControllerRepresentable {
+    let enabled: Bool
+    
+    func makeUIViewController(context: Context) -> UIViewController {
+        UIViewController()
+    }
+    
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        guard let navigationController = uiViewController.navigationController else { return }
+        navigationController.interactivePopGestureRecognizer?.isEnabled = enabled
+    }
+}
+
 struct ContentView: View {
     @EnvironmentObject var habitStore: HabitStore
     @State private var isAddingHabit = false
@@ -14,9 +43,15 @@ struct ContentView: View {
     @State private var selectedHabit: Habit?
     @State private var selectedHabitId: UUID?
     @State private var navigateToDetail = false
+    @State private var showingSortSheet = false
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("isDarkMode") private var isDarkMode = false
     @State private var showingMaxHabitsAlert = false
+    @State private var showAddHabit = false
+    @State private var showSettings = false
+    @State private var showSortOverlay = false
+    @State private var showDeleteConfirmation = false
+    @State private var habitToDelete: Habit? = nil
     
     // 自定义更淡的背景色
     private var lightBackgroundColor: Color {
@@ -33,6 +68,7 @@ struct ContentView: View {
                     Text("EasyHabit")
                         .font(.system(size: 32, weight: .regular, design: .rounded))
                         .padding(.leading)
+                        .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                     
                     Spacer()
                     
@@ -52,8 +88,21 @@ struct ContentView: View {
                                 .frame(width: 36, height: 36)
                                 .background(Color(UIColor.systemGray5).opacity(0.6))
                                 .cornerRadius(10)
-                                .foregroundColor(.primary)
+                                .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                         }
+                        
+                        Button(action: { showingSortSheet = true }) {
+                            Image(systemName: "arrow.up.arrow.down")
+                                .resizable()
+                                .renderingMode(.template)
+                                .scaledToFit()
+                                .frame(width: 18, height: 18)
+                                .frame(width: 36, height: 36)
+                                .background(Color(UIColor.systemGray5).opacity(0.6))
+                                .cornerRadius(10)
+                                .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
+                        }
+                        .disabled(habitStore.habits.isEmpty)
                         
                         Button(action: { showingSettings = true }) {
                             Image("settings")
@@ -64,7 +113,7 @@ struct ContentView: View {
                                 .frame(width: 36, height: 36)
                                 .background(Color(UIColor.systemGray5).opacity(0.6))
                                 .cornerRadius(10)
-                                .foregroundColor(.primary)
+                                .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                         }
                     }
                     .padding(.trailing)
@@ -75,6 +124,8 @@ struct ContentView: View {
                 
                 if habitStore.habits.isEmpty {
                     emptyStateView
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(lightBackgroundColor)
                 } else {
                     habitListView
                 }
@@ -85,6 +136,9 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView(isPresented: $showingSettings)
+            }
+            .sheet(isPresented: $showingSortSheet) {
+                HabitSortView(isPresented: $showingSortSheet)
             }
             .alert(isPresented: $showingMaxHabitsAlert) {
                 Alert(
@@ -106,6 +160,7 @@ struct ContentView: View {
             }
             .background(lightBackgroundColor)
         }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
     
     private func setupNotificationObserver() {
@@ -122,20 +177,20 @@ struct ContentView: View {
     }
     
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "calendar.badge.clock")
-                .font(.system(size: 80))
+        VStack {
+            Spacer()
+            
+            // 简化后的文案
+            Text("空空如也")
+                .font(.system(size: 28, weight: .bold))
+                .padding(.bottom, 4)
+            
+            Text("添加第一个习惯")
+                .font(.body)
                 .foregroundColor(.secondary)
+                .padding(.bottom, 40)
             
-            Text("开始追踪您的习惯")
-                .font(.title2)
-                .fontWeight(.medium)
-            
-            Text("添加您想要培养的习惯，每天记录进度，形成可视化热力图。")
-                .multilineTextAlignment(.center)
-                .foregroundColor(.secondary)
-                .padding(.horizontal)
-            
+            // 大一点的添加按钮
             Button(action: { 
                 if habitStore.canAddHabit() {
                     isAddingHabit = true
@@ -143,16 +198,16 @@ struct ContentView: View {
                     showingMaxHabitsAlert = true
                 }
             }) {
-                Text("添加第一个习惯")
-                    .fontWeight(.medium)
-                    .padding()
-                    .background(Color.accentColor)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
+                Image(systemName: "plus")
+                    .font(.system(size: 24))
+                    .foregroundColor(.primary)
+                    .frame(width: 60, height: 60)
+                    .background(Color(UIColor.systemGray5).opacity(0.6))
+                    .cornerRadius(30)
             }
-            .padding(.top)
+            
+            Spacer()
         }
-        .padding()
     }
     
     private var habitListView: some View {
@@ -161,7 +216,9 @@ struct ContentView: View {
             ForEach(habitStore.habits) { habit in
                     HabitCardView(habit: habit, onDelete: {
                         withAnimation {
-                            habitStore.removeHabit(habit)
+                            // 设置要删除的习惯并显示确认对话框
+                            habitToDelete = habit
+                            showDeleteConfirmation = true
                         }
                     })
                 }
@@ -169,7 +226,21 @@ struct ContentView: View {
             .padding(.vertical, 16)
             .padding(.horizontal, 20)
         }
+        .scrollIndicators(.hidden)
         .background(lightBackgroundColor)
+        // 添加删除习惯的确认对话框
+        .alert("确认删除", isPresented: $showDeleteConfirmation) {
+            Button("取消", role: .cancel) { }
+            Button("删除", role: .destructive) {
+                if let habit = habitToDelete {
+                    withAnimation {
+                        habitStore.removeHabit(habit)
+                    }
+                }
+            }
+        } message: {
+            Text("确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。")
+        }
     }
 }
 
@@ -186,10 +257,15 @@ struct MiniHeatmapView: View {
     // 热力图日期配置
     private let daysToShow = 100 // 显示过去100天，而不是365天
     
+    // 获取习惯对象
+    private var habit: Habit {
+        habitStore.habits.first(where: { $0.id == habitId }) ?? 
+            Habit(name: "未找到", emoji: "❓", colorTheme: .github, habitType: .checkbox)
+    }
+    
     // 获取习惯的主题颜色
     private var theme: ColorTheme {
-        let habit = habitStore.habits.first(where: { $0.id == habitId }) ?? Habit(name: "未找到", emoji: "❓", colorTheme: .github, habitType: .checkbox)
-        return ColorTheme.getTheme(for: habit.colorTheme)
+        ColorTheme.getTheme(for: habit.colorTheme)
     }
     
     // 生成过去100天的日期网格，按周组织
@@ -253,7 +329,7 @@ struct MiniHeatmapView: View {
                             
                             // 单个格子
                             RoundedRectangle(cornerRadius: 1)
-                                .fill(theme.color(for: min(count, 4), isDarkMode: colorScheme == .dark))
+                                .fill(theme.colorForCount(count: count, maxCount: habit.maxCheckInCount, isDarkMode: colorScheme == .dark))
                                 .frame(width: cellSize, height: cellSize)
                         } else {
                             // 没有日期的位置（例如超过今天的日期）
@@ -268,6 +344,7 @@ struct MiniHeatmapView: View {
         .frame(height: 7 * (cellSize + cellSpacing) - cellSpacing)
         .frame(width: 190) // 保持相同宽度，适应100天的数据
         .padding(.horizontal, 2) // 添加一点水平间距以确保边缘可见
+        .opacity(0.85) // 整体添加0.85透明度，使热力图不那么刺眼
     }
 }
 
@@ -296,7 +373,7 @@ struct HabitCardView: View {
     // 获取计数型习惯的进度百分比 (0-1) - 直接从 habitStore 获取
     private var countProgress: CGFloat {
         let count = CGFloat(habitStore.getLogCountForDate(habitId: habit.id, date: Date()))
-        return min(count / 4.0, 1.0)
+        return min(count / CGFloat(habit.maxCheckInCount), 1.0)
     }
     
     // 获取连续打卡天数 - 直接从 habitStore 获取
@@ -417,6 +494,7 @@ struct HabitCardView: View {
             HStack {
                 Text(habit.name)
                     .font(.headline)
+                    .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                     .padding(.vertical, 16)
                     .padding(.horizontal, 16)
                 
@@ -427,11 +505,15 @@ struct HabitCardView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "flame.fill")
                             .font(.system(size: 14))
-                            .foregroundColor(theme.color(for: 4, isDarkMode: colorScheme == .dark))
+                            .foregroundColor(colorScheme == .dark 
+                                ? theme.color(for: 4, isDarkMode: true)
+                                : theme.color(for: 5, isDarkMode: false))
                         
                         Text("\(currentStreak)")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(theme.color(for: 4, isDarkMode: colorScheme == .dark))
+                            .foregroundColor(colorScheme == .dark 
+                                ? theme.color(for: 4, isDarkMode: true)
+                                : theme.color(for: 5, isDarkMode: false))
                     }
                     .padding(.trailing, 16)
                 }
@@ -489,7 +571,9 @@ struct HabitCardView: View {
                     // Checkbox型习惯的圆环 - 先显示底色轨道
                     Circle()
                         .stroke(
-                            theme.color(for: 1, isDarkMode: colorScheme == .dark).opacity(0.4),
+                            colorScheme == .dark ?
+                                theme.color(for: 1, isDarkMode: true).opacity(0.7) :
+                                theme.color(for: 1, isDarkMode: false).opacity(0.4),
                             style: StrokeStyle(lineWidth: 10)
                         )
                         .frame(width: 64, height: 64)
@@ -498,7 +582,9 @@ struct HabitCardView: View {
                         Circle()
                         .trim(from: 0, to: isCompletedToday ? 1 : 0)
                         .stroke(
-                            theme.color(for: 4, isDarkMode: colorScheme == .dark),
+                            colorScheme == .dark 
+                                ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
+                                : theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,
@@ -512,7 +598,9 @@ struct HabitCardView: View {
                     // Count型习惯的圆环 - 先显示底色轨道
                     Circle()
                         .stroke(
-                            theme.color(for: 1, isDarkMode: colorScheme == .dark).opacity(0.4),
+                            colorScheme == .dark ?
+                                theme.color(for: 1, isDarkMode: true).opacity(0.7) :
+                                theme.color(for: 1, isDarkMode: false).opacity(0.4),
                             style: StrokeStyle(lineWidth: 10)
                         )
                         .frame(width: 64, height: 64)
@@ -521,7 +609,9 @@ struct HabitCardView: View {
                             Circle()
                         .trim(from: 0, to: isAnimating ? animatedCompletion : countProgress)
                         .stroke(
-                            theme.color(for: 4, isDarkMode: colorScheme == .dark),
+                            colorScheme == .dark 
+                                ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
+                                : theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,
@@ -549,16 +639,16 @@ struct HabitCardView: View {
         // 计算点击后的新计数
         var newCount = currentCount
         if habit.habitType == .checkbox {
-            // 对于checkbox，如果已有计数则变为0，否则变为4
-            newCount = (currentCount > 0) ? 0 : 4
+            // 对于checkbox，如果已有计数则变为0，否则变为5
+            newCount = (currentCount > 0) ? 0 : habit.maxCheckInCount
         } else {
-            // 对于count，计数加1，如果达到4则重置为0
-            newCount = (currentCount >= 4) ? 0 : currentCount + 1
+            // 对于count，计数加1，如果达到5则重置为0
+            newCount = (currentCount >= habit.maxCheckInCount) ? 0 : currentCount + 1
         }
         
         // 设置动画的起点和终点
-        let startCompletion = Double(min(currentCount, 4)) / 4.0
-        let targetCompletion = Double(min(newCount, 4)) / 4.0
+        let startCompletion = Double(min(currentCount, habit.maxCheckInCount)) / Double(habit.maxCheckInCount)
+        let targetCompletion = Double(min(newCount, habit.maxCheckInCount)) / Double(habit.maxCheckInCount)
         
         // 设置动画
         isAnimating = true
@@ -611,7 +701,7 @@ struct SettingsView: View {
                     HStack {
                         Text("版本")
                         Spacer()
-                        Text("1.0.0")
+                        Text("0.1.0")
                             .foregroundColor(.secondary)
                     }
                     
@@ -629,6 +719,60 @@ struct SettingsView: View {
                 }
             }
         }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
+    }
+}
+
+// 习惯排序视图
+struct HabitSortView: View {
+    @Binding var isPresented: Bool
+    @EnvironmentObject var habitStore: HabitStore
+    @State private var habits: [Habit] = []
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(habits) { habit in
+                    HStack {
+                        Text(habit.emoji)
+                            .font(.title2)
+                            .padding(.trailing, 8)
+                        
+                        Text(habit.name)
+                            .font(.body)
+                    }
+                    .padding(.vertical, 8)
+                }
+                .onMove { from, to in
+                    habits.move(fromOffsets: from, toOffset: to)
+                }
+            }
+            .environment(\.editMode, .constant(.active))
+            .navigationTitle("排序习惯")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消") {
+                        isPresented = false
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("保存") {
+                        saveHabitOrder()
+                        isPresented = false
+                    }
+                }
+            }
+            .onAppear {
+                habits = habitStore.habits
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+    
+    private func saveHabitOrder() {
+        // 保存新的习惯顺序到HabitStore
+        habitStore.updateHabitOrder(habits)
     }
 }
 

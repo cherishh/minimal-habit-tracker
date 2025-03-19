@@ -14,6 +14,11 @@ struct HabitFormView: View {
     @State private var originalHabit: Habit?
     @Environment(\.colorScheme) var colorScheme
     @State private var showingCopiedMessage = false
+    @State private var showingDeleteConfirmation = false
+    @State private var maxCheckInCount: Int
+    @State private var showingMaxCountChangeAlert = false
+    @State private var previousMaxCount: Int = 5
+    @AppStorage("isDarkMode") private var isDarkMode = false
     
     // 背景色列表
     let backgroundColors: [String] = [
@@ -35,14 +40,20 @@ struct HabitFormView: View {
         let commonEmojis = ["😀", "🎯", "💪", "🏃", "📚", "💤", "🍎", "💧", "🧘", "✍️", "🏋️", "🚴", "🧠", "🌱", "🚫", "💊"]
         // 随机选择一个emoji作为初始值
         self._selectedEmoji = State(initialValue: commonEmojis.randomElement() ?? "📝")
-        // 固定默认背景色为#FDF5E7
-        self._selectedBackgroundColor = State(initialValue: "#FDF5E7")
+        
+        // 从UserDefaults获取当前的主题模式
+        let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
+        // 根据主题模式选择默认背景色
+        let defaultBackgroundColor = isDarkMode ? "#C0C0C0" : "#FDF5E7"
+        self._selectedBackgroundColor = State(initialValue: defaultBackgroundColor)
+        
         self._habitName = State(initialValue: "")
         self._selectedTheme = State(initialValue: .github)
         self._selectedType = State(initialValue: .checkbox)
         self._currentStep = State(initialValue: 1)
         self._isEditMode = State(initialValue: false)
         self._originalHabit = State(initialValue: nil)
+        self._maxCheckInCount = State(initialValue: 5) // 默认为5次
     }
     
     // 编辑习惯模式的初始化
@@ -56,6 +67,7 @@ struct HabitFormView: View {
         self._currentStep = State(initialValue: 2) // 直接跳到第二步，不需要选择类型
         self._isEditMode = State(initialValue: true)
         self._originalHabit = State(initialValue: habit)
+        self._maxCheckInCount = State(initialValue: habit.maxCheckInCount)
     }
     
     var body: some View {
@@ -84,7 +96,38 @@ struct HabitFormView: View {
             .sheet(isPresented: $showEmojiPicker) {
                 EmojiPickerView(selectedEmoji: $selectedEmoji, selectedBackgroundColor: $selectedBackgroundColor)
             }
+            // 删除习惯的确认对话框
+            .alert("确认删除", isPresented: $showingDeleteConfirmation) {
+                Button("取消", role: .cancel) { }
+                Button("删除", role: .destructive) {
+                    if let habit = originalHabit {
+                        // 从store中删除习惯
+                        habitStore.removeHabit(habit)
+                        // 发送通知，让详情页面返回到列表页
+                        NotificationCenter.default.post(name: NSNotification.Name("HabitDeleted"), object: habit.id)
+                        // 关闭编辑视图
+                        isPresented = false
+                    }
+                }
+            } message: {
+                Text("确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。")
+            }
+            // 修改打卡次数的确认对话框
+            .alert("确认修改打卡次数", isPresented: $showingMaxCountChangeAlert) {
+                Button("取消", role: .cancel) {
+                    // 用户取消修改，恢复原来的值
+                    maxCheckInCount = previousMaxCount
+                }
+                Button("确认") {
+                    // 用户确认修改，保持当前设置的值
+                }
+            } message: {
+                Text("修改打卡次数将影响所有已存在的记录。" + 
+                     (previousMaxCount > maxCheckInCount ? "超过新上限的记录将被调整为新的上限值。" : "") +
+                     "\n是否继续？")
+            }
         }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
     
     private var navigationTitle: String {
@@ -159,11 +202,13 @@ struct HabitFormView: View {
     
     private var habitDetailsView: some View {
         Form {
-            Section(header: Text("习惯名称")) {
+            Section(header: Text("习惯名称")
+                        .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)) {
                 TextField("例如: 每日锻炼", text: $habitName)
             }
             
-            Section(header: Text("选择图标")) {
+            Section(header: Text("选择图标")
+                        .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)) {
                 Button(action: {
                     showEmojiPicker = true
                 }) {
@@ -183,7 +228,8 @@ struct HabitFormView: View {
                 }
             }
             
-            Section(header: Text("颜色主题")) {
+            Section(header: Text("颜色主题")
+                        .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)) {
                 ForEach(Habit.ColorThemeName.allCases, id: \.self) { themeName in
                     let theme = ColorTheme.getTheme(for: themeName)
                     
@@ -195,10 +241,10 @@ struct HabitFormView: View {
                             
                             // 主题预览
                             HStack(spacing: 2) {
-                                ForEach(0..<5) { level in
+                                ForEach(0..<HabitStore.maxCheckInCount+1) { level in
                                     RoundedRectangle(cornerRadius: 3)
                                         .fill(theme.color(for: level, isDarkMode: colorScheme == .dark))
-                                        .frame(width: 20, height: 20)
+                                        .frame(width: 16, height: 16)
                                 }
                             }
                             
@@ -215,7 +261,8 @@ struct HabitFormView: View {
 
             // 只在编辑模式下显示 UUID 信息，用于配置 Widget
             if isEditMode, let habit = originalHabit {
-                Section(header: Text("Widget 配置信息")) {
+                Section(header: Text("Widget 配置信息")
+                            .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("习惯 ID")
                             .font(.subheadline)
@@ -272,6 +319,7 @@ struct HabitFormView: View {
                     }
                     .padding(.vertical, 4)
                 }
+                
             }
             
             Section {
@@ -289,19 +337,52 @@ struct HabitFormView: View {
                     }
                 }
                 
-                // VStack(alignment: .leading, spacing: 5) {
-                //     if selectedType == .checkbox {
-                //         Text("点击一次记录完成，再次点击取消")
-                //             .font(.caption)
-                //             .foregroundColor(.secondary)
-                //     } else {
-                //         Text("可多次点击增加计数，颜色会逐渐加深")
-                //             .font(.caption)
-                //             .foregroundColor(.secondary)
-                //     }
-                // }
+                // 计数型习惯的最大打卡次数选择
+                if selectedType == .count {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("打卡次数上限")
+                            .font(.subheadline)
+                        
+                        Picker("打卡次数上限", selection: $maxCheckInCount) {
+                            ForEach(1...10, id: \.self) { count in
+                                Text("\(count)次").tag(count)
+                            }
+                        }
+                        .pickerStyle(WheelPickerStyle())
+                        .frame(height: 120)
+                        .onChange(of: maxCheckInCount) { oldValue, newValue in
+                            if isEditMode && originalHabit != nil {
+                                // 保存旧值，用于后续比较
+                                previousMaxCount = oldValue
+                                // 显示确认对话框
+                                showingMaxCountChangeAlert = true
+                            }
+                        }
+                        
+                        Text("设置每日打卡的最大次数")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 8)
+                }
             }
-            
+
+            // 删除按钮
+            if isEditMode, let habit = originalHabit {
+                Section {
+                    Button(action: {
+                        // 显示确认删除对话框
+                        showingDeleteConfirmation = true
+                    }) {
+                        HStack {
+                            Spacer()
+                            Text("删除习惯")
+                                .foregroundColor(.red)
+                            Spacer()
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -316,16 +397,34 @@ struct HabitFormView: View {
             updatedHabit.colorTheme = selectedTheme
             updatedHabit.backgroundColor = selectedBackgroundColor
             
+            // 如果是计数型习惯，处理打卡次数的更新
+            if updatedHabit.habitType == .count {
+                // 记录旧的打卡次数
+                let oldMaxCount = updatedHabit.maxCheckInCount
+                updatedHabit.maxCheckInCount = maxCheckInCount
+                
+                // 如果打卡次数减少了，需要调整已有记录
+                if oldMaxCount > maxCheckInCount {
+                    habitStore.adjustLogCounts(habitId: updatedHabit.id, newMaxCount: maxCheckInCount)
+                }
+            }
+            
             habitStore.updateHabit(updatedHabit)
         } else {
             // 新建模式 - 创建新习惯
-            let newHabit = Habit(
+            var newHabit = Habit(
                 name: habitName,
                 emoji: finalEmoji,
                 colorTheme: selectedTheme,
                 habitType: selectedType,
                 backgroundColor: selectedBackgroundColor
             )
+            
+            // 如果是计数型习惯，设置用户选择的打卡次数上限
+            if selectedType == .count {
+                newHabit.maxCheckInCount = maxCheckInCount
+            }
+            
             habitStore.addHabit(newHabit)
         }
         
@@ -336,9 +435,11 @@ struct HabitFormView: View {
 // 为了保持向后兼容性，我们保留原来的NewHabitView的名称，但它现在只是一个HabitFormView的包装器
 struct NewHabitView: View {
     @Binding var isPresented: Bool
+    @AppStorage("isDarkMode") private var isDarkMode = false
     
     var body: some View {
         HabitFormView(isPresented: $isPresented)
+            .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }
 
