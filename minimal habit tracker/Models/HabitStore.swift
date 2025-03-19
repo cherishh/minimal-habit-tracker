@@ -4,6 +4,9 @@ import WidgetKit
 import UIKit
 
 class HabitStore: ObservableObject {
+    // 添加单例支持，便于Intent访问
+    static let shared = HabitStore()
+    
     @Published var habits: [Habit] = []
     @Published var habitLogs: [HabitLog] = []
     
@@ -17,7 +20,11 @@ class HabitStore: ObservableObject {
     static let maxHabitCount = 10 // 最大习惯数量
     static let maxCheckInCount = 5 // 最大打卡次数
     
+    // 防止递归调用
+    private var isSaving = false
+    
     init() {
+        print("【HabitStore】初始化HabitStore实例")
         loadData()
     }
     
@@ -74,42 +81,78 @@ class HabitStore: ObservableObject {
     // MARK: - Habit Logs 操作
     
     func logHabit(habitId: UUID, date: Date) {
+        print("【HabitStore】开始执行logHabit - habitId: \(habitId), date: \(date)")
+        
         let calendar = Calendar.current
         let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
         let normalizedDate = calendar.date(from: dateComponents)!
         
         // 查找对应的习惯
-        guard let habit = habits.first(where: { $0.id == habitId }) else { return }
+        guard let habit = habits.first(where: { $0.id == habitId }) else {
+            print("【HabitStore】找不到指定习惯")
+            return
+        }
+        
+        print("【HabitStore】找到习惯 - 名称: \(habit.name), 类型: \(habit.habitType), 最大打卡次数: \(habit.maxCheckInCount)")
+        
+        // 在修改前先读取当前的日志状态
+        print("【HabitStore】内存中当前日志数量: \(habitLogs.count)")
         
         if let existingLogIndex = habitLogs.firstIndex(where: { log in
             log.habitId == habitId && calendar.isDate(log.date, inSameDayAs: normalizedDate)
         }) {
             // 根据习惯类型更新现有记录
             let currentCount = habitLogs[existingLogIndex].count
+            print("【HabitStore】找到该习惯的现有日志 - 当前次数: \(currentCount)")
             
             switch habit.habitType {
             case .checkbox:
                 // 对于checkbox类型，第二次点击会取消记录
                 if currentCount > 0 {
+                    print("【HabitStore】Checkbox类型 - 取消打卡")
                     habitLogs.remove(at: existingLogIndex)
                 }
             case .count:
                 // 对于count类型，超过自定义上限时点击会清零记录
                 if currentCount >= habit.maxCheckInCount {
+                    print("【HabitStore】Count类型 - 达到上限，重置打卡")
                     habitLogs.remove(at: existingLogIndex)
                 } else {
+                    print("【HabitStore】Count类型 - 增加打卡次数")
                     habitLogs[existingLogIndex].count += 1
                 }
             }
         } else {
             // 创建新记录，对于checkbox类型使用最深的颜色
             let initialCount = habit.habitType == .checkbox ? habit.maxCheckInCount : 1
+            print("【HabitStore】创建新打卡记录 - 初始次数: \(initialCount)")
             let newLog = HabitLog(habitId: habitId, date: normalizedDate, count: initialCount)
             habitLogs.append(newLog)
         }
         
+        print("【HabitStore】内存中更新后日志数量: \(habitLogs.count)")
+        
+        // 关键修改：将数据直接写入UserDefaults
+        print("【HabitStore】开始保存数据到UserDefaults")
         saveData()
+        
+        // 额外检查：确认数据已正确写入UserDefaults
+        if let logsData = sharedDefaults.data(forKey: habitLogsKey),
+           let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
+            let todayLogs = decodedLogs.filter { log in
+                log.habitId == habitId && calendar.isDate(log.date, inSameDayAs: normalizedDate)
+            }
+            if let todayLog = todayLogs.first {
+                print("【HabitStore】确认UserDefaults中已保存 - 习惯ID: \(habitId), 打卡次数: \(todayLog.count)")
+            } else {
+                print("【HabitStore】确认UserDefaults中该习惯今日无打卡记录")
+            }
+        } else {
+            print("【HabitStore】无法从UserDefaults读取保存的日志数据")
+        }
+        
         refreshWidgets()
+        print("【HabitStore】已刷新Widgets")
     }
     
     func getLogCountForDate(habitId: UUID, date: Date) -> Int {
@@ -162,45 +205,94 @@ class HabitStore: ObservableObject {
     // MARK: - Widget 刷新
     
     /// 刷新所有相关的 Widget
-    private func refreshWidgets() {
+    func refreshWidgets() {
         // 刷新所有 Widget
-        WidgetCenter.shared.reloadAllTimelines()
+        print("【HabitStore】正在刷新所有Widget")
+        
+        // 强制写入一个时间戳到UserDefaults，确保Widget检测到变化
+        let timestamp = Date().timeIntervalSince1970
+        sharedDefaults.set(timestamp, forKey: "widget_refresh_timestamp")
+        sharedDefaults.synchronize()
+        
+        // 延迟0.1秒后再刷新Widget，确保UserDefaults数据已写入
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            WidgetCenter.shared.reloadAllTimelines()
+            print("【HabitStore】已发送Widget刷新请求，时间戳: \(timestamp)")
+        }
     }
     
-    // MARK: - 持久化
+    // MARK: - 数据持久化
     
-    // 公开保存数据方法，供导入导出功能使用
-    func saveData() {
-        if let encoded = try? JSONEncoder().encode(habits) {
-            // 使用共享的 UserDefaults
-            sharedDefaults.set(encoded, forKey: habitsKey)
+    private func saveData() {
+        // 防止递归调用
+        if isSaving {
+            print("【HabitStore】检测到递归调用saveData，已跳过")
+            return
         }
         
-        if let encoded = try? JSONEncoder().encode(habitLogs) {
-            // 使用共享的 UserDefaults
-            sharedDefaults.set(encoded, forKey: habitLogsKey)
+        isSaving = true
+        print("【HabitStore】开始saveData - habits: \(habits.count)个, logs: \(habitLogs.count)个")
+        
+        // 编码和保存 habits
+        if let encoded = try? JSONEncoder().encode(habits) {
+            sharedDefaults.set(encoded, forKey: habitsKey)
+            print("【HabitStore】成功保存habits到UserDefaults")
+        } else {
+            print("【HabitStore】保存habits失败")
         }
+        
+        // 编码和保存 habitLogs
+        if let encoded = try? JSONEncoder().encode(habitLogs) {
+            sharedDefaults.set(encoded, forKey: habitLogsKey)
+            print("【HabitStore】成功保存habitLogs到UserDefaults")
+        } else {
+            print("【HabitStore】保存habitLogs失败")
+        }
+        
+        // 强制UserDefaults立即同步
+        sharedDefaults.synchronize()
+        print("【HabitStore】已调用synchronize强制同步UserDefaults")
         
         // 确保数据变化通知发送给观察者
         DispatchQueue.main.async {
             self.objectWillChange.send()
+            print("【HabitStore】已发送objectWillChange通知")
         }
         
         // 刷新所有小组件
         refreshWidgets()
+        
+        isSaving = false
     }
     
     private func loadData() {
-        // 从共享的 UserDefaults 加载数据
-        if let habitsData = sharedDefaults.data(forKey: habitsKey),
-           let decodedHabits = try? JSONDecoder().decode([Habit].self, from: habitsData) {
-            habits = decodedHabits
+        print("【HabitStore】开始loadData")
+        // 解码和加载 habits
+        if let data = sharedDefaults.data(forKey: habitsKey),
+           let decoded = try? JSONDecoder().decode([Habit].self, from: data) {
+            self.habits = decoded
+            print("【HabitStore】成功从UserDefaults加载habits: \(habits.count)个")
+        } else {
+            self.habits = []
+            print("【HabitStore】从UserDefaults加载habits失败，使用空数组")
         }
         
-        if let logsData = sharedDefaults.data(forKey: habitLogsKey),
-           let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
-            habitLogs = decodedLogs
+        // 解码和加载 habitLogs
+        if let data = sharedDefaults.data(forKey: habitLogsKey),
+           let decoded = try? JSONDecoder().decode([HabitLog].self, from: data) {
+            self.habitLogs = decoded
+            print("【HabitStore】成功从UserDefaults加载habitLogs: \(habitLogs.count)个")
+        } else {
+            self.habitLogs = []
+            print("【HabitStore】从UserDefaults加载habitLogs失败，使用空数组")
         }
+    }
+    
+    // 添加主动刷新方法，供主应用调用
+    func reloadData() {
+        print("【HabitStore】主动调用reloadData刷新数据")
+        loadData()
+        objectWillChange.send()
     }
     
     // 调整习惯记录的打卡次数（当用户减少打卡次数上限时）
@@ -216,5 +308,11 @@ class HabitStore: ObservableObject {
         // 保存更新后的数据
         saveData()
         refreshWidgets()
+    }
+    
+    // 公开方法，用于导入导出功能
+    func saveDataForExport() {
+        print("【HabitStore】导入导出功能调用保存数据")
+        saveData()
     }
 } 

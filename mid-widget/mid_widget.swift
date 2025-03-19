@@ -20,6 +20,9 @@ struct HabitSelectionIntent: WidgetConfigurationIntent {
 
 // Widget 的数据提供者
 struct Provider: AppIntentTimelineProvider {
+    // 定义Provider的Entry类型为HabitEntry
+    typealias Entry = HabitEntry
+    
     // 共享数据的 UserDefaults
     private let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker") ?? UserDefaults.standard
     
@@ -36,7 +39,15 @@ struct Provider: AppIntentTimelineProvider {
     
     // 快照视图的数据
     func snapshot(for configuration: HabitSelectionIntent, in context: Context) async -> HabitEntry {
-        // 从 UserDefaults 加载习惯数据
+        print("【Widget】生成snapshot，配置habitId: \(configuration.habitId)")
+        
+        // 检查刷新时间戳
+        let lastTimestamp = sharedDefaults.double(forKey: "widget_refresh_timestamp")
+        if lastTimestamp > 0 {
+            print("【Widget】检测到更新时间戳: \(lastTimestamp)")
+        }
+        
+        // 从 UserDefaults 直接加载最新习惯数据
         let habitStore = loadHabitStore()
         
         // 获取选择的习惯，如果没有选择或找不到，则使用第一个习惯
@@ -44,18 +55,23 @@ struct Provider: AppIntentTimelineProvider {
         if !configuration.habitId.isEmpty,
            let habit = habitStore.habits.first(where: { $0.id.uuidString == configuration.habitId }) {
             selectedHabit = habit
+            print("【Widget】找到配置的习惯: \(habit.name)")
         } else if !habitStore.habits.isEmpty {
             selectedHabit = habitStore.habits[0]
+            print("【Widget】使用第一个习惯: \(selectedHabit.name)")
         } else {
             // 如果没有习惯，使用默认习惯
             selectedHabit = Habit(name: "读书", emoji: "📚", colorTheme: .github, habitType: .checkbox)
+            print("【Widget】没有找到习惯，使用默认习惯")
         }
         
         // 获取习惯的日志
         let logs = habitStore.habitLogs.filter { $0.habitId == selectedHabit.id }
+        print("【Widget】过滤出该习惯的日志数量: \(logs.count)条")
         
         // 获取今天的打卡次数
         let todayCount = habitStore.getLogCountForDate(habitId: selectedHabit.id, date: Date())
+        print("【Widget】今日打卡次数: \(todayCount)")
         
         return HabitEntry(
             date: Date(),
@@ -70,45 +86,52 @@ struct Provider: AppIntentTimelineProvider {
     func timeline(for configuration: HabitSelectionIntent, in context: Context) async -> Timeline<HabitEntry> {
         let entry = await snapshot(for: configuration, in: context)
         
-        // 设置每小时更新一次
-        let nextUpdateDate = Calendar.current.date(byAdding: .hour, value: 1, to: Date())!
+        // 计算多个更新时间点以实现更频繁的刷新
+        var entries = [entry]
+        let currentDate = Date()
         
-        return Timeline(entries: [entry], policy: .after(nextUpdateDate))
+        // 未来5分钟、15分钟和30分钟各安排一次更新
+        let updateTimes = [5, 15, 30]
+        for minutes in updateTimes {
+            if let futureDate = Calendar.current.date(byAdding: .minute, value: minutes, to: currentDate) {
+                let futureEntry = HabitEntry(
+                    date: futureDate,
+                    habit: entry.habit,
+                    logs: entry.logs,
+                    todayCount: entry.todayCount,
+                    configuration: entry.configuration
+                )
+                entries.append(futureEntry)
+            }
+        }
+        
+        print("【Widget】计划了\(entries.count)个时间点的更新")
+        return Timeline(entries: entries, policy: .atEnd)
     }
     
     // 从 UserDefaults 加载习惯数据
     private func loadHabitStore() -> HabitStore {
-        // 创建一个使用共享 UserDefaults 的自定义 HabitStore
-        let habitStore = createSharedHabitStore()
+        print("【Widget Provider】开始loadHabitStore - 强制从UserDefaults读取")
         
-        // 如果 habitStore 中没有数据，可能是因为 App Group 配置有问题
-        if habitStore.habits.isEmpty {
-            print("Widget 未能找到应用数据，返回示例数据")
-        } else {
-            print("Widget 成功加载了 \(habitStore.habits.count) 个习惯")
-        }
-        
-        return habitStore
-    }
-    
-    // 创建使用共享 UserDefaults 的 HabitStore
-    private func createSharedHabitStore() -> HabitStore {
+        // 创建新实例，避免使用可能未更新的共享单例
         let habitStore = HabitStore()
         
-        // 尝试从共享 UserDefaults 加载数据
-        let habitsKey = "habits"
-        let habitLogsKey = "habitLogs"
-        
-        // 加载习惯数据
-        if let habitsData = sharedDefaults.data(forKey: habitsKey),
+        // 直接从UserDefaults读取最新数据
+        if let habitsData = sharedDefaults.data(forKey: "habits"),
            let decodedHabits = try? JSONDecoder().decode([Habit].self, from: habitsData) {
             habitStore.habits = decodedHabits
+            print("【Widget Provider】直接从UserDefaults读取到\(decodedHabits.count)个习惯")
+        } else {
+            print("【Widget Provider】UserDefaults中没有找到习惯数据")
         }
         
-        // 加载习惯日志数据
-        if let logsData = sharedDefaults.data(forKey: habitLogsKey),
+        // 读取日志数据
+        if let logsData = sharedDefaults.data(forKey: "habitLogs"),
            let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
             habitStore.habitLogs = decodedLogs
+            print("【Widget Provider】直接从UserDefaults读取到\(decodedLogs.count)个日志")
+        } else {
+            print("【Widget Provider】UserDefaults中没有找到日志数据")
         }
         
         return habitStore
@@ -126,85 +149,80 @@ struct HabitEntry: TimelineEntry {
 
 // Widget 的视图
 struct HabitWidgetEntryView: View {
-    var entry: Provider.Entry
+    var entry: HabitEntry
     @Environment(\.widgetFamily) var family
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        switch family {
-        case .systemMedium:
-            // 使用与主应用中 HabitCardView 相同的设计
-            VStack(spacing: 0) {
-                // 上部分：习惯名称和连续打卡天数
-                HStack {
-                    Text(entry.habit.name)
-                        .font(.headline)
-                        .padding(.vertical, 18)
-                        .padding(.horizontal, 16)
-                        .opacity(0.8)
-                    
-                    Spacer()
-                    
-                    // 连续打卡天数（如果有的话）
-                    if let currentStreak = getStreak(habit: entry.habit, logs: entry.logs), currentStreak > 0 {
-                        HStack(spacing: 4) {
-                            Image(systemName: "flame.fill")
-                                .font(.system(size: 14))
-                                .foregroundColor(colorScheme == .dark 
-                                    ? getTheme(habit: entry.habit).color(for: 4, isDarkMode: true)
-                                    : getTheme(habit: entry.habit).color(for: 5, isDarkMode: false))
-                            
-                            Text("\(currentStreak)")
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(colorScheme == .dark 
-                                    ? getTheme(habit: entry.habit).color(for: 4, isDarkMode: true)
-                                    : getTheme(habit: entry.habit).color(for: 5, isDarkMode: false))
-                        }
-                        .padding(.trailing, 16)
-                    }
-                }
-                .background(colorScheme == .dark ? Color.black : Color(UIColor.systemBackground))
-                .foregroundColor(colorScheme == .dark ? .white.opacity(0.8) : .primary) // 根据模式调整文本颜色，黑暗模式下添加0.8透明度
+        VStack(spacing: 0) {
+            // 上部分：习惯名称和连续打卡天数
+            HStack {
+                Text(entry.habit.name)
+                    .font(.headline)
+                    .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 16)
                 
-                // 下部分：微型热力图和打卡按钮
-                HStack(spacing: 5) {
-                    // 左侧：微型热力图
+                Spacer()
+                
+                // 获取连续打卡天数
+                if let currentStreak = getStreak(habit: entry.habit, logs: entry.logs), currentStreak > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(colorScheme == .dark 
+                                ? getTheme(habit: entry.habit).color(for: 4, isDarkMode: true)
+                                : getTheme(habit: entry.habit).color(for: 5, isDarkMode: false))
+                        
+                        Text("\(currentStreak)")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(colorScheme == .dark 
+                                ? getTheme(habit: entry.habit).color(for: 4, isDarkMode: true)
+                                : getTheme(habit: entry.habit).color(for: 5, isDarkMode: false))
+                    }
+                    .padding(.trailing, 16)
+                }
+            }
+            .background(colorScheme == .dark ? Color.black : Color.white)
+            
+            // 下部分：微型热力图和打卡按钮
+            HStack(spacing: 16) {
+                // 左侧：微型热力图
+                Link(destination: URL(string: "habittracker://open?habitId=\(entry.habit.id.uuidString)")!) {
                     WidgetMiniHeatmapView(
-                        habit: entry.habit,
                         logs: entry.logs,
+                        habit: entry.habit,
                         colorScheme: colorScheme
                     )
                     .padding(.vertical, 8)
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 12)
                     .background(
-                        RoundedRectangle(cornerRadius: 6)
+                        RoundedRectangle(cornerRadius: 10)
                             .fill(colorScheme == .dark 
-                                 ? Color.black.opacity(0.3) 
-                                 : Color(UIColor.secondarySystemBackground).opacity(0.3))
+                                ? Color.black.opacity(0.3) 
+                                : Color.gray.opacity(0.1))
                     )
                     .padding(.leading, 12)
                     .padding(.top, 0)
                     .padding(.bottom, 12)
-                    
-                    Spacer()
-                    
-                    // 右侧：打卡按钮
-                    WidgetCheckInButton(
-                        habit: entry.habit,
-                        todayCount: entry.todayCount,
-                        colorScheme: colorScheme
-                    )
-                    .padding(.trailing, 16)
-                    .padding(.vertical, 2)
                 }
-                .background(colorScheme == .dark ? Color.black : Color(UIColor.systemBackground))
+                .buttonStyle(.plain)
+                
+                Spacer()
+                
+                // 右侧：打卡按钮
+                WidgetCheckInButton(
+                    habit: entry.habit,
+                    todayCount: entry.todayCount,
+                    colorScheme: colorScheme
+                )
+                .padding(.trailing, 16)
+                .padding(.vertical, 8)
             }
-            .cornerRadius(8)
-            .widgetURL(URL(string: "easyhabit://widget/open?habitId=\(entry.habit.id.uuidString)"))
-            
-        default:
-            Text("不支持的 Widget 大小")
+            .background(colorScheme == .dark ? Color.black : Color.white)
         }
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
     }
     
     // 获取习惯对应的主题颜色
@@ -239,8 +257,8 @@ struct HabitWidgetEntryView: View {
 
 // 微型热力图组件 - 专为 Widget 优化
 struct WidgetMiniHeatmapView: View {
-    let habit: Habit
     let logs: [HabitLog]
+    let habit: Habit
     let colorScheme: ColorScheme
     
     // 热力图大小配置
@@ -368,7 +386,7 @@ struct WidgetCheckInButton: View {
     }
 
     var body: some View {
-        Link(destination: URL(string: "easyhabit://widget/checkin?habitId=\(habit.id.uuidString)")!) {
+        Button(intent: CheckInHabitIntent(habitId: habit.id.uuidString)) {
             ZStack {
                 // 圆环
                 if habit.habitType == .checkbox {
@@ -380,22 +398,22 @@ struct WidgetCheckInButton: View {
                                 theme.color(for: 1, isDarkMode: false).opacity(0.4),
                             style: StrokeStyle(lineWidth: 10)
                         )
-                        .frame(width: 68, height: 68)
+                        .frame(width: 64, height: 64)
                     
                     // 完成圆环
                     Circle()
                         .trim(from: 0, to: isCompletedToday ? 1 : 0)
                         .stroke(
-                            colorScheme == .dark 
-                                ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
-                                : theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
+                            colorScheme == .dark ?
+                                theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true) :
+                                theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,
                                 lineJoin: .round
                             )
                         )
-                        .frame(width: 68, height: 68)
+                        .frame(width: 64, height: 64)
                         .rotationEffect(.degrees(-90))
                 } else {
                     // Count型习惯的圆环 - 先显示底色轨道
@@ -406,30 +424,40 @@ struct WidgetCheckInButton: View {
                                 theme.color(for: 1, isDarkMode: false).opacity(0.4),
                             style: StrokeStyle(lineWidth: 10)
                         )
-                        .frame(width: 68, height: 68)
+                        .frame(width: 64, height: 64)
                     
                     // 进度环
                     Circle()
                         .trim(from: 0, to: countProgress)
                         .stroke(
-                            colorScheme == .dark 
-                                ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
-                                : theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
+                            colorScheme == .dark ?
+                                theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true) :
+                                theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,
                                 lineJoin: .round
                             )
                         )
-                        .frame(width: 68, height: 68)
+                        .frame(width: 64, height: 64)
                         .rotationEffect(.degrees(-90))
                 }
                 
-                // Emoji
-                Text(habit.emoji)
-                    .font(.system(size: 30))
+                VStack(spacing: 2) {
+                    // Emoji
+                    Text(habit.emoji)
+                        .font(.system(size: 28))
+                    
+                    // // 计数类型显示当前次数/最大次数
+                    // if habit.habitType == .count {
+                    //     Text("\(todayCount)/\(habit.maxCheckInCount)")
+                    //         .font(.system(size: 12))
+                    //         .foregroundColor(.secondary)
+                    // }
+                }
             }
         }
+        .buttonStyle(.plain)
         .frame(width: 74, height: 74)
     }
 }
@@ -437,31 +465,99 @@ struct WidgetCheckInButton: View {
 // 打卡操作的 Intent
 struct CheckInHabitIntent: AppIntent {
     static var title: LocalizedStringResource = "打卡习惯"
+    static var description: LocalizedStringResource = "记录习惯打卡"
     
     @Parameter(title: "习惯ID")
     var habitId: String
+    
+    @Parameter(title: "打卡日期", default: Date())
+    var date: Date
     
     init() {}
     
     init(habitId: String) {
         self.habitId = habitId
+        self.date = Date()
     }
     
+    // 实现功能
     func perform() async throws -> some IntentResult {
-        // 从 UserDefaults 加载习惯数据
-        let habitStore = HabitStore()
+        // 调试日志：开始执行打卡操作
+        print("【Widget】开始执行打卡操作，habitId: \(habitId)")
         
-        // 查找对应的习惯
-        if let uuid = UUID(uuidString: habitId),
-           let _ = habitStore.habits.first(where: { $0.id == uuid }) {
-            // 执行打卡操作
-            habitStore.logHabit(habitId: uuid, date: Date())
-            
-            // 请求刷新所有 Widget
-            WidgetCenter.shared.reloadAllTimelines()
+        // 1. 获取当前习惯信息
+        let habitStore = HabitStore.shared
+        
+        // 调试：检查Widget中读取到的习惯和日志
+        print("【Widget】当前内存中的习惯数量: \(habitStore.habits.count)")
+        print("【Widget】当前内存中的日志数量: \(habitStore.habitLogs.count)")
+        
+        // 调试：直接从UserDefaults读取一次数据检查
+        let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker")!
+        if let habitsData = sharedDefaults.data(forKey: "habits"),
+           let decodedHabits = try? JSONDecoder().decode([Habit].self, from: habitsData) {
+            print("【Widget】UserDefaults中的习惯数量: \(decodedHabits.count)")
+        } else {
+            print("【Widget】UserDefaults中没有找到习惯数据")
         }
         
-        return .result()
+        if let logsData = sharedDefaults.data(forKey: "habitLogs"),
+           let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
+            print("【Widget】UserDefaults中的日志数量: \(decodedLogs.count)")
+        } else {
+            print("【Widget】UserDefaults中没有找到日志数据")
+        }
+        
+        guard let habitUUID = UUID(uuidString: habitId),
+              let habit = habitStore.habits.first(where: { $0.id == habitUUID }) else {
+            // 习惯不存在，返回错误
+            print("【Widget】找不到指定习惯，habitId: \(habitId)")
+            return .result(dialog: "找不到指定习惯")
+        }
+        
+        // 获取打卡前的状态
+        let beforeCount = habitStore.getLogCountForDate(habitId: habitUUID, date: date)
+        print("【Widget】打卡前习惯状态 - 名称: \(habit.name), 打卡次数: \(beforeCount)/\(habit.maxCheckInCount)")
+        
+        // 2. 执行打卡操作
+        habitStore.logHabit(habitId: habitUUID, date: date)
+        print("【Widget】已执行logHabit操作")
+        
+        // 调试：检查操作后的UserDefaults
+        if let logsData = sharedDefaults.data(forKey: "habitLogs"),
+           let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
+            let habitLogs = decodedLogs.filter { $0.habitId == habitUUID }
+            print("【Widget】操作后UserDefaults中该习惯的日志数量: \(habitLogs.count)")
+            if let todayLog = habitLogs.first(where: { Calendar.current.isDate($0.date, inSameDayAs: Date()) }) {
+                print("【Widget】操作后UserDefaults中今日该习惯的打卡次数: \(todayLog.count)")
+            } else {
+                print("【Widget】操作后UserDefaults中未找到今日该习惯的打卡记录")
+            }
+        }
+        
+        // 3. 刷新所有Widget
+        WidgetCenter.shared.reloadAllTimelines()
+        print("【Widget】已刷新Widget")
+        
+        // 4. 返回成功信息，根据习惯类型和结果提供不同反馈
+        let afterCount = habitStore.getLogCountForDate(habitId: habitUUID, date: date)
+        print("【Widget】打卡后习惯状态 - 打卡次数: \(afterCount)/\(habit.maxCheckInCount)")
+        
+        if habit.habitType == .checkbox {
+            if beforeCount > 0 && afterCount == 0 {
+                return .result(dialog: "已取消打卡")
+            } else if beforeCount == 0 && afterCount > 0 {
+                return .result(dialog: "已完成打卡")
+            }
+        } else { // count类型
+            if beforeCount >= habit.maxCheckInCount && afterCount == 0 {
+                return .result(dialog: "打卡已重置")
+            } else {
+                return .result(dialog: "已打卡 \(afterCount)/\(habit.maxCheckInCount)")
+            }
+        }
+        
+        return .result(dialog: "打卡状态已更新")
     }
 }
 
@@ -476,11 +572,11 @@ struct HabitWidget: Widget {
             provider: Provider()
         ) { entry in
             HabitWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .containerBackground(.fill.quaternary, for: .widget)
         }
         .configurationDisplayName("习惯追踪")
-        .description("主应用中点击想要添加挂件的习惯，进入编辑-WIDGET配置信息 获取习惯ID。")
-        .supportedFamilies([.systemMedium])
+        .description("直接从桌面打卡你的习惯，无需打开应用")
+        .supportedFamilies([.systemMedium, .systemLarge])
     }
 }
 
@@ -488,32 +584,50 @@ struct HabitWidget: Widget {
 // 预览
 struct HabitWidget_Previews: PreviewProvider {
     static var previews: some View {
-        // 创建一个模拟的习惯和日志数据
-        let habit = Habit(name: "读书", emoji: "📚", colorTheme: .github, habitType: .checkbox)
+        // 创建模拟数据
+        let habit = Habit(name: "读书", emoji: "📚", colorTheme: .github, habitType: .count, maxCheckInCount: 3)
         let intent = HabitSelectionIntent()
         intent.habitId = habit.id.uuidString
         
-        // 创建一个条目用于预览
+        // 创建模拟日志
+        let calendar = Calendar.current
+        let today = Date()
+        var logs: [HabitLog] = []
+        
+        // 添加一些连续的日志
+        for i in 0..<7 {
+            if let date = calendar.date(byAdding: .day, value: -i, to: today) {
+                let log = HabitLog(habitId: habit.id, date: date, count: i % 4)
+                logs.append(log)
+            }
+        }
+        
+        // 创建条目
         let entry = HabitEntry(
             date: Date(),
             habit: habit,
-            logs: [],
-            todayCount: 1,
+            logs: logs,
+            todayCount: 2,
             configuration: intent
         )
         
         // 返回预览视图
         return Group {
             HabitWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .containerBackground(.fill.quaternary, for: .widget)
                 .previewContext(WidgetPreviewContext(family: .systemMedium))
                 .previewDisplayName("习惯小组件 (浅色)")
                 
             HabitWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .containerBackground(.fill.quaternary, for: .widget)
                 .previewContext(WidgetPreviewContext(family: .systemMedium))
                 .environment(\.colorScheme, .dark)
                 .previewDisplayName("习惯小组件 (深色)")
+            
+            HabitWidgetEntryView(entry: entry)
+                .containerBackground(.fill.quaternary, for: .widget)
+                .previewContext(WidgetPreviewContext(family: .systemLarge))
+                .previewDisplayName("习惯小组件 (大尺寸)")
         }
     }
 }

@@ -389,7 +389,7 @@ struct ImportExportView: View {
             }
             
             // 保存数据
-            habitStore.saveData()
+            habitStore.saveDataForExport()
             
             alertMessage = "成功导入\(importedHabits.count)个习惯和\(importedLogs.count)条打卡记录！"
             showingAlert = true
