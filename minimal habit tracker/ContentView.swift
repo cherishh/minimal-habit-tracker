@@ -6,6 +6,9 @@
 //
 
 import SwiftUI
+import WidgetKit
+import StoreKit
+import MessageUI
 
 // 添加支持系统侧滑返回手势的扩展
 extension View {
@@ -38,20 +41,17 @@ struct InteractivePopGestureRecognizerHelper: UIViewControllerRepresentable {
 
 struct ContentView: View {
     @EnvironmentObject var habitStore: HabitStore
-    @State private var isAddingHabit = false
     @State private var showingSettings = false
-    @State private var selectedHabit: Habit?
-    @State private var selectedHabitId: UUID?
-    @State private var navigateToDetail = false
-    @State private var showingSortSheet = false
-    @Environment(\.colorScheme) var colorScheme
-    @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
-    @State private var showingMaxHabitsAlert = false
-    @State private var showAddHabit = false
-    @State private var showSettings = false
-    @State private var showSortOverlay = false
+    @State private var showingAddHabit = false
     @State private var showDeleteConfirmation = false
     @State private var habitToDelete: Habit? = nil
+    @Environment(\.colorScheme) var colorScheme
+    @State private var showingSortSheet = false
+    @State private var navigateToDetail = false
+    @State private var selectedHabitId: UUID? = nil
+    @State private var showingMaxHabitsAlert = false
+    @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
+    @State private var showingMailCannotSendAlert = false
     
     // 自定义更淡的背景色
     private var lightBackgroundColor: Color {
@@ -75,9 +75,7 @@ struct ContentView: View {
                     HStack(spacing: 16) {
                         Button(action: {
                             if habitStore.canAddHabit() {
-                                isAddingHabit = true
-                            } else {
-                                showingMaxHabitsAlert = true
+                                showingAddHabit = true
                             }
                         }) {
                             Image("plus")
@@ -132,8 +130,8 @@ struct ContentView: View {
                 }
             }
             .navigationBarHidden(true) // 隐藏系统的导航栏，使用自定义标题栏
-            .sheet(isPresented: $isAddingHabit) {
-                NewHabitView(isPresented: $isAddingHabit)
+            .sheet(isPresented: $showingAddHabit) {
+                NewHabitView(isPresented: $showingAddHabit)
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView(isPresented: $showingSettings)
@@ -144,7 +142,7 @@ struct ContentView: View {
             .alert(isPresented: $showingMaxHabitsAlert) {
                 Alert(
                     title: Text("达到最大数量"),
-                    message: Text("您最多只能创建4个习惯。如需添加更多，请升级为Pro版本。"),
+                    message: Text("您最多只能创建 \(HabitStore.maxHabitCount) 个习惯。如需添加更多，请升级为Pro版本。"),
                     dismissButton: .default(Text("我知道了"))
                 )
             }
@@ -194,9 +192,7 @@ struct ContentView: View {
             // 大一点的添加按钮
             Button(action: { 
                 if habitStore.canAddHabit() {
-                    isAddingHabit = true
-                } else {
-                    showingMaxHabitsAlert = true
+                    showingAddHabit = true
                 }
             }) {
                 Image(systemName: "plus")
@@ -705,10 +701,23 @@ extension MiniHeatmapView: Equatable {
 // 添加设置页面
 struct SettingsView: View {
     @Binding var isPresented: Bool
+    @EnvironmentObject var habitStore: HabitStore
+    @Environment(\.colorScheme) var colorScheme
     @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
     @State private var showingImportExport = false
-    @State private var showingComingSoon = false
+    @State private var showingComingSoonAlert = false
     @State private var comingSoonMessage = ""
+    @State private var showingProAlert = false
+    @State private var showingCustomThemePrompt = false
+    @State private var showingResetAlert = false
+    @State private var showingAppVersionTapCount = 0
+    @State private var showingMailView = false
+    @State private var mailResult: Result<MFMailComposeResult, Error>? = nil
+    @State private var showingMailCannotSendAlert = false
+    
+    // 覆盖版本号（保持与项目文件一致）
+    let appVersion = "0.1"
+    let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "未知构建号"
     
     // 这些开关不会实际保存设置，仅作为UI展示
     @State private var iCloudSync = false
@@ -716,87 +725,30 @@ struct SettingsView: View {
     @State private var noteFeature = false
     
     var body: some View {
-        NavigationStack {
-            Form {
-                Section(header: Text("主题设置")) {
-                    Picker("显示模式", selection: $themeMode) {
-                        Text("跟随系统").tag(0)
-                        Text("明亮模式").tag(1)
-                        Text("暗黑模式").tag(2)
-                    }
-                    
-                    Button(action: {
-                        comingSoonMessage = "自定义颜色主题功能即将推出"
-                        showingComingSoon = true
-                    }) {
-                        HStack {
-                            Text("高级 & 自定义颜色主题")
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-                
-                Section(header: Text("高级功能")) {
-                    Toggle("iCloud云同步", isOn: $iCloudSync)
-                        .onChange(of: iCloudSync) { newValue in
-                            // 恢复到原始状态
-                            iCloudSync = false
-                            comingSoonMessage = "iCloud云同步功能即将推出"
-                            showingComingSoon = true
-                        }
-                    
-                    Toggle("无限习惯数量", isOn: $unlimitedHabits)
-                        .onChange(of: unlimitedHabits) { newValue in
-                            // 恢复到原始状态
-                            unlimitedHabits = false
-                            comingSoonMessage = "无限习惯数量功能即将推出"
-                            showingComingSoon = true
-                        }
-                        
-                    Toggle("习惯笔记功能", isOn: $noteFeature)
-                        .onChange(of: noteFeature) { newValue in
-                            // 恢复到原始状态
-                            noteFeature = false
-                            comingSoonMessage = "习惯笔记功能即将推出"
-                            showingComingSoon = true
-                        }
-                }
-                
-                Section(header: Text("数据管理")) {
-                    Button("导入 & 导出") {
-                        showingImportExport = true
-                    }
-                }
-                
-                Section(header: Text("关于")) {
-                    HStack {
-                        Text("版本")
-                        Spacer()
-                        Text("0.1.0")
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    NavigationLink(destination: Text("关于页面内容").padding()) {
-                        Text("关于习惯追踪")
-                    }
-                }
+        NavigationView {
+            List {
+                UpgradeSection
+                AppearanceSection
+                DataSection
+                AboutSection
             }
             .navigationTitle("设置")
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") {
-                    isPresented = false
-                    }
-                }
-            }
+            .navigationBarItems(trailing: Button("完成") {
+                isPresented = false
+            })
             .sheet(isPresented: $showingImportExport) {
                 ImportExportView()
             }
-            .alert(comingSoonMessage, isPresented: $showingComingSoon) {
+            .alert(comingSoonMessage, isPresented: $showingComingSoonAlert) {
                 Button("好的", role: .cancel) { }
+            }
+            .sheet(isPresented: $showingMailView) {
+                if MFMailComposeViewController.canSendMail() {
+                    MailView(result: $mailResult, recipient: "jasonlovescola@gmail.com", subject: "EasyHabit用户反馈", body: generateEmailBody())
+                }
+            }
+            .alert(isPresented: $showingMailCannotSendAlert) {
+                Alert(title: Text("无法发送邮件"), message: Text("您的设备未设置邮件账户或无法发送邮件。请手动发送邮件至jasonlovescola@gmail.com"), dismissButton: .default(Text("确定")))
             }
         }
         .preferredColorScheme(getPreferredColorScheme())
@@ -808,6 +760,143 @@ struct SettingsView: View {
             case 1: return .light     // 明亮模式
             case 2: return .dark      // 暗黑模式
             default: return nil       // 自适应系统
+        }
+    }
+    
+    // 在SettingsView中添加生成邮件正文的函数
+    private func generateEmailBody() -> String {
+        let deviceInfo = """
+        
+        ----------
+        设备信息:
+        设备型号: \(UIDevice.current.model)
+        系统版本: \(UIDevice.current.systemVersion)
+        应用版本: \(appVersion) (\(buildNumber))
+        当前主题: \(themeMode == 0 ? "跟随系统" : (themeMode == 1 ? "明亮模式" : "暗黑模式"))
+        习惯数量: \(habitStore.habits.count)
+        ----------
+        
+        请在此处描述您的问题或建议:
+        
+        """
+        
+        return deviceInfo
+    }
+    
+    // 在SettingsView中添加邮件发送功能
+    private func sendFeedbackEmail() {
+        if MFMailComposeViewController.canSendMail() {
+            showingMailView = true
+        } else {
+            showingMailCannotSendAlert = true
+        }
+    }
+
+    private var AppearanceSection: some View {
+        Section(header: Text("主题设置")) {
+            Picker("显示模式", selection: $themeMode) {
+                Text("跟随系统").tag(0)
+                Text("明亮模式").tag(1)
+                Text("暗黑模式").tag(2)
+            }
+        }
+    }
+    
+    private var DataSection: some View {
+        Section(header: Text("数据管理")) {
+            Button("导入 & 导出") {
+                showingImportExport = true
+            }
+            .foregroundColor(.primary)
+        }
+    }
+    
+    private var UpgradeSection: some View {
+        Section(header: Text("高级功能")) {
+            NavigationLink {
+                AdvancedThemeListView()
+            } label: {
+                HStack {
+                    Text("高级颜色主题 & 自定义颜色")
+                    Spacer()
+                }
+            }
+
+            Toggle("iCloud 云同步", isOn: $iCloudSync)
+                .onChange(of: iCloudSync) { newValue in
+                    // 恢复到原始状态
+                    iCloudSync = false
+                    comingSoonMessage = "iCloud云同步功能即将推出"
+                    showingComingSoonAlert = true
+                }
+            
+            Toggle("无限习惯数量", isOn: $unlimitedHabits)
+                .onChange(of: unlimitedHabits) { newValue in
+                    // 恢复到原始状态
+                    unlimitedHabits = false
+                    comingSoonMessage = "无限习惯数量功能即将推出"
+                    showingComingSoonAlert = true
+                }
+                
+            Toggle("打卡笔记功能", isOn: $noteFeature)
+                .onChange(of: noteFeature) { newValue in
+                    // 恢复到原始状态
+                    noteFeature = false
+                    comingSoonMessage = "打卡笔记功能即将推出"
+                    showingComingSoonAlert = true
+                }
+        }
+    }
+
+    private var AboutSection: some View {
+        Section(header: Text("关于")) {
+            Button {
+                showingAppVersionTapCount += 1
+                if showingAppVersionTapCount >= 7 {
+                    habitStore.debugMode.toggle()
+                    showingAppVersionTapCount = 0
+                }
+            } label: {
+                HStack {
+                    Text("应用版本")
+                    Spacer()
+                    Text(habitStore.debugMode ? "\(appVersion) (\(buildNumber)) [调试模式]" : "\(appVersion) (\(buildNumber))")
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            NavigationLink(destination: TermsOfUseView()) {
+                Text("用户协议")
+            }
+            
+            NavigationLink(destination: PrivacyPolicyView()) {
+                Text("隐私政策")
+            }
+            
+            Button(action: {
+                // 打开App Store评分页面（使用模拟URL）
+                if let url = URL(string: "https://apps.apple.com/app/id1234567890?action=write-review") {
+                    UIApplication.shared.open(url)
+                }
+            }) {
+                HStack {
+                    Text("为我们评分")
+                    Spacer()
+                    Image(systemName: "star.fill")
+                        .foregroundColor(.yellow)
+                }
+            }
+            
+            Button(action: {
+                sendFeedbackEmail()
+            }) {
+                HStack {
+                    Text("用户反馈")
+                    Spacer()
+                    Image(systemName: "envelope")
+                        .foregroundColor(.blue)
+                }
+            }
         }
     }
 }
@@ -865,7 +954,288 @@ struct HabitSortView: View {
     }
 }
 
+// 高级颜色主题列表视图
+struct AdvancedThemeListView: View {
+    @State private var showingUpgradeAlert = false
+    @State private var showingComingSoonAlert = false
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    
+    // 高级主题列表（模拟数据）
+    private let premiumThemes = [
+        ("🌈 彩虹渐变", "彩虹主题"),
+        ("🌌 星空", "深蓝星空"),
+        ("🔥 火焰", "热情火焰"),
+        ("🌊 海洋", "深海蓝调"),
+        ("🌿 森林", "自然绿意"),
+        ("🍑 蜜桃", "温暖粉色")
+    ]
+    
+    // 为每个主题定义模拟颜色（从浅到深6个颜色）
+    private func getThemeColors(for themeName: String) -> [Color] {
+        switch themeName {
+        case "🌈 彩虹渐变":
+            return [Color(hex: "#F2F2F2"), Color(hex: "#FF9AA2"), Color(hex: "#FFDAC1"), Color(hex: "#E2F0CB"), Color(hex: "#B5EAD7"), Color(hex: "#C7CEEA")]
+        case "🌌 星空":
+            return [Color(hex: "#1A1B41"), Color(hex: "#2D3168"), Color(hex: "#4A4B8F"), Color(hex: "#8386B5"), Color(hex: "#A8AADB"), Color(hex: "#7884D4")]
+        case "🔥 火焰":
+            return [Color(hex: "#FFEFE0"), Color(hex: "#FEC196"), Color(hex: "#FD9460"), Color(hex: "#F36040"), Color(hex: "#D53867"), Color(hex: "#9E1946")]
+        case "🌊 海洋":
+            return [Color(hex: "#E8F7FF"), Color(hex: "#CCE9FB"), Color(hex: "#9DCCF7"), Color(hex: "#6BA7E0"), Color(hex: "#4682B4"), Color(hex: "#1C3C6D")]
+        case "🌿 森林":
+            return [Color(hex: "#E8F5E9"), Color(hex: "#C8E6C9"), Color(hex: "#A5D6A7"), Color(hex: "#81C784"), Color(hex: "#66BB6A"), Color(hex: "#2E7D32")]
+        case "🍑 蜜桃":
+            return [Color(hex: "#FFF0F0"), Color(hex: "#FFCCCC"), Color(hex: "#FFB3B3"), Color(hex: "#FF8080"), Color(hex: "#FF6666"), Color(hex: "#FF0000")]
+        default:
+            return [Color.gray.opacity(0.2), Color.gray.opacity(0.3), Color.gray.opacity(0.4), Color.gray.opacity(0.6), Color.gray.opacity(0.8), Color.gray]
+        }
+    }
+    
+    var body: some View {
+        List {
+            Section(header: Text("高级主题").font(.headline)) {
+                ForEach(premiumThemes, id: \.0) { theme in
+                    Button(action: {
+                        showingUpgradeAlert = true
+                    }) {
+                        HStack {
+                            Text(theme.0)
+                                .foregroundColor(.primary)
+                            
+                            Spacer()
+                            
+                            // 主题预览 - 类似于习惯创建时的样式
+                            HStack(spacing: 2) {
+                                ForEach(0..<6) { level in
+                                    RoundedRectangle(cornerRadius: 3)
+                                        .fill(getThemeColors(for: theme.0)[level])
+                                        .frame(width: 16, height: 16)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 8)
+                        .contentShape(Rectangle()) // 确保整行可点击
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            
+            Section {
+                Button(action: {
+                    showingComingSoonAlert = true
+                }) {
+                    HStack {
+                        Text("🎨 自定义颜色")
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                        
+                        // 自定义颜色的预览 - 统一样式
+                        HStack(spacing: 2) {
+                            ForEach(0..<6) { i in
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color(hue: Double(i) / 6.0, saturation: 0.8, brightness: 0.8))
+                                    .frame(width: 16, height: 16)
+                            }
+                        }
+                    }
+                    .padding(.vertical, 8)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .navigationTitle("高级主题")
+        .alert("升级到Pro版本", isPresented: $showingUpgradeAlert) {
+            Button("取消", role: .cancel) { }
+            Button("升级") {
+                // 这里可以添加导向升级页面的代码
+                dismiss()
+            }
+        } message: {
+            Text("高级主题仅适用于Pro版本用户。升级后即可解锁所有高级主题，并获得无限习惯数量、iCloud同步等更多功能。")
+        }
+        .alert("即将推出", isPresented: $showingComingSoonAlert) {
+            Button("好的", role: .cancel) { }
+        } message: {
+            Text("自定义颜色主题功能即将推出，敬请期待！")
+        }
+    }
+}
+
 #Preview {
     ContentView()
         .environmentObject(HabitStore())
 }
+
+// 添加邮件视图
+struct MailView: UIViewControllerRepresentable {
+    @Binding var result: Result<MFMailComposeResult, Error>?
+    let recipient: String
+    let subject: String
+    let body: String
+    
+    func makeUIViewController(context: Context) -> MFMailComposeViewController {
+        let viewController = MFMailComposeViewController()
+        viewController.mailComposeDelegate = context.coordinator
+        viewController.setToRecipients([recipient])
+        viewController.setSubject(subject)
+        viewController.setMessageBody(body, isHTML: false)
+        return viewController
+    }
+    
+    func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: Context) {
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
+        var parent: MailView
+        
+        init(_ parent: MailView) {
+            self.parent = parent
+        }
+        
+        func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+            defer {
+                controller.dismiss(animated: true)
+            }
+            
+            if let error = error {
+                parent.result = .failure(error)
+                return
+            }
+            
+            parent.result = .success(result)
+        }
+    }
+}
+
+// 用户协议视图
+struct TermsOfUseView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("用户协议")
+                    .font(.largeTitle)
+                    .bold()
+                    .padding(.bottom)
+                
+                Group {
+                    Text("欢迎使用EasyHabit应用")
+                        .font(.title2)
+                        .bold()
+                    
+                    Text("本协议是您与EasyHabit（下称\"我们\"）之间关于您使用EasyHabit应用及相关服务的协议。在您开始使用EasyHabit应用之前，请您务必认真阅读并充分理解本协议的全部内容。")
+                    
+                    Text("1. 接受条款")
+                        .font(.headline)
+                    Text("通过使用EasyHabit应用，您确认您已满16周岁并同意受到本协议的约束。如您未满16周岁，应在监护人陪同下阅读本协议，并在监护人同意的前提下使用我们的服务。")
+                    
+                    Text("2. 服务描述")
+                        .font(.headline)
+                    Text("EasyHabit是一款帮助用户记录和培养习惯的应用。我们为用户提供习惯追踪、统计和分析功能，帮助用户更好地管理自己的日常习惯。")
+                    
+                    Text("3. 用户行为规范")
+                        .font(.headline)
+                    Text("您应遵守中华人民共和国相关法律法规，不得利用本应用从事违法活动。您应对使用本应用的行为负责，确保您提供和发布的内容合法、真实和准确，不侵犯任何第三方的合法权益。")
+                    
+                    Text("4. 隐私保护")
+                        .font(.headline)
+                    Text("我们重视用户的隐私保护，您在使用我们的服务时，我们可能收集和使用您的相关信息。我们将按照《EasyHabit隐私政策》收集、使用、存储和分享您的信息。")
+                    
+                    Text("5. 知识产权")
+                        .font(.headline)
+                    Text("EasyHabit应用及其所有内容，包括但不限于文本、图形、用户界面、徽标、图标、图像、音频和计算机代码，均受知识产权法保护，这些权利归我们或我们的许可方所有。")
+                }
+                
+                Group {
+                    Text("6. 免责声明")
+                        .font(.headline)
+                    Text("EasyHabit仅提供习惯追踪和管理工具，不对用户因使用本应用而产生的任何直接或间接损失负责。我们不保证服务一定能满足您的要求，也不保证服务不会中断。")
+                    
+                    Text("7. 协议修改")
+                        .font(.headline)
+                    Text("我们保留随时修改本协议的权利。对本协议的修改将通过在应用内或网站上发布通知的方式告知用户。若您在修改后继续使用EasyHabit，则视为您已接受修改后的协议。")
+                    
+                    Text("8. 联系我们")
+                        .font(.headline)
+                    Text("如您对本协议或EasyHabit应用有任何问题，请通过应用中的\"用户反馈\"功能与我们联系。")
+                    
+                    Text("本协议更新日期：2024年3月20日")
+                        .italic()
+                        .padding(.top)
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("用户协议")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// 隐私政策视图
+struct PrivacyPolicyView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("隐私政策")
+                    .font(.largeTitle)
+                    .bold()
+                    .padding(.bottom)
+                
+                Group {
+                    Text("EasyHabit隐私政策")
+                        .font(.title2)
+                        .bold()
+                    
+                    Text("本隐私政策旨在帮助您了解我们如何收集、使用、存储和共享您的个人信息，以及您享有的相关权利。在使用EasyHabit应用前，请您仔细阅读并了解本隐私政策的全部内容。")
+                    
+                    Text("1. 我们收集的信息")
+                        .font(.headline)
+                    Text("• 您提供的信息：当您使用EasyHabit应用时，您可能会创建习惯记录、设置提醒等，这些信息将被存储在您的设备上。\n• 设备信息：我们可能会收集您使用的设备型号、操作系统版本等基本信息，用于改进应用性能。\n• 应用使用数据：我们可能会收集您如何使用应用的信息，例如功能使用频率、应用崩溃记录等，用于优化用户体验。")
+                    
+                    Text("2. 信息的使用")
+                        .font(.headline)
+                    Text("我们使用收集的信息来：\n• 提供、维护和改进EasyHabit应用的功能和服务\n• 开发新功能和服务\n• 了解用户如何使用我们的应用，以改进用户体验\n• 向您发送有关应用更新或新功能的通知")
+                    
+                    Text("3. 信息的存储")
+                        .font(.headline)
+                    Text("我们采取以下措施保护您的信息安全：\n• 您的习惯数据主要存储在您的设备上\n• 如果您启用了云同步功能（高级版本），您的数据会加密存储在云服务上\n• 我们采取合理的技术措施保护您的数据不被未经授权的访问")
+                }
+                
+                Group {
+                    Text("4. 信息共享")
+                        .font(.headline)
+                    Text("除非有下列情况，我们不会与任何第三方分享您的个人信息：\n• 在法律要求下必须披露\n• 为了保护EasyHabit的合法权益\n• 获得您的明确同意")
+                    
+                    Text("5. 您的权利")
+                        .font(.headline)
+                    Text("您对自己的个人信息拥有以下权利：\n• 访问您的个人信息\n• 删除应用内所有数据\n• 导出您的数据\n• 随时停止使用我们的服务")
+                    
+                    Text("6. 儿童隐私")
+                        .font(.headline)
+                    Text("EasyHabit应用不面向16岁以下的儿童。如果您是父母或监护人，发现您的孩子未经您的同意向我们提供了个人信息，请通过应用内的\"用户反馈\"功能联系我们。")
+                    
+                    Text("7. 隐私政策更新")
+                        .font(.headline)
+                    Text("我们可能会不时更新本隐私政策。当我们进行重大更改时，我们会在应用内通知您。您继续使用应用将视为您接受修改后的隐私政策。")
+                    
+                    Text("8. 联系我们")
+                        .font(.headline)
+                    Text("如果您对本隐私政策有任何疑问，请通过应用中的\"用户反馈\"功能与我们联系。")
+                    
+                    Text("本隐私政策更新日期：2024年3月20日")
+                        .italic()
+                        .padding(.top)
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("隐私政策")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+

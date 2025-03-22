@@ -116,7 +116,7 @@ struct HabitDetailView: View {
                         // 显示"coming soon"提示
                         showShareAlert()
                     }) {
-                        Image(systemName: "square.and.arrow.up")
+                        Image("share")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 16, height: 16)
