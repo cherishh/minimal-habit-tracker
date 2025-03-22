@@ -859,6 +859,7 @@ struct SettingsView: View {
             } label: {
                 HStack {
                     Text("应用版本")
+                        .foregroundColor(.primary)
                     Spacer()
                     Text(habitStore.debugMode ? "\(appVersion) (\(buildNumber)) [调试模式]" : "\(appVersion) (\(buildNumber))")
                         .foregroundColor(.secondary)
@@ -891,10 +892,12 @@ struct SettingsView: View {
                 sendFeedbackEmail()
             }) {
                 HStack {
-                    Text("用户反馈")
+                    Text("我抓到了🐞")
                     Spacer()
-                    Image(systemName: "envelope")
-                        .foregroundColor(.blue)
+                    Image("square-arrow-out-up-right")
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                        .foregroundColor(.secondary)
                 }
             }
         }
