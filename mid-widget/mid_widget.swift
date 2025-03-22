@@ -160,7 +160,7 @@ struct HabitWidgetEntryView: View {
                 Text(entry.habit.name)
                     .font(.headline)
                     .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
-                    .padding(.vertical, 16)
+                    .padding(.vertical,18)
                     .padding(.horizontal, 16)
                 
                 Spacer()
@@ -194,7 +194,7 @@ struct HabitWidgetEntryView: View {
                         habit: entry.habit,
                         colorScheme: colorScheme
                     )
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 10)
                     .padding(.horizontal, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
@@ -222,7 +222,6 @@ struct HabitWidgetEntryView: View {
             .background(colorScheme == .dark ? Color.black : Color.white)
         }
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
     }
     
     // 获取习惯对应的主题颜色
