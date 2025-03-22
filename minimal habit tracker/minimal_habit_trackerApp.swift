@@ -11,7 +11,7 @@ import SwiftUI
 struct minimal_habit_trackerApp: App {
     // 使用shared单例
     @StateObject private var habitStore = HabitStore.shared
-    @AppStorage("isDarkMode") private var isDarkMode = false
+    @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
     
     var body: some Scene {
         WindowGroup {
@@ -21,7 +21,7 @@ struct minimal_habit_trackerApp: App {
                     print("【App】通过URL打开: \(url)")
                     handleURL(url)
                 }
-                .preferredColorScheme(isDarkMode ? .dark : .light)
+                .preferredColorScheme(getPreferredColorScheme())
                 // 优化前台刷新逻辑，避免频繁刷新
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                     print("【App】应用即将进入前台，刷新数据")
@@ -32,7 +32,32 @@ struct minimal_habit_trackerApp: App {
                 .onAppear {
                     // 应用初始化时的日志
                     print("【App】应用初始化，当前habits: \(habitStore.habits.count)个，logs: \(habitStore.habitLogs.count)个")
+                    
+                    // 兼容旧版本设置迁移
+                    migrateOldSettings()
                 }
+        }
+    }
+    
+    // 根据设置返回颜色模式
+    private func getPreferredColorScheme() -> ColorScheme? {
+        switch themeMode {
+            case 1: return .light     // 明亮模式
+            case 2: return .dark      // 暗黑模式
+            default: return nil       // 自适应系统
+        }
+    }
+    
+    // 迁移旧版本的暗黑模式设置到新的主题模式
+    private func migrateOldSettings() {
+        // 检查是否有旧版本设置
+        if UserDefaults.standard.object(forKey: "isDarkMode") != nil {
+            let oldDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
+            // 如果之前设置了暗黑模式，则转为对应的主题模式
+            themeMode = oldDarkMode ? 2 : 1
+            // 移除旧设置
+            UserDefaults.standard.removeObject(forKey: "isDarkMode")
+            print("【App】已将旧版主题设置迁移到新版")
         }
     }
     

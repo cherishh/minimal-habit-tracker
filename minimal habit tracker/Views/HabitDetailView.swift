@@ -55,6 +55,8 @@ struct HabitDetailView: View {
         habitStore.habits.first(where: { $0.id == habitId }) ?? Habit(name: "未找到", emoji: "❓", colorTheme: .github, habitType: .checkbox)
     }
     
+    @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
+    
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 25) {
@@ -160,7 +162,7 @@ struct HabitDetailView: View {
         } message: {
             Text("正在开发中，敬请期待")
         }
-        .preferredColorScheme(UserDefaults.standard.bool(forKey: "isDarkMode") ? .dark : .light)
+        .preferredColorScheme(getPreferredColorScheme())
     }
     
     private var heatmapLegendView: some View {
@@ -259,6 +261,15 @@ struct HabitDetailView: View {
     // 显示分享功能即将推出的提示
     private func showShareAlert() {
         showingShareAlert = true
+    }
+    
+    // 根据设置返回颜色模式
+    private func getPreferredColorScheme() -> ColorScheme? {
+        switch themeMode {
+            case 1: return .light     // 明亮模式
+            case 2: return .dark      // 暗黑模式
+            default: return nil       // 自适应系统
+        }
     }
 }
 

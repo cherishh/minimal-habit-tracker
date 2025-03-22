@@ -18,7 +18,7 @@ struct HabitFormView: View {
     @State private var maxCheckInCount: Int
     @State private var showingMaxCountChangeAlert = false
     @State private var previousMaxCount: Int = 5
-    @AppStorage("isDarkMode") private var isDarkMode = false
+    @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
     
     // 背景色列表
     let backgroundColors: [String] = [
@@ -127,7 +127,7 @@ struct HabitFormView: View {
                      "\n是否继续？")
             }
         }
-        .preferredColorScheme(isDarkMode ? .dark : .light)
+        .preferredColorScheme(getPreferredColorScheme())
     }
     
     private var navigationTitle: String {
@@ -428,16 +428,34 @@ struct HabitFormView: View {
         
         isPresented = false
     }
+    
+    // 根据设置返回颜色模式
+    private func getPreferredColorScheme() -> ColorScheme? {
+        switch themeMode {
+            case 1: return .light     // 明亮模式
+            case 2: return .dark      // 暗黑模式
+            default: return nil       // 自适应系统
+        }
+    }
 }
 
 // 为了保持向后兼容性，我们保留原来的NewHabitView的名称，但它现在只是一个HabitFormView的包装器
 struct NewHabitView: View {
     @Binding var isPresented: Bool
-    @AppStorage("isDarkMode") private var isDarkMode = false
+    @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
     
     var body: some View {
         HabitFormView(isPresented: $isPresented)
-            .preferredColorScheme(isDarkMode ? .dark : .light)
+            .preferredColorScheme(getPreferredColorScheme())
+    }
+    
+    // 根据设置返回颜色模式
+    private func getPreferredColorScheme() -> ColorScheme? {
+        switch themeMode {
+            case 1: return .light     // 明亮模式
+            case 2: return .dark      // 暗黑模式
+            default: return nil       // 自适应系统
+        }
     }
 }
 

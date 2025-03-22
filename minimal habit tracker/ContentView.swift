@@ -45,7 +45,7 @@ struct ContentView: View {
     @State private var navigateToDetail = false
     @State private var showingSortSheet = false
     @Environment(\.colorScheme) var colorScheme
-    @AppStorage("isDarkMode") private var isDarkMode = false
+    @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
     @State private var showingMaxHabitsAlert = false
     @State private var showAddHabit = false
     @State private var showSettings = false
@@ -161,7 +161,7 @@ struct ContentView: View {
             }
             .background(lightBackgroundColor)
         }
-        .preferredColorScheme(isDarkMode ? .dark : .light)
+        .preferredColorScheme(getPreferredColorScheme())
     }
     
     private func setupNotificationObserver() {
@@ -241,6 +241,15 @@ struct ContentView: View {
             }
         } message: {
             Text("确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。")
+        }
+    }
+    
+    // 根据设置返回颜色模式
+    private func getPreferredColorScheme() -> ColorScheme? {
+        switch themeMode {
+            case 1: return .light     // 明亮模式
+            case 2: return .dark      // 暗黑模式
+            default: return nil       // 自适应系统
         }
     }
 }
@@ -696,7 +705,7 @@ extension MiniHeatmapView: Equatable {
 // 添加设置页面
 struct SettingsView: View {
     @Binding var isPresented: Bool
-    @AppStorage("isDarkMode") private var isDarkMode = false
+    @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
     @State private var showingImportExport = false
     @State private var showingComingSoon = false
     @State private var comingSoonMessage = ""
@@ -710,7 +719,11 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section(header: Text("主题设置")) {
-                    Toggle("暗黑模式", isOn: $isDarkMode)
+                    Picker("显示模式", selection: $themeMode) {
+                        Text("跟随系统").tag(0)
+                        Text("明亮模式").tag(1)
+                        Text("暗黑模式").tag(2)
+                    }
                     
                     Button(action: {
                         comingSoonMessage = "自定义颜色主题功能即将推出"
@@ -775,7 +788,7 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("完成") {
-                isPresented = false
+                    isPresented = false
                     }
                 }
             }
@@ -786,7 +799,16 @@ struct SettingsView: View {
                 Button("好的", role: .cancel) { }
             }
         }
-        .preferredColorScheme(isDarkMode ? .dark : .light)
+        .preferredColorScheme(getPreferredColorScheme())
+    }
+    
+    // 根据设置返回颜色模式
+    private func getPreferredColorScheme() -> ColorScheme? {
+        switch themeMode {
+            case 1: return .light     // 明亮模式
+            case 2: return .dark      // 暗黑模式
+            default: return nil       // 自适应系统
+        }
     }
 }
 
