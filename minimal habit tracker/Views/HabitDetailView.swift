@@ -118,6 +118,7 @@ struct HabitDetailView: View {
                     }) {
                         Image("share")
                             .resizable()
+                            .renderingMode(.template)
                             .scaledToFit()
                             .frame(width: 16, height: 16)
                             .frame(width: 36, height: 36)

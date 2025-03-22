@@ -76,6 +76,8 @@ struct ContentView: View {
                         Button(action: {
                             if habitStore.canAddHabit() {
                                 showingAddHabit = true
+                            } else {
+                                showingMaxHabitsAlert = true
                             }
                         }) {
                             Image("plus")
@@ -896,6 +898,7 @@ struct SettingsView: View {
                     Spacer()
                     Image("square-arrow-out-up-right")
                         .resizable()
+                        .renderingMode(.template)
                         .frame(width: 20, height: 20)
                         .foregroundColor(.secondary)
                 }

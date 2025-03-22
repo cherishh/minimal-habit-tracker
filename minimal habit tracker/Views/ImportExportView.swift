@@ -108,6 +108,7 @@ struct ImportExportView: View {
             HStack(spacing: 15) {
                 Image(icon)
                     .resizable()
+                    .renderingMode(.template)
                     .scaledToFit()
                     .foregroundColor(disabled ? .gray : .blue)
                     .frame(width: 40, height: 40)
