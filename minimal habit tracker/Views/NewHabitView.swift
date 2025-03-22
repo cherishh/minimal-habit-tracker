@@ -485,6 +485,9 @@ struct HabitTypeDemo: View {
     @State private var countProgress: CGFloat = 0
     @State private var countTaps = 0
     @State private var maxCount = 3
+    @State private var isAutoDemoRunning = false
+    @State private var demoStage = 0
+    @State private var demoLoopCount = 0 // 添加循环计数器
     
     // 获取Github主题（默认主题）
     private var github: ColorTheme {
@@ -534,10 +537,12 @@ struct HabitTypeDemo: View {
                 }
                 .frame(height: 80)
                 .onTapGesture {
-                    if checkboxProgress < 1.0 {
-                        checkboxProgress = 1.0
-                    } else {
-                        checkboxProgress = 0
+                    if !isAutoDemoRunning {
+                        if checkboxProgress < 1.0 {
+                            checkboxProgress = 1.0
+                        } else {
+                            checkboxProgress = 0
+                        }
                     }
                 }
                 
@@ -565,7 +570,7 @@ struct HabitTypeDemo: View {
                     Circle()
                         .trim(from: 0, to: countProgress)
                         .stroke(
-                            checkboxProgress > 0 ? 
+                            countProgress > 0 ? 
                                 blueOcean.color(for: 5, isDarkMode: colorScheme == .dark) :
                                 Color.clear,
                             style: StrokeStyle(
@@ -590,13 +595,15 @@ struct HabitTypeDemo: View {
                 }
                 .frame(height: 80)
                 .onTapGesture {
-                    if countTaps < maxCount {
-                        countTaps += 1
-                        countProgress = CGFloat(countTaps) / CGFloat(maxCount)
-                    } else {
-                        // 重置
-                        countTaps = 0
-                        countProgress = 0
+                    if !isAutoDemoRunning {
+                        if countTaps < maxCount {
+                            countTaps += 1
+                            countProgress = CGFloat(countTaps) / CGFloat(maxCount)
+                        } else {
+                            // 重置
+                            countTaps = 0
+                            countProgress = 0
+                        }
                     }
                 }
                 
@@ -610,5 +617,86 @@ struct HabitTypeDemo: View {
         .padding(.vertical, 10)
         .background(Color(UIColor.secondarySystemBackground).opacity(0.5))
         .cornerRadius(15)
+        .onAppear {
+            // 延迟1.5秒后开始自动演示
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                startAutoDemo()
+            }
+        }
+    }
+    
+    // 开始自动演示
+    private func startAutoDemo() {
+        guard !isAutoDemoRunning else { return }
+        
+        // 检查是否已达到最大循环次数
+        if demoLoopCount >= 2 {
+            return // 如果已经演示了2次，则不再继续
+        }
+        
+        isAutoDemoRunning = true
+        demoStage = 1
+        
+        // 阶段1：点击打卡
+        checkboxProgress = 1.0
+        
+        // 阶段2：等待1.5秒后开始计数演示
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            demoStage = 2
+            performCountIncrement()
+        }
+    }
+    
+    // 执行计数增加的动画
+    private func performCountIncrement() {
+        guard isAutoDemoRunning && demoStage == 2 else { return }
+        
+        // 点击第一次
+        countTaps = 1
+        countProgress = CGFloat(countTaps) / CGFloat(maxCount)
+        
+        // 点击第二次
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            countTaps = 2
+            countProgress = CGFloat(countTaps) / CGFloat(maxCount)
+            
+            // 点击第三次
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                countTaps = 3
+                countProgress = CGFloat(countTaps) / CGFloat(maxCount)
+                
+                // 重置所有状态
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    demoStage = 3
+                    resetDemo()
+                }
+            }
+        }
+    }
+    
+    // 重置演示
+    private func resetDemo() {
+        guard isAutoDemoRunning && demoStage == 3 else { return }
+        
+        // 重置所有状态
+        checkboxProgress = 0
+        countTaps = 0
+        countProgress = 0
+        
+        // 增加循环计数
+        demoLoopCount += 1
+        
+        // 演示完成
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            demoStage = 0
+            isAutoDemoRunning = false
+            
+            // 如果未达到2次循环，2秒后重新开始自动演示
+            if demoLoopCount < 2 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    startAutoDemo()
+                }
+            }
+        }
     }
 } 
