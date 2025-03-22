@@ -345,7 +345,11 @@ struct WidgetMiniHeatmapView: View {
                             
                             // 单个格子
                             RoundedRectangle(cornerRadius: 1)
-                                .fill(theme.colorForCount(count: count, maxCount: habit.maxCheckInCount, isDarkMode: colorScheme == .dark))
+                                .fill(count > 0 
+                                      ? theme.colorForCount(count: count, maxCount: habit.maxCheckInCount, isDarkMode: colorScheme == .dark)
+                                      : (colorScheme == .dark 
+                                         ? theme.color(for: 0, isDarkMode: true) 
+                                         : Color(hex: "ebedf0")))
                                 .frame(width: cellSize, height: cellSize)
                         } else {
                             // 没有日期的位置（例如超过今天的日期）
@@ -405,7 +409,7 @@ struct WidgetCheckInButton: View {
                         .stroke(
                             colorScheme == .dark ?
                                 theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true) :
-                                theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
+                                theme.color(for: 5, isDarkMode: false),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,
@@ -431,7 +435,7 @@ struct WidgetCheckInButton: View {
                         .stroke(
                             colorScheme == .dark ?
                                 theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true) :
-                                theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
+                                theme.color(for: 5, isDarkMode: false),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,
@@ -574,8 +578,8 @@ struct HabitWidget: Widget {
                 .containerBackground(.fill.quaternary, for: .widget)
         }
         .configurationDisplayName("习惯追踪")
-        .description("直接从桌面打卡你的习惯，无需打开应用")
-        .supportedFamilies([.systemMedium, .systemLarge])
+        .description("直接从桌面打卡你的习惯，习惯ID从习惯详情设置页获取")
+        .supportedFamilies([.systemMedium])
     }
 }
 
@@ -622,11 +626,6 @@ struct HabitWidget_Previews: PreviewProvider {
                 .previewContext(WidgetPreviewContext(family: .systemMedium))
                 .environment(\.colorScheme, .dark)
                 .previewDisplayName("习惯小组件 (深色)")
-            
-            HabitWidgetEntryView(entry: entry)
-                .containerBackground(.fill.quaternary, for: .widget)
-                .previewContext(WidgetPreviewContext(family: .systemLarge))
-                .previewDisplayName("习惯小组件 (大尺寸)")
         }
     }
 }

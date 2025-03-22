@@ -593,7 +593,7 @@ struct HabitCardView: View {
                         .stroke(
                             colorScheme == .dark 
                                 ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
-                                : theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
+                                : theme.color(for: 5, isDarkMode: false),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,
@@ -620,7 +620,7 @@ struct HabitCardView: View {
                         .stroke(
                             colorScheme == .dark 
                                 ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
-                                : theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
+                                : theme.color(for: 5, isDarkMode: false),
                             style: StrokeStyle(
                                 lineWidth: 10,
                                 lineCap: .round,

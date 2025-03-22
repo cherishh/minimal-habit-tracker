@@ -605,7 +605,7 @@ struct DayCell: View {
                         .stroke(
                             colorScheme == .dark 
                                 ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
-                                : theme.color(for: min(habit.maxCheckInCount, 5), isDarkMode: false),
+                                : theme.color(for: 5, isDarkMode: false),
                             style: StrokeStyle(
                                 lineWidth: 3.5,
                                 lineCap: .round,    // 圆形线帽
