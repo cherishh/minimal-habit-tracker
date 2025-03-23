@@ -216,7 +216,8 @@ struct HabitFormView: View {
             
             Section(header: Text("颜色主题")
                         .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)) {
-                ForEach(Habit.ColorThemeName.allCases, id: \.self) { themeName in
+                // 基础主题
+                ForEach(Habit.ColorThemeName.allCases.filter { $0 == .github || $0 == .blueOcean || $0 == .sunset || $0 == .purpleRain }, id: \.self) { themeName in
                     let theme = ColorTheme.getTheme(for: themeName)
                     
                     Button(action: { selectedTheme = themeName }) {
@@ -242,6 +243,37 @@ struct HabitFormView: View {
                         }
                     }
                     .foregroundColor(.primary)
+                }
+                
+                // 高级主题（可折叠）
+                DisclosureGroup("更多高级主题") {
+                    ForEach(Habit.ColorThemeName.allCases.filter { $0 != .github && $0 != .blueOcean && $0 != .sunset && $0 != .purpleRain }, id: \.self) { themeName in
+                        let theme = ColorTheme.getTheme(for: themeName)
+                        
+                        Button(action: { selectedTheme = themeName }) {
+                            HStack {
+                                Text(theme.name)
+                                
+                                Spacer()
+                                
+                                // 主题预览
+                                HStack(spacing: 2) {
+                                    ForEach(0..<HabitStore.maxCheckInCount+1) { level in
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(theme.color(for: level, isDarkMode: colorScheme == .dark))
+                                            .frame(width: 16, height: 16)
+                                    }
+                                }
+                                
+                                if selectedTheme == themeName {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                        .padding(.leading, 5)
+                                }
+                            }
+                        }
+                        .foregroundColor(.primary)
+                    }
                 }
             }
 

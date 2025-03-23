@@ -90,7 +90,7 @@ extension ColorTheme {
         ),
         ColorTheme(
             id: .sunset,
-            name: "🏜 热情沙漠",
+            name: "🌅 日落",
             lightColors: [
                 Color(hex: "f5f5f4"), // custom
                 Color(hex: "ffedd5"), // bg-orange-100
@@ -126,6 +126,168 @@ extension ColorTheme {
                 Color(hex: "7e22ce"), // bg-purple-700
                 Color(hex: "9333ea"), // bg-purple-600
                 Color(hex: "a855f7")  // bg-purple-500
+            ]
+        ),
+        
+        // 高级主题
+        ColorTheme(
+            id: .starNight,
+            name: "🌌 星空",
+            lightColors: [
+                Color(hex: "f1f5f9"), // custom light
+                Color(hex: "a3a3a3"), // lighter
+                Color(hex: "8386B5"), // light
+                Color(hex: "4A4B8F"), // medium
+                Color(hex: "2D3168"), // dark
+                Color(hex: "1A1B41")  // darkest
+            ],
+            darkColors: [
+                Color(hex: "1A1B41"), // darkest
+                Color(hex: "2D3168"), // dark
+                Color(hex: "4A4B8F"), // medium
+                Color(hex: "8386B5"), // light
+                Color(hex: "A8AADB"), // lighter
+                Color(hex: "a3a3a3")  // custom light
+            ]
+        ),
+        ColorTheme(
+            id: .cyanRock,
+            name: "🪨 青岩",
+            lightColors: [
+                Color(hex: "f1f5f9"), // lightest
+                Color(hex: "cbd5e1"), // lighter
+                Color(hex: "64748b"), // medium
+                Color(hex: "334155"), // dark
+                Color(hex: "0f172a"), // darker
+                Color(hex: "020617")  // darkest
+            ],
+            darkColors: [
+                Color(hex: "020617"), // darkest
+                Color(hex: "0f172a"), // darker
+                Color(hex: "334155"), // dark
+                Color(hex: "64748b"), // medium
+                Color(hex: "cbd5e1"), // lighter
+                Color(hex: "f1f5f9")  // lightest
+            ]
+        ),
+        ColorTheme(
+            id: .rose,
+            name: "🌹 Rose",
+            lightColors: [
+                Color(hex: "ffe4e6"), // lightest
+                Color(hex: "fda4af"), // lighter
+                Color(hex: "f43f5e"), // medium
+                Color(hex: "be123c"), // dark
+                Color(hex: "881337"), // darker
+                Color(hex: "4c0519")  // darkest
+            ],
+            darkColors: [
+                Color(hex: "4c0519"), // darkest
+                Color(hex: "881337"), // darker
+                Color(hex: "be123c"), // dark
+                Color(hex: "f43f5e"), // medium
+                Color(hex: "fda4af"), // lighter
+                Color(hex: "ffe4e6")  // lightest
+            ]
+        ),
+        ColorTheme(
+            id: .forestGreen,
+            name: "🌿 森林草地",
+            lightColors: [
+                Color(hex: "E8F5E9"), // lightest
+                Color(hex: "C8E6C9"), // lighter
+                Color(hex: "A5D6A7"), // light
+                Color(hex: "81C784"), // medium
+                Color(hex: "66BB6A"), // dark
+                Color(hex: "2E7D32")  // darkest
+            ],
+            darkColors: [
+                Color(hex: "2E7D32"), // darkest
+                Color(hex: "66BB6A"), // dark
+                Color(hex: "81C784"), // medium
+                Color(hex: "A5D6A7"), // light
+                Color(hex: "C8E6C9"), // lighter
+                Color(hex: "E8F5E9")  // lightest
+            ]
+        ),
+        ColorTheme(
+            id: .morningLake,
+            name: "🩵 清晨湖水",
+            lightColors: [
+                Color(hex: "cffafe"), // lightest
+                Color(hex: "67e8f9"), // lighter
+                Color(hex: "06b6d4"), // medium
+                Color(hex: "0e7490"), // dark
+                Color(hex: "164e63"), // darker
+                Color(hex: "083344")  // darkest
+            ],
+            darkColors: [
+                Color(hex: "083344"), // darkest
+                Color(hex: "164e63"), // darker
+                Color(hex: "0e7490"), // dark
+                Color(hex: "06b6d4"), // medium
+                Color(hex: "67e8f9"), // lighter
+                Color(hex: "cffafe")  // lightest
+            ]
+        ),
+        ColorTheme(
+            id: .desert,
+            name: "🏜 西域国度",
+            lightColors: [
+                Color(hex: "fffbeb"), // lightest
+                Color(hex: "fef08a"), // lighter
+                Color(hex: "facc15"), // medium
+                Color(hex: "ca8a04"), // dark
+                Color(hex: "854d0e"), // darker
+                Color(hex: "422006")  // darkest
+            ],
+            darkColors: [
+                Color(hex: "422006"), // darkest
+                Color(hex: "854d0e"), // darker
+                Color(hex: "ca8a04"), // dark
+                Color(hex: "facc15"), // medium
+                Color(hex: "fef08a"), // lighter
+                Color(hex: "fffbeb")  // lightest
+            ]
+        ),
+        ColorTheme(
+            id: .naturalGray,
+            name: "🩶 自然灰",
+            lightColors: [
+                Color(hex: "fafafa"), // lightest
+                Color(hex: "e5e5e5"), // lighter
+                Color(hex: "a3a3a3"), // medium
+                Color(hex: "525252"), // dark
+                Color(hex: "27272a"), // darker
+                Color(hex: "0a0a0a")  // darkest
+            ],
+            darkColors: [
+                Color(hex: "0a0a0a"), // darkest
+                Color(hex: "27272a"), // darker
+                Color(hex: "525252"), // dark
+                Color(hex: "a3a3a3"), // medium
+                Color(hex: "e5e5e5"), // lighter
+                Color(hex: "fafafa")  // lightest
+            ]
+        ),
+        ColorTheme(
+            id: .rainbow,
+            name: "🍡 糖果",
+            lightColors: [
+                Color(hex: "F2F2F2"), // lightest (gray)
+                Color(hex: "FF9AA2"), // lighter (pink)
+                Color(hex: "FFDAC1"), // light (peach)
+                Color(hex: "E2F0CB"), // medium (lime)
+                Color(hex: "B5EAD7"), // dark (mint)
+                Color(hex: "C7CEEA")  // darkest (lavender)
+            ],
+            darkColors: [
+                Color(hex: "C7CEEA"), // darkest (lavender)
+                Color(hex: "B5EAD7"), // dark (mint)
+                Color(hex: "E2F0CB"), // medium (lime)
+                Color(hex: "FFDAC1"), // light (peach)
+                Color(hex: "FF9AA2"), // lighter (pink)
+                Color(hex: "F2F2F2")  // lightest (gray)
             ]
         )
     ]

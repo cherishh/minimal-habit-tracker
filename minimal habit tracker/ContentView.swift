@@ -824,6 +824,7 @@ struct SettingsView: View {
                 }
             }
 
+            /* 注释掉高级功能的升级提示
             Toggle("iCloud 云同步", isOn: $iCloudSync)
                 .onChange(of: iCloudSync) { newValue in
                     // 恢复到原始状态
@@ -847,6 +848,7 @@ struct SettingsView: View {
                     comingSoonMessage = "打卡笔记功能即将推出"
                     showingComingSoonAlert = true
                 }
+            */
         }
     }
 
@@ -962,56 +964,45 @@ struct HabitSortView: View {
 
 // 高级颜色主题列表视图
 struct AdvancedThemeListView: View {
-    @State private var showingUpgradeAlert = false
     @State private var showingComingSoonAlert = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     
-    // 高级主题列表（模拟数据）
-    private let premiumThemes = [
-        ("🌌 星空", "深蓝星空"),
-        ("🪨 岩石", "青色岩石"),
-        ("🌹 Rose", "热情火焰"),
-        ("🌊 蓝色海洋2", "深海蓝调"),
-        ("🌿 森林草地", "自然绿意"),
-        ("🩵 清晨湖水", "清晨湖水"),
-        ("🏜 西域国度", "沙漠黄沙"),
-        ("🍑 蜜桃", "温暖粉色"),
-        ("🌈 彩虹(随机填充)", "彩虹主题"),
+    // 存储已选择的主题名称
+    @State private var selectedTheme: Habit.ColorThemeName?
+    
+    // 高级主题列表
+    private let premiumThemes: [(String, String, Habit.ColorThemeName)] = [
+        ("🌌 星空", "深蓝星空", .starNight),
+        ("🪨 青岩", "青色岩石", .cyanRock),
+        ("🌹 Rose", "玫瑰", .rose),
+        ("🌿 森林草地", "自然绿意", .forestGreen),
+        ("🩵 清晨湖水", "清晨湖水", .morningLake),
+        ("🏜 西域国度", "西域国度", .desert),
+        ("🩶 自然灰", "自然灰", .naturalGray),
+        ("🍡 糖果", "糖果", .rainbow),
     ]
     
-    // 为每个主题定义模拟颜色（从浅到深6个颜色）
-    private func getThemeColors(for themeName: String) -> [Color] {
-        switch themeName {
-        case "🌌 星空":
-            return [Color(hex: "#1A1B41"), Color(hex: "#2D3168"), Color(hex: "#4A4B8F"), Color(hex: "#8386B5"), Color(hex: "#A8AADB"), Color(hex: "#a3a3a3")].reversed()
-        case "🪨 岩石":
-            return [Color(hex: "#f1f5f9"), Color(hex: "#cbd5e1"), Color(hex: "#64748b"), Color(hex: "#334155"), Color(hex: "##0f172a"), Color(hex: "#020617")]
-        case "🌹 Rose":
-            return [Color(hex: "#ffe4e6"), Color(hex: "#fda4af"), Color(hex: "#f43f5e"), Color(hex: "#be123c"), Color(hex: "#881337"), Color(hex: "#4c0519")]
-        case "🌊 蓝色海洋2":
-            return [Color(hex: "#E8F7FF"), Color(hex: "#CCE9FB"), Color(hex: "#9DCCF7"), Color(hex: "#6BA7E0"), Color(hex: "#164e63"), Color(hex: "#1C3C6D")]
-        case "🩵 清晨湖水":
-            return [Color(hex: "#cffafe"), Color(hex: "#67e8f9"), Color(hex: "#06b6d4"), Color(hex: "#0e7490"), Color(hex: "#4682B4"), Color(hex: "#083344")]
-        case "🍑 蜜桃":
-            return [Color(hex: "#FFF0F0"), Color(hex: "#FFCCCC"), Color(hex: "#FFB3B3"), Color(hex: "#FF8080"), Color(hex: "#FF6666"), Color(hex: "#FF0000")]
-        case "🌿 森林草地":
-            return [Color(hex: "#E8F5E9"), Color(hex: "#C8E6C9"), Color(hex: "#A5D6A7"), Color(hex: "#81C784"), Color(hex: "#66BB6A"), Color(hex: "#2E7D32")]
-        case "🏜 西域国度":
-            return [Color(hex: "#fffbeb"), Color(hex: "#fef08a"), Color(hex: "#facc15"), Color(hex: "#ca8a04"), Color(hex: "#854d0e"), Color(hex: "#422006")]
-        case "🌈 彩虹(随机填充)":
-            return [Color(hex: "#F2F2F2"), Color(hex: "#FF9AA2"), Color(hex: "#FFDAC1"), Color(hex: "#E2F0CB"), Color(hex: "#B5EAD7"), Color(hex: "#C7CEEA")]    
-        default:
-            return [Color.gray.opacity(0.2), Color.gray.opacity(0.3), Color.gray.opacity(0.4), Color.gray.opacity(0.6), Color.gray.opacity(0.8), Color.gray]
-        }
+    // 为主题预览获取颜色数组
+    private func getThemeColors(for themeName: Habit.ColorThemeName) -> [Color] {
+        let theme = ColorTheme.getTheme(for: themeName)
+        return colorScheme == .dark ? theme.darkColors : theme.lightColors
     }
     
     var body: some View {
         List {
             Section(header: Text("高级主题").font(.headline)) {
-                ForEach(premiumThemes, id: \.0) { theme in
+                ForEach(premiumThemes, id: \.2) { theme in
                     Button(action: {
-                        showingUpgradeAlert = true
+                        selectedTheme = theme.2
+                        
+                        // 这里可以保存用户的主题选择
+                        // TODO: 在实际应用中保存主题选择
+                        
+                        // 短暂延迟后返回，提供反馈
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            dismiss()
+                        }
                     }) {
                         HStack {
                             Text(theme.0)
@@ -1023,7 +1014,7 @@ struct AdvancedThemeListView: View {
                             HStack(spacing: 2) {
                                 ForEach(0..<6) { level in
                                     RoundedRectangle(cornerRadius: 3)
-                                        .fill(getThemeColors(for: theme.0)[level])
+                                        .fill(getThemeColors(for: theme.2)[level])
                                         .frame(width: 16, height: 16)
                                 }
                             }
@@ -1052,6 +1043,7 @@ struct AdvancedThemeListView: View {
             }
         }
         .navigationTitle("高级主题")
+        /* 注释掉升级提示
         .alert("升级到Pro版本", isPresented: $showingUpgradeAlert) {
             Button("取消", role: .cancel) { }
             Button("升级") {
@@ -1061,6 +1053,7 @@ struct AdvancedThemeListView: View {
         } message: {
             Text("高级主题仅适用于Pro版本用户。升级后即可解锁所有高级主题，并获得无限习惯数量、iCloud同步等更多功能。")
         }
+        */
         .alert("即将推出", isPresented: $showingComingSoonAlert) {
             Button("好的", role: .cancel) { }
         } message: {
