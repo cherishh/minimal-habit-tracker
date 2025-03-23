@@ -19,19 +19,7 @@ struct HabitFormView: View {
     @State private var showingMaxCountChangeAlert = false
     @State private var previousMaxCount: Int = 5
     @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
-    
-    // 背景色列表
-    let backgroundColors: [String] = [
-        "#FF5733", "#33FF57", "#5733FF", "#FF33A1", "#3399FF", 
-        "#FFD700", "#00BFFF", "#32CD32", "#FF6347", "#8A2BE2", 
-        "#FF1493", "#7FFF00", "#DC143C", "#FFD700", "#40E0D0", 
-        "#FF8C00", "#4682B4", "#8B0000", "#B8860B", "#2E8B57", 
-        "#A52A2A", "#C71585", "#228B22", "#D2691E", "#F0E68C", 
-        "#FF4500", "#708090", "#B0C4DE", "#9370DB", "#C0C0C0", 
-        "#FF6347", "#32CD32", "#90EE90", "#FF7F50", "#98FB98", 
-        "#B22222", "#D3D3D3", "#FFD700", "#FF00FF", "#663399",
-        "#FDF5E7"
-    ]
+
     
     // 新建习惯模式的初始化
     init(isPresented: Binding<Bool>) {

@@ -50,7 +50,7 @@ extension ColorTheme {
     static let themes: [ColorTheme] = [
         ColorTheme(
             id: .github,
-            name: "GitHub",
+            name: "🤖 默认(GitHub)",
             lightColors: [
                 Color(hex: "ebedf0"), // github
                 Color(hex: "dcfce7"), // bg-green-100
@@ -70,7 +70,7 @@ extension ColorTheme {
         ),
         ColorTheme(
             id: .blueOcean,
-            name: "Blue Ocean",
+            name: "🌊 蓝色海洋",
             lightColors: [
                 Color(hex: "f3f4f6"), // bg-gray-100
                 Color(hex: "dbeafe"), // bg-blue-100
@@ -90,7 +90,7 @@ extension ColorTheme {
         ),
         ColorTheme(
             id: .sunset,
-            name: "Sunset",
+            name: "🏜 热情沙漠",
             lightColors: [
                 Color(hex: "f5f5f4"), // custom
                 Color(hex: "ffedd5"), // bg-orange-100
@@ -110,7 +110,7 @@ extension ColorTheme {
         ),
         ColorTheme(
             id: .purpleRain,
-            name: "Purple Rain",
+            name: "🌧️ 紫雨",
             lightColors: [
                 Color(hex: "f1f5f9"), // custom
                 Color(hex: "f3e8ff"), // bg-purple-100

@@ -969,29 +969,38 @@ struct AdvancedThemeListView: View {
     
     // 高级主题列表（模拟数据）
     private let premiumThemes = [
-        ("🌈 彩虹渐变", "彩虹主题"),
         ("🌌 星空", "深蓝星空"),
-        ("🔥 火焰", "热情火焰"),
-        ("🌊 海洋", "深海蓝调"),
-        ("🌿 森林", "自然绿意"),
-        ("🍑 蜜桃", "温暖粉色")
+        ("🪨 岩石", "青色岩石"),
+        ("🌹 Rose", "热情火焰"),
+        ("🌊 蓝色海洋2", "深海蓝调"),
+        ("🌿 森林草地", "自然绿意"),
+        ("🩵 清晨湖水", "清晨湖水"),
+        ("🏜 西域国度", "沙漠黄沙"),
+        ("🍑 蜜桃", "温暖粉色"),
+        ("🌈 彩虹(随机填充)", "彩虹主题"),
     ]
     
     // 为每个主题定义模拟颜色（从浅到深6个颜色）
     private func getThemeColors(for themeName: String) -> [Color] {
         switch themeName {
-        case "🌈 彩虹渐变":
-            return [Color(hex: "#F2F2F2"), Color(hex: "#FF9AA2"), Color(hex: "#FFDAC1"), Color(hex: "#E2F0CB"), Color(hex: "#B5EAD7"), Color(hex: "#C7CEEA")]
         case "🌌 星空":
-            return [Color(hex: "#1A1B41"), Color(hex: "#2D3168"), Color(hex: "#4A4B8F"), Color(hex: "#8386B5"), Color(hex: "#A8AADB"), Color(hex: "#7884D4")]
-        case "🔥 火焰":
-            return [Color(hex: "#FFEFE0"), Color(hex: "#FEC196"), Color(hex: "#FD9460"), Color(hex: "#F36040"), Color(hex: "#D53867"), Color(hex: "#9E1946")]
-        case "🌊 海洋":
-            return [Color(hex: "#E8F7FF"), Color(hex: "#CCE9FB"), Color(hex: "#9DCCF7"), Color(hex: "#6BA7E0"), Color(hex: "#4682B4"), Color(hex: "#1C3C6D")]
-        case "🌿 森林":
-            return [Color(hex: "#E8F5E9"), Color(hex: "#C8E6C9"), Color(hex: "#A5D6A7"), Color(hex: "#81C784"), Color(hex: "#66BB6A"), Color(hex: "#2E7D32")]
+            return [Color(hex: "#1A1B41"), Color(hex: "#2D3168"), Color(hex: "#4A4B8F"), Color(hex: "#8386B5"), Color(hex: "#A8AADB"), Color(hex: "#a3a3a3")].reversed()
+        case "🪨 岩石":
+            return [Color(hex: "#f1f5f9"), Color(hex: "#cbd5e1"), Color(hex: "#64748b"), Color(hex: "#334155"), Color(hex: "##0f172a"), Color(hex: "#020617")]
+        case "🌹 Rose":
+            return [Color(hex: "#ffe4e6"), Color(hex: "#fda4af"), Color(hex: "#f43f5e"), Color(hex: "#be123c"), Color(hex: "#881337"), Color(hex: "#4c0519")]
+        case "🌊 蓝色海洋2":
+            return [Color(hex: "#E8F7FF"), Color(hex: "#CCE9FB"), Color(hex: "#9DCCF7"), Color(hex: "#6BA7E0"), Color(hex: "#164e63"), Color(hex: "#1C3C6D")]
+        case "🩵 清晨湖水":
+            return [Color(hex: "#cffafe"), Color(hex: "#67e8f9"), Color(hex: "#06b6d4"), Color(hex: "#0e7490"), Color(hex: "#4682B4"), Color(hex: "#083344")]
         case "🍑 蜜桃":
             return [Color(hex: "#FFF0F0"), Color(hex: "#FFCCCC"), Color(hex: "#FFB3B3"), Color(hex: "#FF8080"), Color(hex: "#FF6666"), Color(hex: "#FF0000")]
+        case "🌿 森林草地":
+            return [Color(hex: "#E8F5E9"), Color(hex: "#C8E6C9"), Color(hex: "#A5D6A7"), Color(hex: "#81C784"), Color(hex: "#66BB6A"), Color(hex: "#2E7D32")]
+        case "🏜 西域国度":
+            return [Color(hex: "#fffbeb"), Color(hex: "#fef08a"), Color(hex: "#facc15"), Color(hex: "#ca8a04"), Color(hex: "#854d0e"), Color(hex: "#422006")]
+        case "🌈 彩虹(随机填充)":
+            return [Color(hex: "#F2F2F2"), Color(hex: "#FF9AA2"), Color(hex: "#FFDAC1"), Color(hex: "#E2F0CB"), Color(hex: "#B5EAD7"), Color(hex: "#C7CEEA")]    
         default:
             return [Color.gray.opacity(0.2), Color.gray.opacity(0.3), Color.gray.opacity(0.4), Color.gray.opacity(0.6), Color.gray.opacity(0.8), Color.gray]
         }
@@ -1035,15 +1044,6 @@ struct AdvancedThemeListView: View {
                             .foregroundColor(.primary)
                         
                         Spacer()
-                        
-                        // 自定义颜色的预览 - 统一样式
-                        HStack(spacing: 2) {
-                            ForEach(0..<6) { i in
-                                RoundedRectangle(cornerRadius: 3)
-                                    .fill(Color(hue: Double(i) / 6.0, saturation: 0.8, brightness: 0.8))
-                                    .frame(width: 16, height: 16)
-                            }
-                        }
                     }
                     .padding(.vertical, 8)
                     .contentShape(Rectangle())
