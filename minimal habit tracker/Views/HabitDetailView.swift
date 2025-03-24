@@ -45,6 +45,7 @@ struct HabitDetailView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var showingSettings = false
     @State private var showingShareAlert = false
+    @State private var showingProAlert = false
     
     // 获取当前年和月
     @State private var selectedYear: Int = Calendar.current.component(.year, from: Date())
@@ -128,7 +129,14 @@ struct HabitDetailView: View {
                     }
                     
                     // 编辑按钮(设置按钮)
-                    Button(action: { showingSettings = true }) {
+                    Button(action: {
+                        // 检查是否使用了高级主题但不是 Pro 用户
+                        if !habitStore.canUseProTheme(habit.colorTheme) && !habitStore.isPro && !habitStore.debugMode {
+                            showingProAlert = true
+                        } else {
+                            showingSettings = true
+                        }
+                    }) {
                         Image("settings")
                             .resizable()
                             .renderingMode(.template)
@@ -162,6 +170,14 @@ struct HabitDetailView: View {
             Button("好的", role: .cancel) { }
         } message: {
             Text("正在开发中，敬请期待")
+        }
+        .alert("升级提示", isPresented: $showingProAlert) {
+            Button("取消", role: .cancel) { }
+            Button("升级") {
+                // TODO: 处理升级逻辑
+            }
+        } message: {
+            Text("您正在使用高级主题，请升级到专业版以继续使用。")
         }
         .preferredColorScheme(getPreferredColorScheme())
     }

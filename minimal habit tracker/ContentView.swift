@@ -144,7 +144,7 @@ struct ContentView: View {
             .alert(isPresented: $showingMaxHabitsAlert) {
                 Alert(
                     title: Text("达到最大数量"),
-                    message: Text("您最多只能创建 \(HabitStore.maxHabitCount) 个习惯。如需添加更多，请升级为Pro版本。"),
+                    message: Text("您最多只能创建 \(HabitStore.maxHabitCount) 个习惯。如需添加更多，请前往设置页面升级到Pro版本。"),
                     dismissButton: .default(Text("我知道了"))
                 )
             }
@@ -716,6 +716,7 @@ struct SettingsView: View {
     @State private var showingMailView = false
     @State private var mailResult: Result<MFMailComposeResult, Error>? = nil
     @State private var showingMailCannotSendAlert = false
+    @State private var showingPaymentView = false
     
     // 覆盖版本号（保持与项目文件一致）
     let appVersion = "0.1"
@@ -729,10 +730,56 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             List {
+                // Pro 升级卡片
+                if !habitStore.isPro && !habitStore.debugMode {
+                    Section {
+                        Button(action: {
+                            showingPaymentView = true
+                        }) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Text("EasyHabit")
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.primary)
+                                    Text("PRO")
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(Color(hex: "eab308"))
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Text("解锁完整体验")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                
+                                HStack(spacing: 16) {
+                                    ProFeatureItem(icon: "paintpalette", text: "更多主题色")
+                                    ProFeatureItem(icon: "infinity", text: "无限习惯")
+                                    ProFeatureItem(icon: "icloud", text: "iCloud同步")
+                                }
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
+                }
+                
                 AppearanceSection
                 DataSection
                 UpgradeSection
                 AboutSection
+                
+                // Debug 按钮
+                Section {
+                    Toggle("Debug 模式", isOn: Binding(
+                        get: { habitStore.debugMode },
+                        set: { newValue in
+                            habitStore.toggleDebugMode()
+                        }
+                    ))
+                }
             }
             .navigationTitle("设置")
             .navigationBarItems(trailing: Button("完成") {
@@ -740,6 +787,9 @@ struct SettingsView: View {
             })
             .sheet(isPresented: $showingImportExport) {
                 ImportExportView()
+            }
+            .sheet(isPresented: $showingPaymentView) {
+                PaymentView()
             }
             .alert(comingSoonMessage, isPresented: $showingComingSoonAlert) {
                 Button("好的", role: .cancel) { }
@@ -794,6 +844,24 @@ struct SettingsView: View {
         }
     }
 
+    // 添加 Pro 功能项组件
+    private struct ProFeatureItem: View {
+        let icon: String
+        let text: String
+        
+        var body: some View {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                    .foregroundColor(.secondary)
+                Text(text)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+    
     private var AppearanceSection: some View {
         Section(header: Text("主题设置")) {
             Picker("显示模式", selection: $themeMode) {
@@ -816,39 +884,45 @@ struct SettingsView: View {
     private var UpgradeSection: some View {
         Section(header: Text("高级功能")) {
             Button {
-                comingSoonMessage = "自定义颜色主题功能即将推出，敬请期待"
+                if !habitStore.isPro && !habitStore.debugMode {
+                    comingSoonMessage = "请升级到 Pro 版本以使用自定义颜色主题功能"
+                } else {
+                    comingSoonMessage = "自定义颜色主题功能即将推出，敬请期待"
+                }
                 showingComingSoonAlert = true
             } label: {
                 HStack {
                     Text("🎨 自定义颜色主题")
                         .foregroundColor(.primary)
                     Spacer()
+                    Image(systemName: "crown.fill")
+                        .foregroundColor(.yellow)
                 }
             }
 
-            Toggle("iCloud同步", isOn: $iCloudSync)
-                .onChange(of: iCloudSync) { newValue in
-                    // 恢复到原始状态
-                    iCloudSync = false
-                    comingSoonMessage = "iCloud同步功能即将推出"
-                    showingComingSoonAlert = true
-                }
-
-            Toggle("数据分析与建议", isOn: $detailedDataStats)
-                .onChange(of: detailedDataStats) { newValue in
-                    // 恢复到原始状态
-                    detailedDataStats = false
-                    comingSoonMessage = "数据分析与建议功能即将推出"
-                    showingComingSoonAlert = true
-                }
-            
-            // Toggle("打卡笔记功能", isOn: $noteFeature)
-            //     .onChange(of: noteFeature) { newValue in
-            //         // 恢复到原始状态
-            //         noteFeature = false
-            //         comingSoonMessage = "打卡笔记功能即将推出"
+            // Toggle("iCloud同步", isOn: $iCloudSync)
+            //     .onChange(of: iCloudSync) { newValue in
+            //         iCloudSync = false
+            //         if !habitStore.isPro && !habitStore.debugMode {
+            //             comingSoonMessage = "请升级到 Pro 版本以使用 iCloud 同步功能"
+            //         } else {
+            //             comingSoonMessage = "iCloud同步功能即将推出"
+            //         }
             //         showingComingSoonAlert = true
             //     }
+            //     .disabled(!habitStore.isPro && !habitStore.debugMode)
+
+            // Toggle("数据分析与建议", isOn: $detailedDataStats)
+            //     .onChange(of: detailedDataStats) { newValue in
+            //         detailedDataStats = false
+            //         if !habitStore.isPro && !habitStore.debugMode {
+            //             comingSoonMessage = "请升级到 Pro 版本以使用数据分析功能"
+            //         } else {
+            //             comingSoonMessage = "数据分析与建议功能即将推出"
+            //         }
+            //         showingComingSoonAlert = true
+            //     }
+            //     .disabled(!habitStore.isPro && !habitStore.debugMode)
         }
     }
 
@@ -857,7 +931,7 @@ struct SettingsView: View {
             Button {
                 showingAppVersionTapCount += 1
                 if showingAppVersionTapCount >= 7 {
-                    habitStore.debugMode.toggle()
+                    habitStore.toggleDebugMode()
                     showingAppVersionTapCount = 0
                 }
             } label: {

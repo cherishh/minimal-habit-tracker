@@ -9,10 +9,21 @@ class HabitStore: ObservableObject {
     
     @Published var habits: [Habit] = []
     @Published var habitLogs: [HabitLog] = []
-    @Published var debugMode: Bool = false
+    @Published var debugMode: Bool = false {
+        didSet {
+            sharedDefaults.set(debugMode, forKey: debugModeKey)
+        }
+    }
+    @Published var isPro: Bool = false {
+        didSet {
+            sharedDefaults.set(isPro, forKey: isProKey)
+        }
+    }
     
     private let habitsKey = "habits"
     private let habitLogsKey = "habitLogs"
+    private let debugModeKey = "debugMode"
+    private let isProKey = "isPro"
     
     // 使用 App Group 的 UserDefaults 来共享数据
     private let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker") ?? UserDefaults.standard
@@ -26,6 +37,9 @@ class HabitStore: ObservableObject {
     
     init() {
         print("【HabitStore】初始化HabitStore实例")
+        // 加载 Pro 和 Debug 状态
+        debugMode = sharedDefaults.bool(forKey: debugModeKey)
+        isPro = sharedDefaults.bool(forKey: isProKey)
         loadData()
     }
     
@@ -44,7 +58,7 @@ class HabitStore: ObservableObject {
     
     // 检查是否可以添加新习惯
     func canAddHabit() -> Bool {
-        return habits.count < HabitStore.maxHabitCount
+        return debugMode || isPro || habits.count < HabitStore.maxHabitCount
     }
     
     func removeHabit(_ habit: Habit) {
@@ -315,5 +329,27 @@ class HabitStore: ObservableObject {
     func saveDataForExport() {
         print("【HabitStore】导入导出功能调用保存数据")
         saveData()
+    }
+    
+    // 检查是否可以使用高级主题
+    func canUseProTheme(_ themeName: Habit.ColorThemeName) -> Bool {
+        let basicThemes: [Habit.ColorThemeName] = [.github, .blueOcean, .sunset]
+        return debugMode || isPro || basicThemes.contains(themeName)
+    }
+    
+    // 切换 Debug 模式
+    func toggleDebugMode() {
+        debugMode.toggle()
+        if !debugMode {
+            // 关闭 debug 模式时，清除购买状态
+            isPro = false
+        }
+        objectWillChange.send()
+    }
+    
+    // 升级到 Pro 版本
+    func upgradeToPro() {
+        isPro = true
+        objectWillChange.send()
     }
 } 

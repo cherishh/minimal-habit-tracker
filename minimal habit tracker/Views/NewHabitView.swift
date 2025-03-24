@@ -19,6 +19,7 @@ struct HabitFormView: View {
     @State private var showingMaxCountChangeAlert = false
     @State private var previousMaxCount: Int = 5
     @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
+    @State private var showingProAlert = false
 
     
     // 新建习惯模式的初始化
@@ -113,6 +114,15 @@ struct HabitFormView: View {
                 Text("修改打卡次数将影响所有已存在的记录。" + 
                      (previousMaxCount > maxCheckInCount ? "超过新上限的记录将被调整为新的上限值。" : "") +
                      "\n是否继续？")
+            }
+            // 显示升级提示
+            .alert("升级提示", isPresented: $showingProAlert) {
+                Button("取消", role: .cancel) { }
+                Button("升级") {
+                    // 用户选择升级，处理逻辑
+                }
+            } message: {
+                Text("您正在使用高级主题，是否升级到专业版以解锁更多高级主题？")
             }
         }
         .preferredColorScheme(getPreferredColorScheme())
@@ -217,21 +227,25 @@ struct HabitFormView: View {
             Section(header: VStack(alignment: .leading, spacing: 3) {
                 Text("颜色主题")
                     .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
-                Text("👑 标记的为高级主题")
+                Text("🔒 为高级主题")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }) {
                 ForEach(Habit.ColorThemeName.allCases, id: \.self) { themeName in
                     let theme = ColorTheme.getTheme(for: themeName)
-                    let isPremiumTheme = isPremium(themeName) // 检查是否为高级主题
+                    let isProTheme = !habitStore.canUseProTheme(themeName)
                     
-                    Button(action: { selectedTheme = themeName }) {
+                    Button(action: {
+                        if isProTheme && !habitStore.isPro && !habitStore.debugMode {
+                            // 显示升级提示
+                            showingProAlert = true
+                        } else {
+                            selectedTheme = themeName
+                        }
+                    }) {
                         HStack {
-                            if isPremiumTheme {
-                                Text("\(theme.name) 👑")
-                            } else {
-                                Text(theme.name)
-                            }
+                            Text(theme.name)
+                                .foregroundColor(isProTheme && !habitStore.isPro && !habitStore.debugMode ? .secondary : .primary)
                             
                             Spacer()
                             
@@ -248,10 +262,14 @@ struct HabitFormView: View {
                                 Image(systemName: "checkmark")
                                     .foregroundColor(.blue)
                                     .padding(.leading, 5)
+                            } else if isProTheme && !habitStore.isPro && !habitStore.debugMode {
+                                Image(systemName: "lock.fill")
+                                    .foregroundColor(.secondary)
+                                    .padding(.leading, 5)
                             }
                         }
                     }
-                    .foregroundColor(.primary)
+                    .disabled(isProTheme && !habitStore.isPro && !habitStore.debugMode)
                 }
             }
 
