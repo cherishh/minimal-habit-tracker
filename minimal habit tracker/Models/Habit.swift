@@ -14,10 +14,10 @@ struct Habit: Identifiable, Codable {
         case github = "GitHub"
         case blueOcean = "Blue Ocean"
         case sunset = "Sunset"
-        case purpleRain = "Purple Rain"
         
         // 高级主题
         // case starNight = "Star Night"
+        case purpleRain = "Purple Rain"
         case desert = "Desert"
         case forestGreen = "Forest Green"
         case morningLake = "Morning Lake"
@@ -25,6 +25,7 @@ struct Habit: Identifiable, Codable {
         case cyanRock = "Cyan Rock"
         case naturalGray = "Natural Gray"
         case candy = "Candy"
+        // case rainbow = "Rainbow"
     }
     
     enum HabitType: String, Codable {

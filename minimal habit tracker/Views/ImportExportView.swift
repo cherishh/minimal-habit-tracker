@@ -110,7 +110,7 @@ struct ImportExportView: View {
                     .resizable()
                     .renderingMode(.template)
                     .scaledToFit()
-                    .foregroundColor(disabled ? .gray : .blue)
+                    .foregroundColor(disabled ? .gray : .primary)
                     .frame(width: 40, height: 40)
                 
                 VStack(alignment: .leading, spacing: 5) {
@@ -392,7 +392,7 @@ struct ImportExportView: View {
             // 保存数据
             habitStore.saveDataForExport()
             
-            alertMessage = "成功导入\(importedHabits.count)个习惯和\(importedLogs.count)条打卡记录！"
+            alertMessage = "成功导入\(importedHabits.count)个习惯和\(importedLogs.count)条打卡记录"
             showingAlert = true
             
         } catch {

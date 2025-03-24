@@ -438,8 +438,8 @@ struct HabitFormView: View {
     
     // 判断是否为高级主题
     private func isPremium(_ themeName: Habit.ColorThemeName) -> Bool {
-        // 基础主题包括github, blueOcean, sunset, purpleRain
-        return ![.github, .blueOcean, .sunset, .purpleRain].contains(themeName)
+        // 基础主题包括github, blueOcean, sunset
+        return ![.github, .blueOcean, .sunset].contains(themeName)
     }
 }
 

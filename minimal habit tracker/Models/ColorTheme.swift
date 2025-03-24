@@ -108,26 +108,6 @@ extension ColorTheme {
                 Color(hex: "f97316")  // bg-orange-500
             ]
         ),
-        ColorTheme(
-            id: .purpleRain,
-            name: "🌧️ 紫雨",
-            lightColors: [
-                Color(hex: "f1f5f9"), // custom
-                Color(hex: "f3e8ff"), // bg-purple-100
-                Color(hex: "e9d5ff"), // bg-purple-200
-                Color(hex: "d8b4fe"), // bg-purple-300
-                Color(hex: "a855f7"), // bg-purple-500
-                Color(hex: "7e22ce")  // bg-purple-700
-            ],
-            darkColors: [
-                Color(hex: "2e1065"), // custom
-                Color(hex: "581c87"), // bg-purple-900
-                Color(hex: "6b21a8"), // bg-purple-800
-                Color(hex: "7e22ce"), // bg-purple-700
-                Color(hex: "9333ea"), // bg-purple-600
-                Color(hex: "a855f7")  // bg-purple-500
-            ]
-        ),
         
         // 高级主题
         // ColorTheme(
@@ -151,10 +131,30 @@ extension ColorTheme {
         //     ]
         // ),
         ColorTheme(
+            id: .purpleRain,
+            name: "🟪 紫雨",
+            lightColors: [
+                Color(hex: "f1f5f9"), // custom
+                Color(hex: "f3e8ff"), // bg-purple-100
+                Color(hex: "e9d5ff"), // bg-purple-200
+                Color(hex: "d8b4fe"), // bg-purple-300
+                Color(hex: "a855f7"), // bg-purple-500
+                Color(hex: "7e22ce")  // bg-purple-700
+            ],
+            darkColors: [
+                Color(hex: "2e1065"), // custom
+                Color(hex: "581c87"), // bg-purple-900
+                Color(hex: "6b21a8"), // bg-purple-800
+                Color(hex: "7e22ce"), // bg-purple-700
+                Color(hex: "9333ea"), // bg-purple-600
+                Color(hex: "a855f7")  // bg-purple-500
+            ]
+        ),
+        ColorTheme(
             id: .desert,
             name: "🏜 黄金国",
             lightColors: [
-                Color(hex: "fffbeb"), // lightest
+                Color(hex: "f5f5dc"), // lightest
                 Color(hex: "fef08a"), // lighter
                 Color(hex: "facc15"), // medium
                 Color(hex: "ca8a04"), // dark
@@ -162,7 +162,7 @@ extension ColorTheme {
                 Color(hex: "422006")  // darkest
             ],
             darkColors: [
-                Color(hex: "422006"), // darkest
+                Color(hex: "261a0f"), // darkest
                 Color(hex: "854d0e"), // darker
                 Color(hex: "ca8a04"), // dark
                 Color(hex: "facc15"), // medium
@@ -172,7 +172,7 @@ extension ColorTheme {
         ),
         ColorTheme(
             id: .forestGreen,
-            name: "🌿 森林草地",
+            name: "🌿 芳草地",
             lightColors: [
                 Color(hex: "E8F5E9"), // lightest
                 Color(hex: "C8E6C9"), // lighter
@@ -194,15 +194,15 @@ extension ColorTheme {
             id: .morningLake,
             name: "🩵 清晨湖水",
             lightColors: [
-                Color(hex: "cffafe"), // lightest
+                Color(hex: "e0f7fa"), // lightest
                 Color(hex: "67e8f9"), // lighter
                 Color(hex: "06b6d4"), // medium
                 Color(hex: "0e7490"), // dark
                 Color(hex: "164e63"), // darker
-                Color(hex: "083344")  // darkest
+                Color(hex: "031e29")  // darkest
             ],
             darkColors: [
-                Color(hex: "083344"), // darkest
+                Color(hex: "051e26"), // darkest
                 Color(hex: "164e63"), // darker
                 Color(hex: "0e7490"), // dark
                 Color(hex: "06b6d4"), // medium
@@ -212,9 +212,9 @@ extension ColorTheme {
         ),
         ColorTheme(
             id: .rose,
-            name: "🌹 Rose",
+            name: "🌹 玫瑰",
             lightColors: [
-                Color(hex: "ffe4e6"), // lightest
+                Color(hex: "fff0f3"), // lightest
                 Color(hex: "fda4af"), // lighter
                 Color(hex: "f43f5e"), // medium
                 Color(hex: "be123c"), // dark
@@ -234,19 +234,19 @@ extension ColorTheme {
             id: .cyanRock,
             name: "🪨 青岩",
             lightColors: [
-                Color(hex: "f1f5f9"), // lightest
-                Color(hex: "cbd5e1"), // lighter
-                Color(hex: "64748b"), // medium
-                Color(hex: "334155"), // dark
-                Color(hex: "1e293b"), // custom
-                Color(hex: "020617")  // darkest
+                Color(hex: "e0e0e0"), // lightest (底色 - 浅灰色，略带蓝)
+                Color(hex: "b4c4d4"), // lighter (比底色略深)
+                Color(hex: "90a0b0"), // medium (中等灰蓝色)
+                Color(hex: "607080"), // dark (较深的灰蓝色)
+                Color(hex: "405060"), // darker (更深的灰蓝色)
+                Color(hex: "203040")  // darkest (非常深的灰蓝色)
             ],
             darkColors: [
-                Color(hex: "0F172A"), // darkest (corresponds to light's lightest)
+                Color(hex: "0a1119"), // darkest (corresponds to light's lightest)
                 Color(hex: "1E293B"), // darker (corresponds to light's lighter)
                 Color(hex: "475569"), // dark (corresponds to light's medium)
                 Color(hex: "94A3B8"), // medium (corresponds to light's dark)
-                Color(hex: "E0F2FE"), // light (corresponds to light's darker - adjusted)
+                Color(hex: "C8E6FA"), // light (corresponds to light's darker - adjusted)
                 Color(hex: "F0F9FF")  // lightest (corresponds to light's darkest - adjusted)
             ]
         ),
@@ -262,7 +262,7 @@ extension ColorTheme {
                 Color(hex: "0a0a0a")  // darkest
             ],
             darkColors: [
-                Color(hex: "0a0a0a"), // darkest
+                Color(hex: "0f0f0f"), // darkest
                 Color(hex: "27272a"), // darker
                 Color(hex: "525252"), // dark
                 Color(hex: "a3a3a3"), // medium
@@ -282,14 +282,34 @@ extension ColorTheme {
                 Color(hex: "C7CEEA")  // darkest (lavender)
             ],
             darkColors: [
-                Color(hex: "F2F2F2"), // lightest (gray)
-                Color(hex: "FF9AA2"), // lighter (pink)
-                Color(hex: "FFDAC1"), // light (peach)
-                Color(hex: "E2F0CB"), // medium (lime)
-                Color(hex: "B5EAD7"), // dark (mint)
-                Color(hex: "C7CEEA")  // darkest (lavender)
+                Color(hex: "1E1E1E"), // darkest (深灰色背景)
+                Color(hex: "FFB3C1"), // lighter (更柔和的粉色)
+                Color(hex: "FFE0B2"), // light (更柔和的蜜桃色)
+                Color(hex: "D1F0C7"), // medium (更柔和的浅绿)
+                Color(hex: "A7E8D2"), // dark (更柔和的薄荷绿)
+                Color(hex: "D1D9EE")  // lightest (更柔和的浅紫)
             ]
-        )
+        ),
+        // ColorTheme(
+        //     id: .rainbow,
+        //     name: "🌈 彩虹",
+        //     lightColors: [
+        //         Color(hex: "D3D3D3"), // lightest (中等浅灰色背景，更容易看清)
+        //         Color(hex: "E53935"), // lighter (现代感的红色)
+        //         Color(hex: "FB8C00"), // light (现代感的橙色)
+        //         Color(hex: "FDD835"), // medium (现代感的黄色)
+        //         Color(hex: "43A047"), // dark (现代感的绿色)
+        //         Color(hex: "5E35B1")  // darkest (现代感的紫色)
+        //     ],
+        //     darkColors: [
+        //         Color(hex: "121212"), // darkest (深灰色背景)
+        //         Color(hex: "F06292"), // darker (霓虹粉色)
+        //         Color(hex: "FFB300"), // dark (霓虹橙色)
+        //         Color(hex: "FFEE58"), // medium (更柔和的霓虹黄色)
+        //         Color(hex: "69F0AE"), // light (霓虹青绿色)
+        //         Color(hex: "64B5F6")  // lighter (霓虹浅蓝色)
+        //     ]
+        // )
     ]
     
     static func getTheme(for name: Habit.ColorThemeName) -> ColorTheme {

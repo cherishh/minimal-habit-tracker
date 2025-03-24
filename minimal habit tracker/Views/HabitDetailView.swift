@@ -622,7 +622,7 @@ struct DayCell: View {
                 .foregroundColor(
                     isToday ? .primary : // 今日日期 - 始终使用主色
                     (isFutureDate ? .gray.opacity(0.2) : // 未来日期 - 最浅
-                    (count == 0 ? .gray.opacity(0.6) : .primary)) // 过去未打卡 - 中等，已打卡 - 最深
+                    (count == 0 ? .gray.opacity(0.8) : .primary)) // 过去未打卡 - 中等，已打卡 - 最深
                 )
                 .font(.system(size: 14))
         }

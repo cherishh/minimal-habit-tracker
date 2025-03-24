@@ -18,7 +18,7 @@ class HabitStore: ObservableObject {
     private let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker") ?? UserDefaults.standard
     
     // 定义常量
-    static let maxHabitCount = 5 // 最大习惯数量
+    static let maxHabitCount = 4 // 最大习惯数量
     static let maxCheckInCount = 5 // 最大打卡次数
     
     // 防止递归调用

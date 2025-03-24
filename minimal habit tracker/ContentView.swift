@@ -723,8 +723,8 @@ struct SettingsView: View {
     
     // 这些开关不会实际保存设置，仅作为UI展示
     @State private var iCloudSync = false
-    @State private var unlimitedHabits = false
     @State private var noteFeature = false
+    @State private var detailedDataStats = false
     
     var body: some View {
         NavigationView {
@@ -816,7 +816,7 @@ struct SettingsView: View {
     private var UpgradeSection: some View {
         Section(header: Text("高级功能")) {
             Button {
-                comingSoonMessage = "自定义颜色主题功能即将推出，敬请期待！"
+                comingSoonMessage = "自定义颜色主题功能即将推出，敬请期待"
                 showingComingSoonAlert = true
             } label: {
                 HStack {
@@ -826,19 +826,19 @@ struct SettingsView: View {
                 }
             }
 
-            // Toggle("无限习惯数量", isOn: $unlimitedHabits)
-            //     .onChange(of: unlimitedHabits) { newValue in
-            //         // 恢复到原始状态
-            //         unlimitedHabits = false
-            //         comingSoonMessage = "无限习惯数量功能即将推出"
-            //         showingComingSoonAlert = true
-            //     }
-
-            Toggle("数据云同步", isOn: $iCloudSync)
+            Toggle("iCloud同步", isOn: $iCloudSync)
                 .onChange(of: iCloudSync) { newValue in
                     // 恢复到原始状态
                     iCloudSync = false
-                    comingSoonMessage = "数据云同步功能即将推出"
+                    comingSoonMessage = "iCloud同步功能即将推出"
+                    showingComingSoonAlert = true
+                }
+
+            Toggle("数据分析与建议", isOn: $detailedDataStats)
+                .onChange(of: detailedDataStats) { newValue in
+                    // 恢复到原始状态
+                    detailedDataStats = false
+                    comingSoonMessage = "数据分析与建议功能即将推出"
                     showingComingSoonAlert = true
                 }
             
@@ -959,106 +959,6 @@ struct HabitSortView: View {
     private func saveHabitOrder() {
         // 保存新的习惯顺序到HabitStore
         habitStore.updateHabitOrder(habits)
-    }
-}
-
-// 高级颜色主题列表视图
-struct AdvancedThemeListView: View {
-    @State private var showingComingSoonAlert = false
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var colorScheme
-    
-    // 存储已选择的主题名称
-    @State private var selectedTheme: Habit.ColorThemeName?
-    
-    // 高级主题列表
-    private let premiumThemes: [(String, String, Habit.ColorThemeName)] = [
-        // ("🌌 星空", "深蓝星空", .starNight),
-        ("🏜 黄金国", "西域国度", .desert),
-        ("🌿 森林草地", "自然绿意", .forestGreen),
-        ("🩵 清晨湖水", "清晨湖水", .morningLake),
-        ("🌹 Rose", "玫瑰", .rose),
-        ("🪨 青岩", "青色岩石", .cyanRock),
-        ("🩶 黑白森林", "自然灰", .naturalGray),
-        ("🍬 糖果", "糖果", .candy),
-    ]
-    
-    // 为主题预览获取颜色数组
-    private func getThemeColors(for themeName: Habit.ColorThemeName) -> [Color] {
-        let theme = ColorTheme.getTheme(for: themeName)
-        return colorScheme == .dark ? theme.darkColors : theme.lightColors
-    }
-    
-    var body: some View {
-        List {
-            Section(header: Text("高级主题").font(.headline)) {
-                ForEach(premiumThemes, id: \.2) { theme in
-                    Button(action: {
-                        selectedTheme = theme.2
-                        
-                        // 这里可以保存用户的主题选择
-                        // TODO: 在实际应用中保存主题选择
-                        
-                        // 短暂延迟后返回，提供反馈
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            dismiss()
-                        }
-                    }) {
-                        HStack {
-                            Text(theme.0)
-                                .foregroundColor(.primary)
-                            
-                            Spacer()
-                            
-                            // 主题预览 - 类似于习惯创建时的样式
-                            HStack(spacing: 2) {
-                                ForEach(0..<6) { level in
-                                    RoundedRectangle(cornerRadius: 3)
-                                        .fill(getThemeColors(for: theme.2)[level])
-                                        .frame(width: 16, height: 16)
-                                }
-                            }
-                        }
-                        .padding(.vertical, 8)
-                        .contentShape(Rectangle()) // 确保整行可点击
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            
-            Section {
-                Button(action: {
-                    showingComingSoonAlert = true
-                }) {
-                    HStack {
-                        Text("🎨 自定义颜色主题")
-                            .foregroundColor(.primary)
-                        
-                        Spacer()
-                    }
-                    .padding(.vertical, 8)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .navigationTitle("高级主题")
-        /* 注释掉升级提示
-        .alert("升级到Pro版本", isPresented: $showingUpgradeAlert) {
-            Button("取消", role: .cancel) { }
-            Button("升级") {
-                // 这里可以添加导向升级页面的代码
-                dismiss()
-            }
-        } message: {
-            Text("高级主题仅适用于Pro版本用户。升级后即可解锁所有高级主题，并获得无限习惯数量、iCloud同步等更多功能。")
-        }
-        */
-        .alert("即将推出", isPresented: $showingComingSoonAlert) {
-            Button("好的", role: .cancel) { }
-        } message: {
-            Text("自定义颜色主题功能即将推出，敬请期待")
-        }
     }
 }
 
