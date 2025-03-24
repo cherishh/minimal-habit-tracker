@@ -17,14 +17,14 @@ struct Habit: Identifiable, Codable {
         case purpleRain = "Purple Rain"
         
         // 高级主题
-        case starNight = "Star Night"
-        case cyanRock = "Cyan Rock"
-        case rose = "Rose"
+        // case starNight = "Star Night"
+        case desert = "Desert"
         case forestGreen = "Forest Green"
         case morningLake = "Morning Lake"
-        case desert = "Desert"
+        case rose = "Rose"
+        case cyanRock = "Cyan Rock"
         case naturalGray = "Natural Gray"
-        case rainbow = "Rainbow"
+        case candy = "Candy"
     }
     
     enum HabitType: String, Codable {

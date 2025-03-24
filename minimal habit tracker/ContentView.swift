@@ -815,11 +815,13 @@ struct SettingsView: View {
     
     private var UpgradeSection: some View {
         Section(header: Text("高级功能")) {
-            NavigationLink {
-                AdvancedThemeListView()
+            Button {
+                comingSoonMessage = "自定义颜色主题功能即将推出，敬请期待！"
+                showingComingSoonAlert = true
             } label: {
                 HStack {
-                    Text("高级颜色主题 & 自定义颜色")
+                    Text("🎨 自定义颜色")
+                        .foregroundColor(.primary)
                     Spacer()
                 }
             }
@@ -973,14 +975,14 @@ struct AdvancedThemeListView: View {
     
     // 高级主题列表
     private let premiumThemes: [(String, String, Habit.ColorThemeName)] = [
-        ("🌌 星空", "深蓝星空", .starNight),
-        ("🪨 青岩", "青色岩石", .cyanRock),
-        ("🌹 Rose", "玫瑰", .rose),
+        // ("🌌 星空", "深蓝星空", .starNight),
+        ("🏜 黄金国", "西域国度", .desert),
         ("🌿 森林草地", "自然绿意", .forestGreen),
         ("🩵 清晨湖水", "清晨湖水", .morningLake),
-        ("🏜 西域国度", "西域国度", .desert),
-        ("🩶 自然灰", "自然灰", .naturalGray),
-        ("🍡 糖果", "糖果", .rainbow),
+        ("🌹 Rose", "玫瑰", .rose),
+        ("🪨 青岩", "青色岩石", .cyanRock),
+        ("🩶 黑白森林", "自然灰", .naturalGray),
+        ("🍬 糖果", "糖果", .candy),
     ]
     
     // 为主题预览获取颜色数组
