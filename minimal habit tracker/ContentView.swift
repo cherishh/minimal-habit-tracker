@@ -729,9 +729,9 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             List {
-                UpgradeSection
                 AppearanceSection
                 DataSection
+                UpgradeSection
                 AboutSection
             }
             .navigationTitle("设置")
@@ -820,37 +820,35 @@ struct SettingsView: View {
                 showingComingSoonAlert = true
             } label: {
                 HStack {
-                    Text("🎨 自定义颜色")
+                    Text("🎨 自定义颜色主题")
                         .foregroundColor(.primary)
                     Spacer()
                 }
             }
 
-            /* 注释掉高级功能的升级提示
-            Toggle("iCloud 云同步", isOn: $iCloudSync)
+            // Toggle("无限习惯数量", isOn: $unlimitedHabits)
+            //     .onChange(of: unlimitedHabits) { newValue in
+            //         // 恢复到原始状态
+            //         unlimitedHabits = false
+            //         comingSoonMessage = "无限习惯数量功能即将推出"
+            //         showingComingSoonAlert = true
+            //     }
+
+            Toggle("数据云同步", isOn: $iCloudSync)
                 .onChange(of: iCloudSync) { newValue in
                     // 恢复到原始状态
                     iCloudSync = false
-                    comingSoonMessage = "iCloud云同步功能即将推出"
+                    comingSoonMessage = "数据云同步功能即将推出"
                     showingComingSoonAlert = true
                 }
             
-            Toggle("无限习惯数量", isOn: $unlimitedHabits)
-                .onChange(of: unlimitedHabits) { newValue in
-                    // 恢复到原始状态
-                    unlimitedHabits = false
-                    comingSoonMessage = "无限习惯数量功能即将推出"
-                    showingComingSoonAlert = true
-                }
-                
-            Toggle("打卡笔记功能", isOn: $noteFeature)
-                .onChange(of: noteFeature) { newValue in
-                    // 恢复到原始状态
-                    noteFeature = false
-                    comingSoonMessage = "打卡笔记功能即将推出"
-                    showingComingSoonAlert = true
-                }
-            */
+            // Toggle("打卡笔记功能", isOn: $noteFeature)
+            //     .onChange(of: noteFeature) { newValue in
+            //         // 恢复到原始状态
+            //         noteFeature = false
+            //         comingSoonMessage = "打卡笔记功能即将推出"
+            //         showingComingSoonAlert = true
+            //     }
         }
     }
 
@@ -1033,7 +1031,7 @@ struct AdvancedThemeListView: View {
                     showingComingSoonAlert = true
                 }) {
                     HStack {
-                        Text("🎨 自定义颜色")
+                        Text("🎨 自定义颜色主题")
                             .foregroundColor(.primary)
                         
                         Spacer()
@@ -1059,7 +1057,7 @@ struct AdvancedThemeListView: View {
         .alert("即将推出", isPresented: $showingComingSoonAlert) {
             Button("好的", role: .cancel) { }
         } message: {
-            Text("自定义颜色主题功能即将推出，敬请期待！")
+            Text("自定义颜色主题功能即将推出，敬请期待")
         }
     }
 }

@@ -214,14 +214,24 @@ struct HabitFormView: View {
                 }
             }
             
-            Section(header: Text("颜色主题")
-                        .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)) {
+            Section(header: VStack(alignment: .leading, spacing: 3) {
+                Text("颜色主题")
+                    .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
+                Text("👑 标记的为高级主题")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }) {
                 ForEach(Habit.ColorThemeName.allCases, id: \.self) { themeName in
                     let theme = ColorTheme.getTheme(for: themeName)
+                    let isPremiumTheme = isPremium(themeName) // 检查是否为高级主题
                     
                     Button(action: { selectedTheme = themeName }) {
                         HStack {
-                            Text(theme.name)
+                            if isPremiumTheme {
+                                Text("\(theme.name) 👑")
+                            } else {
+                                Text(theme.name)
+                            }
                             
                             Spacer()
                             
@@ -424,6 +434,12 @@ struct HabitFormView: View {
             case 2: return .dark      // 暗黑模式
             default: return nil       // 自适应系统
         }
+    }
+    
+    // 判断是否为高级主题
+    private func isPremium(_ themeName: Habit.ColorThemeName) -> Bool {
+        // 基础主题包括github, blueOcean, sunset, purpleRain
+        return ![.github, .blueOcean, .sunset, .purpleRain].contains(themeName)
     }
 }
 
