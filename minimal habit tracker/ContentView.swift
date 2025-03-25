@@ -36,32 +36,32 @@ struct ContentView: View {
             ZStack {
                 lightBackgroundColor.ignoresSafeArea()
                 
-                VStack(spacing: 0) {
-                    // 自定义标题栏
-                    HStack {
-                        Text("EasyHabit")
-                            .font(.system(size: 32, weight: .regular, design: .rounded))
-                            .padding(.leading)
+            VStack(spacing: 0) {
+                // 自定义标题栏
+                HStack {
+                    Text("EasyHabit")
+                        .font(.system(size: 32, weight: .regular, design: .rounded))
+                        .padding(.leading)
                             .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
-                        
-                        Spacer()
-                        
-                        HStack(spacing: 16) {
-                            Button(action: {
-                                if habitStore.canAddHabit() {
+                    
+                    Spacer()
+                    
+                    HStack(spacing: 16) {
+                        Button(action: {
+                            if habitStore.canAddHabit() {
                                     showingAddHabit = true
-                                } else {
-                                    showingMaxHabitsAlert = true
-                                }
-                            }) {
-                                Image("plus")
-                                    .resizable()
-                                    .renderingMode(.template)
-                                    .scaledToFit()
-                                    .frame(width: 18, height: 18)
-                                    .frame(width: 36, height: 36)
-                                    .background(Color(UIColor.systemGray5).opacity(0.6))
-                                    .cornerRadius(10)
+                            } else {
+                                showingMaxHabitsAlert = true
+                            }
+                        }) {
+                            Image("plus")
+                                .resizable()
+                                .renderingMode(.template)
+                                .scaledToFit()
+                                .frame(width: 18, height: 18)
+                                .frame(width: 36, height: 36)
+                                .background(Color(UIColor.systemGray5).opacity(0.6))
+                                .cornerRadius(10)
                                     .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                             }
                             
@@ -77,30 +77,30 @@ struct ContentView: View {
                                         .cornerRadius(10)
                                         .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                                 }
-                            }
-                            
-                            Button(action: { showingSettings = true }) {
-                                Image("settings")
-                                    .resizable()
-                                    .renderingMode(.template)
-                                    .scaledToFit()
-                                    .frame(width: 18, height: 18)
-                                    .frame(width: 36, height: 36)
-                                    .background(Color(UIColor.systemGray5).opacity(0.6))
-                                    .cornerRadius(10)
+                        }
+                        
+                        Button(action: { showingSettings = true }) {
+                            Image("settings")
+                                .resizable()
+                                .renderingMode(.template)
+                                .scaledToFit()
+                                .frame(width: 18, height: 18)
+                                .frame(width: 36, height: 36)
+                                .background(Color(UIColor.systemGray5).opacity(0.6))
+                                .cornerRadius(10)
                                     .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                             }
                         }
                         .padding(.trailing)
-                    }
-                    .padding(.top, 8)
-                    .padding(.bottom, 8)
-                    
-                    if habitStore.habits.isEmpty {
-                        emptyStateView
+                }
+                .padding(.top, 8)
+                .padding(.bottom, 8)
+                
+                if habitStore.habits.isEmpty {
+                    emptyStateView
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        habitListView
+                } else {
+                    habitListView
                     }
                 }
             }

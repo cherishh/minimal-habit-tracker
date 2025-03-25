@@ -158,10 +158,11 @@ struct HabitWidgetEntryView: View {
             // 上部分：习惯名称和连续打卡天数
             HStack {
                 Text(entry.habit.name)
-                    .font(.headline)
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
-                    .padding(.vertical,18)
+                    .padding(.vertical, 8) // 减小垂直内边距
                     .padding(.horizontal, 16)
+                    .padding(.leading, 10)
                 
                 Spacer()
                 
@@ -180,13 +181,14 @@ struct HabitWidgetEntryView: View {
                                 ? getTheme(habit: entry.habit).color(for: 4, isDarkMode: true)
                                 : getTheme(habit: entry.habit).color(for: 5, isDarkMode: false))
                     }
-                    .padding(.trailing, 16)
+                    .padding(.trailing, 28)
                 }
             }
+            .padding(.top, 16) // 增加顶部边距
             .background(colorScheme == .dark ? Color.black : Color.white)
             
             // 下部分：微型热力图和打卡按钮
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 // 左侧：微型热力图
                 Link(destination: URL(string: "habittracker://open?habitId=\(entry.habit.id.uuidString)")!) {
                     WidgetMiniHeatmapView(
@@ -194,17 +196,17 @@ struct HabitWidgetEntryView: View {
                         habit: entry.habit,
                         colorScheme: colorScheme
                     )
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 6)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
                             .fill(colorScheme == .dark 
                                 ? Color.black.opacity(0.3) 
-                                : Color.gray.opacity(0.1))
+                                : Color.white.opacity(0.3))
                     )
-                    .padding(.leading, 12)
-                    .padding(.top, 0)
-                    .padding(.bottom, 12)
+                    .padding(.leading, 16)
+                    .padding(.top, 2) // 减小上边距
+                    .padding(.bottom, 16)
                 }
                 .buttonStyle(.plain)
                 
@@ -216,11 +218,13 @@ struct HabitWidgetEntryView: View {
                     todayCount: entry.todayCount,
                     colorScheme: colorScheme
                 )
-                .padding(.trailing, 16)
+                .padding(.trailing, 20)
                 .padding(.vertical, 8)
             }
             .background(colorScheme == .dark ? Color.black : Color.white)
         }
+        .padding(.top, 8) // 增加整体顶部边距
+        .padding(.bottom, 12) // 增加整体底部边距
         .cornerRadius(12)
     }
     
@@ -236,7 +240,7 @@ struct HabitWidgetEntryView: View {
         var dayCount = 0
         
         // 从今天开始向前查找连续打卡的天数
-        for dayOffset in 0..<100 { // 最多查找100天
+        for dayOffset in 0..<77 { // 最多查找70天
             guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
             
             // 查找该日期是否有打卡记录
@@ -261,11 +265,11 @@ struct WidgetMiniHeatmapView: View {
     let colorScheme: ColorScheme
     
     // 热力图大小配置
-    private let cellSize: CGFloat = 8
+    private let cellSize: CGFloat = 11
     private let cellSpacing: CGFloat = 3
     
     // 热力图日期配置
-    private let daysToShow = 100 // 显示过去100天
+    private let daysToShow = 77 // 显示过去77天，正好11列
     
     // 获取习惯的主题颜色
     private var theme: ColorTheme {
@@ -344,7 +348,7 @@ struct WidgetMiniHeatmapView: View {
                             let count = getLogCountForDate(date: date)
                             
                             // 单个格子
-                            RoundedRectangle(cornerRadius: 1)
+                            RoundedRectangle(cornerRadius: 2)
                                 .fill(count > 0 
                                       ? theme.colorForCount(count: count, maxCount: habit.maxCheckInCount, isDarkMode: colorScheme == .dark)
                                       : (colorScheme == .dark 
@@ -353,7 +357,7 @@ struct WidgetMiniHeatmapView: View {
                                 .frame(width: cellSize, height: cellSize)
                         } else {
                             // 没有日期的位置（例如超过今天的日期）
-                            RoundedRectangle(cornerRadius: 1)
+                            RoundedRectangle(cornerRadius: 2)
                                 .fill(Color.clear)
                                 .frame(width: cellSize, height: cellSize)
                         }
@@ -362,7 +366,7 @@ struct WidgetMiniHeatmapView: View {
             }
         }
         .frame(height: 7 * (cellSize + cellSpacing) - cellSpacing)
-        .frame(width: 185) // 从190减小到185，提供更多边距空间
+        .frame(width: 190) // 从190减小到185，提供更多边距空间
     }
 }
 
