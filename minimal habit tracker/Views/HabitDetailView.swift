@@ -1,51 +1,17 @@
 import SwiftUI
-
-// 修改支持系统侧滑返回手势的扩展
-struct EnableSwipeBackModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .background(SwipeBackController())
-    }
-}
-
-struct SwipeBackController: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> UIViewController {
-        SwipeBackControllerVC()
-    }
-    
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
-    
-    class SwipeBackControllerVC: UIViewController {
-        override func viewDidAppear(_ animated: Bool) {
-            super.viewDidAppear(animated)
-            self.parent?.navigationController?.interactivePopGestureRecognizer?.delegate = nil
-            self.parent?.navigationController?.interactivePopGestureRecognizer?.isEnabled = true
-        }
-    }
-}
-
-extension View {
-    func enableSwipeBack() -> some View {
-        self.modifier(EnableSwipeBackModifier())
-    }
-}
-
-extension View {
-    @ViewBuilder
-    func primaryWithOpacity(colorScheme: ColorScheme) -> some View {
-        self.foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
-    }
-}
+import Charts
 
 /// 习惯详情页面，包含热力图和月历视图
 struct HabitDetailView: View {
     let habitId: UUID
     @EnvironmentObject var habitStore: HabitStore
     @Environment(\.colorScheme) var colorScheme
-    @Environment(\.presentationMode) var presentationMode
-    @State private var showingSettings = false
-    @State private var showingShareAlert = false
+    @Environment(\.dismiss) private var dismissAction
+    @State private var showingEditSheet = false
+    @State private var showingDeleteConfirmation = false
     @State private var showingProAlert = false
+    @State private var showingShareAlert = false
+    @State private var selectedDate: Date = Date()
     
     // 获取当前年和月
     @State private var selectedYear: Int = Calendar.current.component(.year, from: Date())
@@ -92,16 +58,14 @@ struct HabitDetailView: View {
             .padding(.vertical)
             .frame(maxWidth: .infinity) // 确保占据最大宽度
         }
-        .scrollContentBackground(.hidden) // 隐藏滚动背景
-        .background(Color.clear) // 设置背景为透明
+        .scrollContentBackground(.hidden)
+        .background(Color.clear)
+        .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("\(habit.emoji) \(habit.name)")
-        .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
-        .accentColor(.black)
         .navigationBarBackButtonHidden(true)
-        .enableSwipeBack() // 启用系统的滑动返回手势
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                Button(action: { dismissAction() }) {
                     Image("left")
                         .resizable()
                         .renderingMode(.template)
@@ -114,8 +78,7 @@ struct HabitDetailView: View {
                 HStack(spacing: 8) {
                     // 分享按钮
                     Button(action: { 
-                        // 显示"coming soon"提示
-                        showShareAlert()
+                        showingShareAlert = true
                     }) {
                         Image("share")
                             .resizable()
@@ -130,12 +93,7 @@ struct HabitDetailView: View {
                     
                     // 编辑按钮(设置按钮)
                     Button(action: {
-                        // 检查是否使用了高级主题但不是 Pro 用户
-                        if !habitStore.canUseProTheme(habit.colorTheme) && !habitStore.isPro && !habitStore.debugMode {
-                            showingProAlert = true
-                        } else {
-                            showingSettings = true
-                        }
+                        showingEditSheet = true
                     }) {
                         Image("settings")
                             .resizable()
@@ -150,15 +108,15 @@ struct HabitDetailView: View {
                 }
             }
         }
-        .sheet(isPresented: $showingSettings) {
-            HabitFormView(isPresented: $showingSettings, habit: habit)
+        .sheet(isPresented: $showingEditSheet) {
+            HabitFormView(isPresented: $showingEditSheet, habit: habit)
         }
         .onAppear {
             // 添加对习惯删除通知的监听
             NotificationCenter.default.addObserver(forName: NSNotification.Name("HabitDeleted"), object: nil, queue: .main) { notification in
                 if let deletedHabitId = notification.object as? UUID, deletedHabitId == habitId {
                     // 如果删除的是当前正在查看的习惯，返回到列表页
-                    presentationMode.wrappedValue.dismiss()
+                    dismissAction()
                 }
             }
         }
@@ -170,14 +128,6 @@ struct HabitDetailView: View {
             Button("好的", role: .cancel) { }
         } message: {
             Text("正在开发中，敬请期待")
-        }
-        .alert("升级提示", isPresented: $showingProAlert) {
-            Button("取消", role: .cancel) { }
-            Button("升级") {
-                // TODO: 处理升级逻辑
-            }
-        } message: {
-            Text("您正在使用高级主题，请升级到专业版以继续使用。")
         }
         .preferredColorScheme(getPreferredColorScheme())
     }
@@ -273,11 +223,6 @@ struct HabitDetailView: View {
         }
         
         return count
-    }
-    
-    // 显示分享功能即将推出的提示
-    private func showShareAlert() {
-        showingShareAlert = true
     }
     
     // 根据设置返回颜色模式

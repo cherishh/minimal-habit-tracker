@@ -29,7 +29,7 @@ class HabitStore: ObservableObject {
     private let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker") ?? UserDefaults.standard
     
     // 定义常量
-    static let maxHabitCount = 4 // 最大习惯数量
+    static let maxHabitCount = 6 // 最大习惯数量
     static let maxCheckInCount = 5 // 最大打卡次数
     
     // 防止递归调用
@@ -46,14 +46,20 @@ class HabitStore: ObservableObject {
     // MARK: - Habits 操作
     
     func addHabit(_ habit: Habit) {
-        // 检查是否已达到最大习惯数量
-        guard habits.count < HabitStore.maxHabitCount else {
+        // 检查是否已达到最大习惯数量且不是Pro用户或Debug模式
+        if !canAddHabit() {
             return
         }
         
+        // 添加新习惯
         habits.append(habit)
+        
+        // 立即保存数据并刷新小组件
         saveData()
         refreshWidgets()
+        
+        // 发送通知
+        objectWillChange.send()
     }
     
     // 检查是否可以添加新习惯

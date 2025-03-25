@@ -26,7 +26,7 @@ struct HabitFormView: View {
     init(isPresented: Binding<Bool>) {
         self._isPresented = isPresented
         // 常用emoji列表
-        let commonEmojis = ["😀", "🎯", "💪", "🏃", "📚", "💤", "🍎", "💧", "🧘", "✍️", "🏋️", "🚴", "🧠", "🌱", "🚫", "💊"]
+        let commonEmojis = ["😀", "🎯", "💪", "🏃", "📚", "💤", "🍎", "💧", "🧘", "✍️", "🏋️", "🚴", "🧠", "🌱", "🚫", "🎉", "🔥", "✨", "🍤", "🍰", "🎂", "🧘‍♀️", "🎾"]
         // 随机选择一个emoji作为初始值
         self._selectedEmoji = State(initialValue: commonEmojis.randomElement() ?? "📝")
         
@@ -115,7 +115,7 @@ struct HabitFormView: View {
                      (previousMaxCount > maxCheckInCount ? "超过新上限的记录将被调整为新的上限值。" : "") +
                      "\n是否继续？")
             }
-            // 显示升级提示
+            // TODO: 显示升级提示。目前这里存在 bug，实际不弹出提示
             .alert("升级提示", isPresented: $showingProAlert) {
                 Button("取消", role: .cancel) { }
                 Button("升级") {
@@ -227,7 +227,7 @@ struct HabitFormView: View {
             Section(header: VStack(alignment: .leading, spacing: 3) {
                 Text("颜色主题")
                     .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
-                Text("🔒 为高级主题")
+                Text("购买 PRO 版本解锁高级主题")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }) {
