@@ -212,86 +212,6 @@ struct HabitCardView: View {
             }
     }
     
-    // Emoji打卡按钮
-    private var checkInButton: some View {
-            Button(action: {
-            checkInHabit()
-            }) {
-                ZStack {
-                let currentCount = habitStore.getLogCountForDate(habitId: habit.id, date: Date())
-                // 圆环
-                if habit.habitType == .checkbox {
-                    // Checkbox型习惯的圆环 - 先显示底色轨道
-                    Circle()
-                        .stroke(
-                            colorScheme == .dark ?
-                                theme.color(for: 1, isDarkMode: true).opacity(0.7) :
-                                theme.color(for: 1, isDarkMode: false).opacity(0.4),
-                            style: StrokeStyle(lineWidth: 10)
-                        )
-                        .frame(width: 64, height: 64)
-                    
-                    // 完成圆环
-                        Circle()
-                        .trim(from: 0, to: isCompletedToday ? 1 : 0)
-                        .stroke(
-                            colorScheme == .dark 
-                                ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
-                                : theme.color(for: 5, isDarkMode: false),
-                            style: StrokeStyle(
-                                lineWidth: 10,
-                                lineCap: .round,
-                                lineJoin: .round
-                            )
-                        )
-                        .frame(width: 64, height: 64)
-                        .rotationEffect(.degrees(-90))
-                        .animation(.easeInOut(duration: 0.5), value: isCompletedToday)
-                } else {
-                    // Count型习惯的圆环 - 先显示底色轨道
-                    Circle()
-                        .stroke(
-                            colorScheme == .dark ?
-                                theme.color(for: 1, isDarkMode: true).opacity(0.7) :
-                                theme.color(for: 1, isDarkMode: false).opacity(0.4),
-                            style: StrokeStyle(lineWidth: 10)
-                        )
-                        .frame(width: 64, height: 64)
-                    
-                    // 进度环
-                            Circle()
-                        .trim(from: 0, to: isAnimating ? animatedCompletion : countProgress)
-                        .stroke(
-                            colorScheme == .dark 
-                                ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
-                                : theme.color(for: 5, isDarkMode: false),
-                            style: StrokeStyle(
-                                lineWidth: 10,
-                                lineCap: .round,
-                                lineJoin: .round
-                            )
-                        )
-                        .frame(width: 64, height: 64)
-                        .rotationEffect(.degrees(-90))
-                }
-                
-                VStack(spacing: 0) {
-                    // Emoji
-                    Text(habit.emoji)
-                        .font(.system(size: 28))
-
-                    /* if habit.habitType == .count {
-                        Text("\(currentCount)/\(habit.maxCheckInCount)")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                    } */
-                }
-            }
-            }
-            .buttonStyle(PlainButtonStyle())
-        .frame(width: 70, height: 70)
-    }
-    
     // 打卡操作
     private func checkInHabit() {
         // 获取当前日期的计数
@@ -309,12 +229,15 @@ struct HabitCardView: View {
         let startCompletion = Double(min(currentCount, habit.maxCheckInCount)) / Double(habit.maxCheckInCount)
         let targetCompletion = Double(min(newCount, habit.maxCheckInCount)) / Double(habit.maxCheckInCount)
         
+        // 先执行实际的打卡操作
+        habitStore.logHabit(habitId: habit.id, date: Date())
+        
         // 设置动画
         isAnimating = true
         animatedCompletion = startCompletion
         
         // 使用withAnimation创建流畅的动画效果
-        withAnimation(.easeInOut(duration: 0.5)) {
+        withAnimation(.easeInOut(duration: 0.3)) {
             if newCount == 0 {
                 // 如果是取消打卡，动画应该从当前位置返回到0
                 animatedCompletion = 0
@@ -324,14 +247,85 @@ struct HabitCardView: View {
             }
         }
         
-        // 执行实际的打卡操作
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            habitStore.logHabit(habitId: habit.id, date: Date())
-            
-            // 重置动画状态（在动画完成后）
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                isAnimating = false
+        // 重置动画状态
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            isAnimating = false
+        }
+    }
+    
+    // Emoji打卡按钮
+    private var checkInButton: some View {
+        Button(action: {
+            checkInHabit()
+        }) {
+            ZStack {
+                let currentCount = habitStore.getLogCountForDate(habitId: habit.id, date: Date())
+                // 圆环
+                if habit.habitType == .checkbox {
+                    // Checkbox型习惯的圆环 - 先显示底色轨道
+                    Circle()
+                        .stroke(
+                            colorScheme == .dark ?
+                                theme.color(for: 1, isDarkMode: true).opacity(0.7) :
+                                theme.color(for: 1, isDarkMode: false).opacity(0.4),
+                            style: StrokeStyle(lineWidth: 10)
+                        )
+                        .frame(width: 64, height: 64)
+                    
+                    // 完成圆环
+                    Circle()
+                        .trim(from: 0, to: isCompletedToday ? 1 : 0)
+                        .stroke(
+                            colorScheme == .dark 
+                                ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
+                                : theme.color(for: 5, isDarkMode: false),
+                            style: StrokeStyle(
+                                lineWidth: 10,
+                                lineCap: .round,
+                                lineJoin: .round
+                            )
+                        )
+                        .frame(width: 64, height: 64)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.easeInOut(duration: 0.3), value: isCompletedToday)
+                } else {
+                    // Count型习惯的圆环 - 先显示底色轨道
+                    Circle()
+                        .stroke(
+                            colorScheme == .dark ?
+                                theme.color(for: 1, isDarkMode: true).opacity(0.7) :
+                                theme.color(for: 1, isDarkMode: false).opacity(0.4),
+                            style: StrokeStyle(lineWidth: 10)
+                        )
+                        .frame(width: 64, height: 64)
+                    
+                    // 进度环
+                    Circle()
+                        .trim(from: 0, to: isAnimating ? animatedCompletion : countProgress)
+                        .stroke(
+                            colorScheme == .dark 
+                                ? theme.color(for: min(habit.maxCheckInCount, 4), isDarkMode: true)
+                                : theme.color(for: 5, isDarkMode: false),
+                            style: StrokeStyle(
+                                lineWidth: 10,
+                                lineCap: .round,
+                                lineJoin: .round
+                            )
+                        )
+                        .frame(width: 64, height: 64)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.easeInOut(duration: 0.3), value: isAnimating)
+                        .animation(.easeInOut(duration: 0.3), value: animatedCompletion)
+                }
+                
+                VStack(spacing: 0) {
+                    // Emoji
+                    Text(habit.emoji)
+                        .font(.system(size: 28))
+                }
             }
         }
+        .buttonStyle(PlainButtonStyle())
+        .frame(width: 70, height: 70)
     }
 } 

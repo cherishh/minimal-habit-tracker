@@ -607,12 +607,15 @@ struct DayCell: View {
                 let startCompletion = Double(min(currentCount, habit.maxCheckInCount)) / Double(habit.maxCheckInCount)
                 let targetCompletion = Double(min(newCount, habit.maxCheckInCount)) / Double(habit.maxCheckInCount)
                 
+                // 先执行实际的打卡操作
+                habitStore.logHabit(habitId: habit.id, date: date)
+                
                 // 设置动画
                 isAnimating = true
                 animatedCompletion = startCompletion
                 
                 // 使用withAnimation创建流畅的动画效果
-                withAnimation(.easeInOut(duration: 0.5)) {
+                withAnimation(.easeInOut(duration: 0.3)) {
                     if newCount == 0 {
                         // 如果是取消打卡，动画应该从当前位置返回到0
                         animatedCompletion = 0
@@ -622,14 +625,9 @@ struct DayCell: View {
                     }
                 }
                 
-                // 执行实际的打卡操作
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    habitStore.logHabit(habitId: habit.id, date: date)
-                    
-                    // 重置动画状态（在动画完成后）
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        isAnimating = false
-                    }
+                // 重置动画状态
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    isAnimating = false
                 }
             }
         }
