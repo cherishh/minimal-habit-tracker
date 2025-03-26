@@ -30,7 +30,7 @@ struct HabitDetailView: View {
                 // 年份选择器
                 YearPicker(selectedYear: $selectedYear)
                     .padding(.horizontal)
-                    .contentShape(Rectangle()) // 确保整个区域可点击
+                    .contentShape(Rectangle())
                 
                 // GitHub风格热力图
                 GitHubStyleHeatmapView(
@@ -39,7 +39,7 @@ struct HabitDetailView: View {
                     colorScheme: colorScheme
                 )
                 .padding(.horizontal)
-                .allowsHitTesting(true) // 确保内部视图可接收点击
+                .allowsHitTesting(true)
                 
                 // 热力图说明和操作栏
                 heatmapLegendView
@@ -56,14 +56,16 @@ struct HabitDetailView: View {
                 .padding(.horizontal)
             }
             .padding(.vertical)
-            .frame(maxWidth: .infinity) // 确保占据最大宽度
+            .frame(maxWidth: .infinity)
         }
         .scrollContentBackground(.hidden)
         .background(Color.clear)
-        .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("\(habit.emoji) \(habit.name)")
+        .navigationBarTitleDisplayMode(.large)
         .navigationBarBackButtonHidden(true)
+        .enableSwipeBack()
         .toolbar {
+            // 左侧返回按钮
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: { dismissAction() }) {
                     Image("left")
@@ -74,6 +76,8 @@ struct HabitDetailView: View {
                         .primaryWithOpacity(colorScheme: colorScheme)
                 }
             }
+            
+            // 右侧操作按钮
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 8) {
                     // 分享按钮
@@ -111,6 +115,12 @@ struct HabitDetailView: View {
         .sheet(isPresented: $showingEditSheet) {
             HabitFormView(isPresented: $showingEditSheet, habit: habit)
         }
+        .alert("分享功能即将推出", isPresented: $showingShareAlert) {
+            Button("好的", role: .cancel) { }
+        } message: {
+            Text("正在开发中，敬请期待")
+        }
+        .preferredColorScheme(getPreferredColorScheme())
         .onAppear {
             // 添加对习惯删除通知的监听
             NotificationCenter.default.addObserver(forName: NSNotification.Name("HabitDeleted"), object: nil, queue: .main) { notification in
@@ -124,12 +134,6 @@ struct HabitDetailView: View {
             // 移除通知监听
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name("HabitDeleted"), object: nil)
         }
-        .alert("分享功能即将推出", isPresented: $showingShareAlert) {
-            Button("好的", role: .cancel) { }
-        } message: {
-            Text("正在开发中，敬请期待")
-        }
-        .preferredColorScheme(getPreferredColorScheme())
     }
     
     private var heatmapLegendView: some View {
@@ -252,14 +256,14 @@ struct MonthCalendarView: View {
         VStack(spacing: 15) {
             // 月份选择器
             HStack {
-                Button(action: previousMonth) {
-                    Image("left")
-                        .resizable()
-                        .renderingMode(.template)
-                        .scaledToFit()
-                        .frame(width: 16, height: 16)
-                        .primaryWithOpacity(colorScheme: colorScheme)
-                }
+                // Button(action: previousMonth) {
+                //     Image("left")
+                //         .resizable()
+                //         .renderingMode(.template)
+                //         .scaledToFit()
+                //         .frame(width: 16, height: 16)
+                //         .primaryWithOpacity(colorScheme: colorScheme)
+                // }
                 
                 Spacer()
                 
@@ -269,14 +273,14 @@ struct MonthCalendarView: View {
                 
                 Spacer()
                 
-                Button(action: nextMonth) {
-                    Image("right")
-                        .resizable()
-                        .renderingMode(.template)
-                        .scaledToFit()
-                        .frame(width: 16, height: 16)
-                        .primaryWithOpacity(colorScheme: colorScheme)
-                }
+                // Button(action: nextMonth) {
+                //     Image("right")
+                //         .resizable()
+                //         .renderingMode(.template)
+                //         .scaledToFit()
+                //         .frame(width: 16, height: 16)
+                //         .primaryWithOpacity(colorScheme: colorScheme)
+                // }
                 
                 Button(action: goToCurrentMonth) {
                     Image("locate")
@@ -348,7 +352,7 @@ struct MonthCalendarView: View {
                             // 确定滑动方向和距离是否足够切换月份
                             if value.translation.width > 50 {
                                 // 向右滑动超过阈值 - 切换到上个月
-                                withAnimation(.easeOut(duration: 0.2)) {
+                                withAnimation(.easeOut(duration: 0.15)) {
                                     dragOffset = UIScreen.main.bounds.width
                                 }
                                 
@@ -359,7 +363,7 @@ struct MonthCalendarView: View {
                                 }
                             } else if value.translation.width < -50 {
                                 // 向左滑动超过阈值 - 切换到下个月
-                                withAnimation(.easeOut(duration: 0.2)) {
+                                withAnimation(.easeOut(duration: 0.15)) {
                                     dragOffset = -UIScreen.main.bounds.width
                                 }
                                 
@@ -370,7 +374,7 @@ struct MonthCalendarView: View {
                                 }
                             } else {
                                 // 不足以切换，回到当前月
-                                withAnimation(.easeOut(duration: 0.2)) {
+                                withAnimation(.easeOut(duration: 0.15)) {
                                     dragOffset = 0
                                     isAnimating = false
                                 }
@@ -378,7 +382,7 @@ struct MonthCalendarView: View {
                         } else {
                             // 非水平滑动时重置状态
                             if dragOffset != 0 {
-                                withAnimation(.easeOut(duration: 0.2)) {
+                                withAnimation(.easeOut(duration: 0.15)) {
                                     dragOffset = 0
                                 }
                             }

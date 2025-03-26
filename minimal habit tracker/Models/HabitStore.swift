@@ -71,6 +71,10 @@ class HabitStore: ObservableObject {
         habits.removeAll { $0.id == habit.id }
         // 同时删除相关的日志
         habitLogs.removeAll { $0.habitId == habit.id }
+        
+        // 清除使用该习惯的 Widget 配置
+        cleanupWidgetsForDeletedHabit(habitId: habit.id)
+        
         saveData()
         refreshWidgets()
     }
@@ -357,5 +361,21 @@ class HabitStore: ObservableObject {
     func upgradeToPro() {
         isPro = true
         objectWillChange.send()
+    }
+    
+    // MARK: - Widget 配置清理
+    
+    /// 清除使用被删除习惯的 Widget 配置
+    private func cleanupWidgetsForDeletedHabit(habitId: UUID) {
+        print("【HabitStore】清理使用已删除习惯的Widget配置: \(habitId.uuidString)")
+        
+        // 删除后，我们只需刷新所有 Widget
+        // Widget 数据提供者会自动处理找不到配置的习惯的情况
+        // 延迟刷新确保数据已保存
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            // 强制刷新所有 Widget，确保数据一致性
+            WidgetCenter.shared.reloadAllTimelines()
+            print("【HabitStore】强制刷新所有 Widget")
+        }
     }
 } 

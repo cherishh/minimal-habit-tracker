@@ -90,8 +90,8 @@ struct ContentView: View {
                                 .cornerRadius(10)
                                     .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                             }
-                        }
-                        .padding(.trailing)
+                    }
+                    .padding(.trailing)
                 }
                 .padding(.top, 8)
                 .padding(.bottom, 8)
