@@ -8,6 +8,7 @@ struct SettingsView: View {
     @EnvironmentObject var habitStore: HabitStore
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
+    @State private var forceUpdate = false // 简单的状态触发器
     @State private var showingImportExport = false
     @State private var showingComingSoonAlert = false
     @State private var comingSoonMessage = ""
@@ -103,15 +104,22 @@ struct SettingsView: View {
                 Alert(title: Text("无法发送邮件"), message: Text("您的设备未设置邮件账户或无法发送邮件。请手动发送邮件至jasonlovescola@gmail.com"), dismissButton: .default(Text("确定")))
             }
         }
-        .preferredColorScheme(getPreferredColorScheme())
+        .id(forceUpdate) // 使用简单的状态变量
+        .environment(\.colorScheme, getCurrentColorScheme())
+        .onChange(of: themeMode) { _ in
+            // 当主题模式变化时，切换状态触发视图更新
+            forceUpdate.toggle()
+        }
     }
     
-    // 根据设置返回颜色模式
-    private func getPreferredColorScheme() -> ColorScheme? {
+    // 简化为一个方法，直接返回当前应该使用的颜色方案
+    private func getCurrentColorScheme() -> ColorScheme {
         switch themeMode {
-            case 1: return .light     // 明亮模式
-            case 2: return .dark      // 暗黑模式
-            default: return nil       // 自适应系统
+            case 1: return .light    // 明亮模式
+            case 2: return .dark     // 暗黑模式
+            default:                 // 跟随系统模式
+                let isDark = UIScreen.main.traitCollection.userInterfaceStyle == .dark
+                return isDark ? .dark : .light
         }
     }
     
