@@ -56,9 +56,10 @@ struct PaymentView: View {
                         // 永久选项
                         PaymentOptionCard(
                             title: "Lifetime",
-                            price: "¥66.00",
+                            price: "¥36.00",
                             subtitle: "Limited time offer!",
-                            originalPrice: "¥126.00",
+                            originalPrice: "¥96.00",
+                            // originalPrice: "¥126.00",
                             isSelected: selectedPlan == .lifetime,
                             action: {
                                 selectedPlan = .lifetime
@@ -74,13 +75,15 @@ struct PaymentView: View {
                             .fontWeight(.bold)
                             .padding(.top)
                         
-                        ComparisonRow(feature: "Annual View", standardEnabled: true, proEnabled: true)
-                        ComparisonRow(feature: "Minimalist View", standardEnabled: true, proEnabled: true)
-                        ComparisonRow(feature: "Custom Habit Theme Color", standardEnabled: true, proEnabled: true)
-                        ComparisonRow(feature: "Advanced Themes", standardEnabled: false, proEnabled: true)
+                        ComparisonRow(feature: "Widget Support", standardEnabled: true, proEnabled: true)
+                        ComparisonRow(feature: "Basic Statistics", standardEnabled: true, proEnabled: true)
+                        ComparisonRow(feature: "Share Habit", standardEnabled: true, proEnabled: true)
+                        ComparisonRow(feature: "Export/Import Data", standardEnabled: true, proEnabled: true)
+                        ComparisonRow(feature: "More Theme Colors", standardEnabled: false, proEnabled: true)
                         ComparisonRow(feature: "Unlimited Habits", standardEnabled: false, proEnabled: true)
                         ComparisonRow(feature: "iCloud Sync", standardEnabled: false, proEnabled: true)
-                        ComparisonRow(feature: "Note Taking", standardEnabled: false, proEnabled: true)
+                        ComparisonRow(feature: "Ads Free", standardEnabled: false, proEnabled: true)
+                        // ComparisonRow(feature: "Remove Watermark", standardEnabled: false, proEnabled: true)
                     }
                     .padding()
                     
@@ -123,7 +126,7 @@ struct PaymentView: View {
                     }
                     .font(.caption)
                     .foregroundColor(.secondary)
-                    .padding(.top)
+                    // .padding(.top)
                 }
             }
             .navigationBarItems(leading: Button("Close") {

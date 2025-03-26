@@ -68,7 +68,7 @@ struct SettingsView: View {
                 
                 AppearanceSection
                 DataSection
-                UpgradeSection
+                // UpgradeSection
                 AboutSection
                 
                 // Debug 按钮

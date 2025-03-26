@@ -256,14 +256,6 @@ struct MonthCalendarView: View {
         VStack(spacing: 15) {
             // 月份选择器
             HStack {
-                // Button(action: previousMonth) {
-                //     Image("left")
-                //         .resizable()
-                //         .renderingMode(.template)
-                //         .scaledToFit()
-                //         .frame(width: 16, height: 16)
-                //         .primaryWithOpacity(colorScheme: colorScheme)
-                // }
                 
                 Spacer()
                 
@@ -272,15 +264,30 @@ struct MonthCalendarView: View {
                     .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                 
                 Spacer()
+
+                Button(action: previousMonth) {
+                    Image("left")
+                        .resizable()
+                        .renderingMode(.template)
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                        .frame(width: 30, height: 30)
+                        .background(Color(UIColor.systemGray5).opacity(0.6))
+                        .cornerRadius(8)
+                        .primaryWithOpacity(colorScheme: colorScheme)
+                }
                 
-                // Button(action: nextMonth) {
-                //     Image("right")
-                //         .resizable()
-                //         .renderingMode(.template)
-                //         .scaledToFit()
-                //         .frame(width: 16, height: 16)
-                //         .primaryWithOpacity(colorScheme: colorScheme)
-                // }
+                Button(action: nextMonth) {
+                    Image("right")
+                        .resizable()
+                        .renderingMode(.template)
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                        .frame(width: 30, height: 30)
+                        .background(Color(UIColor.systemGray5).opacity(0.6))
+                        .cornerRadius(8)
+                        .primaryWithOpacity(colorScheme: colorScheme)
+                }
                 
                 Button(action: goToCurrentMonth) {
                     Image("locate")
@@ -288,7 +295,7 @@ struct MonthCalendarView: View {
                         .renderingMode(.template)
                         .scaledToFit()
                         .frame(width: 16, height: 16)
-                        .frame(width: 32, height: 32)
+                        .frame(width: 30, height: 30)
                         .background(Color(UIColor.systemGray5).opacity(0.6))
                         .cornerRadius(8)
                         .foregroundColor(.primary)
@@ -679,18 +686,18 @@ struct YearPicker: View {
                     .primaryWithOpacity(colorScheme: colorScheme)
             }
             
-            Button(action: goToCurrentYear) {
-                Image("locate")
-                    .resizable()
-                    .renderingMode(.template)
-                    .scaledToFit()
-                    .frame(width: 16, height: 16)
-                    .frame(width: 32, height: 32)
-                    .background(Color(UIColor.systemGray5).opacity(0.6))
-                    .cornerRadius(8)
-                    .foregroundColor(.primary)
-            }
-            .padding(.leading, 10)
+            // Button(action: goToCurrentYear) {
+            //     Image("locate")
+            //         .resizable()
+            //         .renderingMode(.template)
+            //         .scaledToFit()
+            //         .frame(width: 16, height: 16)
+            //         .frame(width: 32, height: 32)
+            //         .background(Color(UIColor.systemGray5).opacity(0.6))
+            //         .cornerRadius(8)
+            //         .foregroundColor(.primary)
+            // }
+            // .padding(.leading, 10)
         }
     }
     

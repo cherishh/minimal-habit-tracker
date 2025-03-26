@@ -89,7 +89,7 @@ struct ContentView: View {
                                 .background(Color(UIColor.systemGray5).opacity(0.6))
                                 .cornerRadius(10)
                                     .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
-                            }
+                        }
                     }
                     .padding(.trailing)
                 }
