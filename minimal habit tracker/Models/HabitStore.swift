@@ -19,11 +19,18 @@ class HabitStore: ObservableObject {
             sharedDefaults.set(isPro, forKey: isProKey)
         }
     }
+    @Published var appLanguage: String = "" {
+        didSet {
+            sharedDefaults.set(appLanguage, forKey: appLanguageKey)
+            NotificationCenter.default.post(name: NSNotification.Name("LanguageChanged"), object: nil)
+        }
+    }
     
     private let habitsKey = "habits"
     private let habitLogsKey = "habitLogs"
     private let debugModeKey = "debugMode"
     private let isProKey = "isPro"
+    private let appLanguageKey = "appLanguage"
     
     // 使用 App Group 的 UserDefaults 来共享数据
     private let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker") ?? UserDefaults.standard
@@ -40,6 +47,24 @@ class HabitStore: ObservableObject {
         // 加载 Pro 和 Debug 状态
         debugMode = sharedDefaults.bool(forKey: debugModeKey)
         isPro = sharedDefaults.bool(forKey: isProKey)
+        
+        // 加载语言设置
+        if let savedLanguage = sharedDefaults.string(forKey: appLanguageKey), !savedLanguage.isEmpty {
+            appLanguage = savedLanguage
+        } else {
+            // 默认使用系统语言
+            let preferredLanguage = Locale.preferredLanguages.first ?? "en"
+            // 根据系统语言设置默认语言
+            if preferredLanguage.hasPrefix("zh") {
+                appLanguage = "zh-Hans" // 中文
+            } else if preferredLanguage.hasPrefix("ja") {
+                appLanguage = "ja" // 日语
+            } else {
+                appLanguage = "en" // 英文
+            }
+            sharedDefaults.set(appLanguage, forKey: appLanguageKey)
+        }
+        
         loadData()
     }
     
@@ -377,5 +402,11 @@ class HabitStore: ObservableObject {
             WidgetCenter.shared.reloadAllTimelines()
             print("【HabitStore】强制刷新所有 Widget")
         }
+    }
+    
+    // 设置应用语言
+    func setAppLanguage(_ language: String) {
+        appLanguage = language
+        objectWillChange.send()
     }
 } 

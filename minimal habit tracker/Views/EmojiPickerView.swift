@@ -61,12 +61,12 @@ struct EmojiPickerView: View {
     
     // 表情符号分类定义 - 名称和图标
     let emojiCategoryDefinitions: [(name: String, symbol: String)] = [
-        ("最近使用", "clock"),
-        ("人物", "person"),
-        ("自然", "leaf"),
-        ("物品", "gift"),
-        ("地点", "building.2"),
-        ("符号", "number")
+        ("最近使用".localized(in: .emojiPicker), "clock"),
+        ("人物".localized(in: .emojiPicker), "person"),
+        ("自然".localized(in: .emojiPicker), "leaf"),
+        ("物品".localized(in: .emojiPicker), "gift"),
+        ("地点".localized(in: .emojiPicker), "building.2"),
+        ("符号".localized(in: .emojiPicker), "number")
     ]
     
     // 根据分类索引获取对应的emoji数组
@@ -275,7 +275,7 @@ struct EmojiPickerView: View {
                 // 选项卡切换
                 HStack {
                     Button(action: { selectedTab = 0 }) {
-                        Text("Emoji")
+                        Text("Emoji".localized(in: .emojiPicker))
                             .fontWeight(selectedTab == 0 ? .bold : .regular)
                             .padding(.bottom, 8)
                             .border(width: selectedTab == 0 ? 2 : 0, edges: [.bottom], color: .primary)
@@ -285,7 +285,7 @@ struct EmojiPickerView: View {
                         .frame(width: 40)
                     
                     Button(action: { selectedTab = 1 }) {
-                        Text("Text")
+                        Text("Text".localized(in: .emojiPicker))
                             .fontWeight(selectedTab == 1 ? .bold : .regular)
                             .padding(.bottom, 8)
                             .border(width: selectedTab == 1 ? 2 : 0, edges: [.bottom], color: .primary)
@@ -347,7 +347,7 @@ struct EmojiPickerView: View {
                 } else {
                     // Text模式
                     VStack(spacing: 20) {
-                        TextField("输入文字", text: $textInput)
+                        TextField("输入文字".localized(in: .emojiPicker), text: $textInput)
                             .font(.system(size: 28))
                             .multilineTextAlignment(.center)
                             .frame(height: 60)
@@ -362,7 +362,7 @@ struct EmojiPickerView: View {
                                 }
                             }
                         
-                        Text("将取第一个字作为习惯图标。你也可以输入自定义的 emoji")
+                        Text("将取第一个字作为习惯图标。你也可以输入自定义的 emoji".localized(in: .emojiPicker))
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .padding(.top, 5)
@@ -376,17 +376,17 @@ struct EmojiPickerView: View {
                 // 移除底部操作按钮
                 Spacer() // 用Spacer替代底部按钮区域
             }
-            .navigationTitle("选择图标")
+            .navigationTitle("选择图标".localized(in: .emojiPicker))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("取消") {
+                    Button("取消".localized(in: .common)) {
                     presentationMode.wrappedValue.dismiss()
                     }
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("确定") {
+                    Button("确定".localized(in: .common)) {
                         // 确认选择，更新绑定值
                         selectedEmoji = tempSelectedEmoji
                         // 这里才保存到最近使用列表

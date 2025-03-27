@@ -115,10 +115,10 @@ struct HabitDetailView: View {
         .sheet(isPresented: $showingEditSheet) {
             HabitFormView(isPresented: $showingEditSheet, habit: habit)
         }
-        .alert("分享功能即将推出", isPresented: $showingShareAlert) {
-            Button("好的", role: .cancel) { }
+        .alert("分享功能即将推出".localized(in: .habitDetail), isPresented: $showingShareAlert) {
+            Button("好的".localized(in: .common), role: .cancel) { }
         } message: {
-            Text("正在开发中，敬请期待")
+            Text("正在开发中，敬请期待".localized(in: .habitDetail))
         }
         .preferredColorScheme(getPreferredColorScheme())
         .onAppear {
@@ -142,33 +142,33 @@ struct HabitDetailView: View {
                 // 左侧显示统计数据
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
-                        Text("总计天数")
+                        Text("总计天数".localized(in: .habitDetail))
                             .font(.caption)
                             .foregroundColor(Color(hex: "#94a3b8"))
                         
-                        Text("\(habitStore.getTotalLoggedDays(habitId: habit.id))天")
+                        Text("\(habitStore.getTotalLoggedDays(habitId: habit.id))" + "天".localized(in: .habitDetail))
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundColor(colorScheme == .dark ? Color(hex: "#e2e8f0") : Color(hex: "#334155"))
                     }
                     
                     HStack(spacing: 6) {
-                        Text("最长连续")
+                        Text("最长连续".localized(in: .habitDetail))
                             .font(.caption)
                             .foregroundColor(Color(hex: "#94a3b8"))
                         
-                        Text("\(habitStore.getLongestStreak(habitId: habit.id))天")
+                        Text("\(habitStore.getLongestStreak(habitId: habit.id))" + "天".localized(in: .habitDetail))
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundColor(colorScheme == .dark ? Color(hex: "#e2e8f0") : Color(hex: "#334155"))
                     }
                     
                     HStack(spacing: 6) {
-                        Text("本月打卡")
+                        Text("本月打卡".localized(in: .habitDetail))
                             .font(.caption)
                             .foregroundColor(Color(hex: "#94a3b8"))
                         
-                        Text("\(getMonthlyLoggedDays(year: selectedYear, month: selectedMonth))天")
+                        Text("\(getMonthlyLoggedDays(year: selectedYear, month: selectedMonth))" + "天".localized(in: .habitDetail))
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundColor(colorScheme == .dark ? Color(hex: "#e2e8f0") : Color(hex: "#334155"))
@@ -180,7 +180,7 @@ struct HabitDetailView: View {
                 // 图例，仅在count类型时显示
                 if habit.habitType == .count {
                     HStack(spacing: 4) {
-                        Text("少")
+                        Text("少".localized(in: .habitDetail))
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         
@@ -194,7 +194,7 @@ struct HabitDetailView: View {
                                 .frame(width: 12, height: 12)
                         }
                         
-                        Text("多")
+                        Text("多".localized(in: .habitDetail))
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
@@ -259,7 +259,7 @@ struct MonthCalendarView: View {
                 
                 Spacer()
                 
-                Text("\(selectedMonth)月")
+                Text(getLocalizedMonthText(month: selectedMonth))
                     .font(.headline)
                     .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                 
@@ -306,7 +306,7 @@ struct MonthCalendarView: View {
             // 星期标题
             HStack {
                 ForEach(daysOfWeek, id: \.self) { day in
-                    Text(day)
+                    Text(day.localized(in: .habitDetail))
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity)
@@ -509,10 +509,15 @@ struct MonthCalendarView: View {
         }
     }
     
+    // 移动到当前月
     private func goToCurrentMonth() {
-        let currentDate = Date()
-        let calendar = Calendar.current
-        selectedMonth = calendar.component(.month, from: currentDate)
+        let currentMonth = Calendar.current.component(.month, from: Date())
+        selectedMonth = currentMonth
+    }
+    
+    // 获取本地化的月份文本
+    private func getLocalizedMonthText(month: Int) -> String {
+        return "\(month)月".localized(in: .habitDetail)
     }
 }
 
@@ -671,7 +676,7 @@ struct YearPicker: View {
             
             Spacer()
             
-            Text(String(format: "%d年", selectedYear))
+            Text(String(format: "%d", selectedYear))
                 .font(.headline)
                 .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
             
@@ -734,16 +739,16 @@ struct GitHubStyleHeatmapView: View {
                     Spacer().frame(height: 24)  // 为月份标签留出空间
                     
                     VStack(spacing: cellSpacing) {
-                        Text("一").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
+                        Text(formatHeatmapWeekday("一")).font(.caption2).foregroundColor(.secondary).frame(width: 18, height: cellWidth)
                         Text("").frame(height: cellWidth)  // 空行
-                        Text("三").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
+                        Text(formatHeatmapWeekday("三")).font(.caption2).foregroundColor(.secondary).frame(width: 18, height: cellWidth)
                         Text("").frame(height: cellWidth)  // 空行
-                        Text("五").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
+                        Text(formatHeatmapWeekday("五")).font(.caption2).foregroundColor(.secondary).frame(width: 18, height: cellWidth)
                         Text("").frame(height: cellWidth)  // 空行
-                        Text("日").font(.caption2).foregroundColor(.secondary).frame(height: cellWidth)
+                        Text(formatHeatmapWeekday("日")).font(.caption2).foregroundColor(.secondary).frame(width: 18, height: cellWidth)
                     }
                 }
-                .frame(width: 15)  // 最小宽度
+                .frame(width: 19)  // 最小宽度
                 .offset(y: 4)  // 微调下移1.5像素使其与格子完美对齐
                 
                 // 格子网格和月份标签
@@ -758,10 +763,10 @@ struct GitHubStyleHeatmapView: View {
                             
                             // 月份标签
                             ForEach(monthPositions, id: \.0) { month, exactPosition in
-                                Text(monthLabels[month - 1])
+                                Text(formatHeatmapMonth(month))
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
-                                    .position(x: CGFloat(exactPosition) * (cellWidth + cellSpacing) + cellWidth/2, y: 10)
+                                    .position(x: CGFloat(exactPosition) * (cellWidth + cellSpacing) + cellWidth/2 + 3, y: 10)
                             }
                         }
                         .padding(.bottom, 4)
@@ -849,6 +854,43 @@ struct GitHubStyleHeatmapView: View {
         }
         
         return positions
+    }
+    
+    // 获取热力图月份的格式化字符串
+    private func formatHeatmapMonth(_ month: Int) -> String {
+        // 直接使用habitStore的语言设置而不是系统locale
+        let language = HabitStore.shared.appLanguage
+        
+        // 如果设置为英文或系统默认但系统语言是英文
+        if language == "en" || (language.isEmpty && Locale.preferredLanguages.first?.hasPrefix("en") == true) {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US")
+            formatter.dateFormat = "MMM"
+            if let date = Calendar.current.date(from: DateComponents(year: 2000, month: month, day: 1)) {
+                return formatter.string(from: date)
+            }
+        }
+        // 其他语言环境下使用默认格式
+        return "\(month)月".localized(in: .habitDetail)
+    }
+    
+    // 获取热力图星期标签的格式化字符串
+    private func formatHeatmapWeekday(_ weekday: String) -> String {
+        // 直接使用habitStore的语言设置而不是系统locale
+        let language = HabitStore.shared.appLanguage
+        
+        // 如果设置为英文或系统默认但系统语言是英文
+        if language == "en" || (language.isEmpty && Locale.preferredLanguages.first?.hasPrefix("en") == true) {
+            switch weekday {
+            case "一": return "Mo"
+            case "三": return "We"
+            case "五": return "Fr"
+            case "日": return "Su"
+            default: return weekday
+            }
+        }
+        // 其他语言环境下使用默认的本地化字符串
+        return weekday.localized(in: .habitDetail)
     }
 }
 

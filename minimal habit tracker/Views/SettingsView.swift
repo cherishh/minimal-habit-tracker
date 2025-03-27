@@ -19,6 +19,9 @@ struct SettingsView: View {
     @State private var showingMailCannotSendAlert = false
     @State private var showingPaymentView = false
     
+    // 语言选择状态
+    @State private var selectedLanguage: String = HabitStore.shared.appLanguage
+    
     // 覆盖版本号（保持与项目文件一致）
     let appVersion = "0.1"
     let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "未知构建号"
@@ -170,18 +173,36 @@ struct SettingsView: View {
     }
     
     private var AppearanceSection: some View {
-        Section(header: Text("主题设置")) {
-            Picker("显示模式", selection: $themeMode) {
-                Text("跟随系统").tag(0)
-                Text("明亮模式").tag(1)
-                Text("暗黑模式").tag(2)
+        Section(header: Text("主题设置".localized(in: .settings))) {
+            Picker("显示模式".localized(in: .settings), selection: $themeMode) {
+                Text("跟随系统".localized(in: .settings)).tag(0)
+                Text("明亮模式".localized(in: .settings)).tag(1)
+                Text("暗黑模式".localized(in: .settings)).tag(2)
+            }
+            
+            Picker("语言".localized(in: .settings), selection: $selectedLanguage) {
+                Text("系统默认".localized(in: .settings)).tag("")
+                Text("中文".localized(in: .settings)).tag("zh-Hans")
+                Text("英文".localized(in: .settings)).tag("en")
+                Text("日语".localized(in: .settings)).tag("ja")
+            }
+            .onChange(of: selectedLanguage) { newValue in
+                // 不直接调用habitStore.setAppLanguage，而是先保存当前界面状态
+                DispatchQueue.main.async {
+                    // 异步修改语言设置
+                    habitStore.appLanguage = newValue
+                    // 发送通知但不关闭当前界面
+                    NotificationCenter.default.post(name: NSNotification.Name("LanguageChanged"), object: nil)
+                    // 强制更新当前视图
+                    forceUpdate.toggle()
+                }
             }
         }
     }
     
     private var DataSection: some View {
-        Section(header: Text("数据管理")) {
-            Button("导入 & 导出") {
+        Section(header: Text("数据管理".localized(in: .settings))) {
+            Button("导入 & 导出".localized(in: .settings)) {
                 showingImportExport = true
             }
             .foregroundColor(.primary)
@@ -192,9 +213,9 @@ struct SettingsView: View {
         Section(header: Text("高级功能")) {
             Button {
                 if !habitStore.isPro && !habitStore.debugMode {
-                    comingSoonMessage = "请升级到 Pro 版本以使用自定义颜色主题功能"
+                    comingSoonMessage = "请升级到 Pro 版本以使用自定义颜色主题功能".localized(in: .proFeatures)
                 } else {
-                    comingSoonMessage = "自定义颜色主题功能即将推出，敬请期待"
+                    comingSoonMessage = "自定义颜色主题功能即将推出，敬请期待".localized(in: .proFeatures)
                 }
                 showingComingSoonAlert = true
             } label: {
@@ -234,7 +255,7 @@ struct SettingsView: View {
     }
 
     private var AboutSection: some View {
-        Section(header: Text("关于")) {
+        Section(header: Text("关于".localized(in: .settings))) {
             Button {
                 showingAppVersionTapCount += 1
                 if showingAppVersionTapCount >= 7 {
@@ -243,7 +264,7 @@ struct SettingsView: View {
                 }
             } label: {
                 HStack {
-                    Text("应用版本")
+                    Text("应用版本".localized(in: .settings))
                         .foregroundColor(.primary)
                     Spacer()
                     Text(habitStore.debugMode ? "\(appVersion) (\(buildNumber)) [调试模式]" : "\(appVersion) (\(buildNumber))")
@@ -252,11 +273,11 @@ struct SettingsView: View {
             }
             
             NavigationLink(destination: TermsOfUseView()) {
-                Text("用户协议")
+                Text("用户协议".localized(in: .settings))
             }
             
             NavigationLink(destination: PrivacyPolicyView()) {
-                Text("隐私政策")
+                Text("隐私政策".localized(in: .settings))
             }
             
             Button(action: {
@@ -266,7 +287,7 @@ struct SettingsView: View {
                 }
             }) {
                 HStack {
-                    Text("为我们评分")
+                    Text("为我们评分".localized(in: .settings))
                     Spacer()
                     Image(systemName: "star.fill")
                         .foregroundColor(.yellow)
@@ -277,7 +298,7 @@ struct SettingsView: View {
                 sendFeedbackEmail()
             }) {
                 HStack {
-                    Text("我抓到了🐞")
+                    Text("我抓到了🐞".localized(in: .settings))
                     Spacer()
                     Image("square-arrow-out-up-right")
                         .resizable()

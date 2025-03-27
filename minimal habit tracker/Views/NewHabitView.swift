@@ -86,9 +86,9 @@ struct HabitFormView: View {
                 EmojiPickerView(selectedEmoji: $selectedEmoji, selectedBackgroundColor: $selectedBackgroundColor)
             }
             // 删除习惯的确认对话框
-            .alert("确认删除", isPresented: $showingDeleteConfirmation) {
-                Button("取消", role: .cancel) { }
-                Button("删除", role: .destructive) {
+            .alert("确认删除".localized(in: .habitDetail), isPresented: $showingDeleteConfirmation) {
+                Button("取消".localized(in: .common), role: .cancel) { }
+                Button("删除".localized(in: .common), role: .destructive) {
                     if let habit = originalHabit {
                         // 从store中删除习惯
                         habitStore.removeHabit(habit)
@@ -99,30 +99,30 @@ struct HabitFormView: View {
                     }
                 }
             } message: {
-                Text("确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。")
+                Text("确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。".localized(in: .habitDetail))
             }
             // 修改打卡次数的确认对话框
-            .alert("确认修改打卡次数", isPresented: $showingMaxCountChangeAlert) {
-                Button("取消", role: .cancel) {
+            .alert("确认修改打卡次数".localized(in: .createHabit), isPresented: $showingMaxCountChangeAlert) {
+                Button("取消".localized(in: .common), role: .cancel) {
                     // 用户取消修改，恢复原来的值
                     maxCheckInCount = previousMaxCount
                 }
-                Button("确认") {
+                Button("确认".localized(in: .createHabit)) {
                     // 用户确认修改，保持当前设置的值
                 }
             } message: {
-                Text("修改打卡次数将影响所有已存在的记录。" + 
-                     (previousMaxCount > maxCheckInCount ? "超过新上限的记录将被调整为新的上限值。" : "") +
-                     "\n是否继续？")
+                Text("修改打卡次数将影响所有已存在的记录。".localized(in: .createHabit) + 
+                     (previousMaxCount > maxCheckInCount ? "超过新上限的记录将被调整为新的上限值。".localized(in: .createHabit) : "") +
+                     "\n是否继续？".localized(in: .createHabit))
             }
             // TODO: 显示升级提示。目前这里存在 bug，实际不弹出提示
-            .alert("升级提示", isPresented: $showingProAlert) {
-                Button("取消", role: .cancel) { }
-                Button("升级") {
+            .alert("升级提示".localized(in: .proFeatures), isPresented: $showingProAlert) {
+                Button("取消".localized(in: .common), role: .cancel) { }
+                Button("升级".localized(in: .proFeatures)) {
                     // 用户选择升级，处理逻辑
                 }
             } message: {
-                Text("您正在使用高级主题，是否升级到专业版以解锁更多高级主题？")
+                Text("您正在使用高级主题，是否升级到专业版以解锁更多高级主题？".localized(in: .proFeatures))
             }
         }
         .preferredColorScheme(getPreferredColorScheme())
@@ -130,22 +130,22 @@ struct HabitFormView: View {
     
     private var navigationTitle: String {
         if isEditMode {
-            return "编辑习惯"
+            return "编辑习惯".localized(in: .createHabit)
         } else {
-            return currentStep == 1 ? "确定习惯类型" : "新建习惯"
+            return currentStep == 1 ? "确定习惯类型".localized(in: .createHabit) : "创建新习惯".localized(in: .createHabit)
         }
     }
     
     private var leadingButtonTitle: String {
         if isEditMode {
-            return "取消"
+            return "取消".localized(in: .common)
         } else {
-            return currentStep == 1 ? "取消" : "返回"
+            return currentStep == 1 ? "取消".localized(in: .common) : "返回".localized(in: .common)
         }
     }
     
     private var trailingButtonTitle: String {
-        return "保存"
+        return "保存".localized(in: .common)
     }
     
     private var typeSelectionView: some View {
@@ -153,15 +153,15 @@ struct HabitFormView: View {
             HabitTypeDemo()
                 .padding(.top)
             
-            Text("选择后不可更改")
+            Text("选择后不可更改".localized(in: .createHabit))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
             Spacer()
             
             VStack(spacing: 20) {
-                typeButton(type: .checkbox, title: "打卡", description: "完成一次打卡就记录为完成。如：每天吃早餐")
-                typeButton(type: .count, title: "计数", description: "设置每日目标次数，可多次打卡。如：每天X杯喝水")
+                typeButton(type: .checkbox, title: "打卡".localized(in: .createHabit), description: "完成一次打卡就记录为完成。如：每天吃早餐".localized(in: .createHabit))
+                typeButton(type: .count, title: "计数".localized(in: .createHabit), description: "设置每日目标次数，可多次打卡。如：每天X杯喝水".localized(in: .createHabit))
             }
             
             Spacer()
@@ -198,12 +198,12 @@ struct HabitFormView: View {
     
     private var habitDetailsView: some View {
         Form {
-            Section(header: Text("习惯名称")
+            Section(header: Text("习惯名称".localized(in: .createHabit))
                         .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)) {
-                TextField("例如: 每日锻炼", text: $habitName)
+                TextField("例如: 每日锻炼".localized(in: .createHabit), text: $habitName)
             }
             
-            Section(header: Text("选择图标")
+            Section(header: Text("选择图标".localized(in: .createHabit))
                         .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)) {
                 Button(action: {
                     showEmojiPicker = true
@@ -225,9 +225,9 @@ struct HabitFormView: View {
             }
             
             Section(header: VStack(alignment: .leading, spacing: 3) {
-                Text("颜色主题")
+                Text("颜色主题".localized(in: .createHabit))
                     .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
-                Text("购买 PRO 版本解锁高级主题")
+                Text("购买 PRO 版本解锁高级主题".localized(in: .createHabit))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }) {
@@ -276,14 +276,14 @@ struct HabitFormView: View {
             Section {
                 if isEditMode {
                     HStack {
-                        Text("习惯类型")
+                        Text("习惯类型".localized(in: .createHabit))
                         Spacer()
-                        Text(selectedType == .checkbox ? "打卡" : "计数")
+                        Text(selectedType == .checkbox ? "打卡".localized(in: .createHabit) : "计数".localized(in: .createHabit))
                             .foregroundColor(.secondary)
                     }
                 } else {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("选择的类型: \(selectedType == .checkbox ? "打卡" : "计数")")
+                        Text("选择的类型: ".localized(in: .createHabit) + (selectedType == .checkbox ? "打卡".localized(in: .createHabit) : "计数".localized(in: .createHabit)))
                             .font(.subheadline)
                     }
                 }
@@ -291,10 +291,10 @@ struct HabitFormView: View {
                 // 计数型习惯的最大打卡次数选择
                 if selectedType == .count {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("打卡次数上限")
+                        Text("打卡次数上限".localized(in: .createHabit))
                             .font(.subheadline)
                         
-                        Picker("打卡次数上限", selection: $maxCheckInCount) {
+                        Picker("打卡次数上限".localized(in: .createHabit), selection: $maxCheckInCount) {
                             ForEach(1...10, id: \.self) { count in
                                 Text("\(count)").tag(count)
                             }
@@ -310,7 +310,7 @@ struct HabitFormView: View {
                             }
                         }
                         
-                        Text("设置每日打卡的最大次数")
+                        Text("设置每日打卡的最大次数".localized(in: .createHabit))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -320,10 +320,10 @@ struct HabitFormView: View {
 
             // 只在编辑模式下显示 UUID 信息，用于配置 Widget
             if isEditMode, let habit = originalHabit {
-                Section(header: Text("Widget 配置信息")
+                Section(header: Text("Widget 配置信息".localized(in: .createHabit))
                             .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("习惯 ID")
+                        Text("习惯 ID".localized(in: .createHabit))
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
@@ -363,7 +363,7 @@ struct HabitFormView: View {
                         )
                         
                         if showingCopiedMessage {
-                            Text("已复制到剪贴板")
+                            Text("已复制到剪贴板".localized(in: .createHabit))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .padding(.top, 4)
@@ -371,7 +371,7 @@ struct HabitFormView: View {
                                 .animation(.easeInOut, value: showingCopiedMessage)
                         }
                         
-                        Text("配置 Widget 时需要输入此ID")
+                        Text("配置 Widget 时需要输入此ID".localized(in: .createHabit))
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .padding(.top, 4)
@@ -390,7 +390,7 @@ struct HabitFormView: View {
                     }) {
                         HStack {
                             Spacer()
-                            Text("删除习惯")
+                            Text("删除习惯".localized(in: .habitDetail))
                                 .foregroundColor(.red)
                             Spacer()
                         }
@@ -524,7 +524,7 @@ struct HabitTypeDemo: View {
         HStack(spacing: 30) {
             // 打卡型演示
             VStack(spacing: 5) {
-                Text("打卡")
+                Text("打卡".localized(in: .createHabit))
                     .font(.headline)
                 
                 ZStack {
@@ -568,7 +568,7 @@ struct HabitTypeDemo: View {
                     }
                 }
                 
-                Text("打卡一次即完成")
+                Text("打卡一次即完成".localized(in: .createHabit))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -576,7 +576,7 @@ struct HabitTypeDemo: View {
             
             // 计数型演示
             VStack(spacing: 5) {
-                Text("计数")
+                Text("计数".localized(in: .createHabit))
                     .font(.headline)
                 
                 ZStack {
@@ -629,7 +629,7 @@ struct HabitTypeDemo: View {
                     }
                 }
                 
-                Text("多次打卡完成目标")
+                Text("多次打卡完成目标".localized(in: .createHabit))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

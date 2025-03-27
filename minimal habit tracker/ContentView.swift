@@ -24,6 +24,9 @@ struct ContentView: View {
     @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
     @State private var showingMailCannotSendAlert = false
     
+    // 用于触发界面刷新的状态变量
+    @State private var languageUpdateTrigger = false
+    
     // 自定义更淡的背景色
     private var lightBackgroundColor: Color {
         colorScheme == .dark 
@@ -36,33 +39,33 @@ struct ContentView: View {
             ZStack {
                 lightBackgroundColor.ignoresSafeArea()
                 
-            VStack(spacing: 0) {
-                // 自定义标题栏
-                HStack {
-                    Text("EasyHabit")
-                        .font(.system(size: 32, weight: .regular, design: .rounded))
-                        .padding(.leading)
-                            .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
-                    
-                    Spacer()
-                    
-                    HStack(spacing: 16) {
-                        Button(action: {
-                            if habitStore.canAddHabit() {
-                                    showingAddHabit = true
-                            } else {
-                                showingMaxHabitsAlert = true
-                            }
-                        }) {
-                            Image("plus")
-                                .resizable()
-                                .renderingMode(.template)
-                                .scaledToFit()
-                                .frame(width: 18, height: 18)
-                                .frame(width: 36, height: 36)
-                                .background(Color(UIColor.systemGray5).opacity(0.6))
-                                .cornerRadius(10)
-                                    .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
+                VStack(spacing: 0) {
+                    // 自定义标题栏
+                    HStack {
+                        Text("EasyHabit")
+                            .font(.system(size: 32, weight: .regular, design: .rounded))
+                            .padding(.leading)
+                                .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
+                        
+                        Spacer()
+                        
+                        HStack(spacing: 16) {
+                            Button(action: {
+                                if habitStore.canAddHabit() {
+                                        showingAddHabit = true
+                                } else {
+                                    showingMaxHabitsAlert = true
+                                }
+                            }) {
+                                Image("plus")
+                                    .resizable()
+                                    .renderingMode(.template)
+                                    .scaledToFit()
+                                    .frame(width: 18, height: 18)
+                                    .frame(width: 36, height: 36)
+                                    .background(Color(UIColor.systemGray5).opacity(0.6))
+                                    .cornerRadius(10)
+                                        .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                             }
                             
                             if !habitStore.habits.isEmpty {
@@ -77,30 +80,30 @@ struct ContentView: View {
                                         .cornerRadius(10)
                                         .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
                                 }
+                            }
+                            
+                            Button(action: { showingSettings = true }) {
+                                Image("settings")
+                                    .resizable()
+                                    .renderingMode(.template)
+                                    .scaledToFit()
+                                    .frame(width: 18, height: 18)
+                                    .frame(width: 36, height: 36)
+                                    .background(Color(UIColor.systemGray5).opacity(0.6))
+                                    .cornerRadius(10)
+                                        .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
+                            }
                         }
-                        
-                        Button(action: { showingSettings = true }) {
-                            Image("settings")
-                                .resizable()
-                                .renderingMode(.template)
-                                .scaledToFit()
-                                .frame(width: 18, height: 18)
-                                .frame(width: 36, height: 36)
-                                .background(Color(UIColor.systemGray5).opacity(0.6))
-                                .cornerRadius(10)
-                                    .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
-                        }
+                        .padding(.trailing)
                     }
-                    .padding(.trailing)
-                }
-                .padding(.top, 8)
-                .padding(.bottom, 8)
-                
-                if habitStore.habits.isEmpty {
-                    emptyStateView
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    habitListView
+                    .padding(.top, 8)
+                    .padding(.bottom, 8)
+                    
+                    if habitStore.habits.isEmpty {
+                        emptyStateView
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        habitListView
                     }
                 }
             }
@@ -121,9 +124,9 @@ struct ContentView: View {
             }
             .alert(isPresented: $showingMaxHabitsAlert) {
                 Alert(
-                    title: Text("达到最大数量"),
-                    message: Text("您最多只能创建 \(HabitStore.maxHabitCount) 个习惯。如需添加更多，请前往设置页面升级到Pro版本。"),
-                    dismissButton: .default(Text("我知道了"))
+                    title: Text("达到最大数量".localized(in: .contentView)),
+                    message: Text("您最多只能创建 \(HabitStore.maxHabitCount) 个习惯。如需添加更多，请前往设置页面升级到Pro版本。".localized(in: .contentView)),
+                    dismissButton: .default(Text("我知道了".localized(in: .contentView)))
                 )
             }
             .onAppear {
@@ -132,8 +135,13 @@ struct ContentView: View {
             .onDisappear {
                 removeNotificationObserver()
             }
+            .id(languageUpdateTrigger) // 通过ID变化强制刷新视图
         }
         .preferredColorScheme(getPreferredColorScheme())
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("LanguageChanged"))) { _ in
+            // 语言变化时触发视图刷新
+            languageUpdateTrigger.toggle()
+        }
     }
     
     private func setupNotificationObserver() {
@@ -154,11 +162,11 @@ struct ContentView: View {
             Spacer()
             
             // 简化后的文案
-            Text("空空如也")
+            Text("空空如也".localized(in: .contentView))
                 .font(.system(size: 28, weight: .bold))
                 .padding(.bottom, 4)
             
-            Text("👇开始记录追踪你的习惯")
+            Text("👇开始记录追踪你的习惯".localized(in: .contentView))
                 .font(.body)
                 .foregroundColor(.secondary)
                 .padding(.bottom, 40)
@@ -200,9 +208,9 @@ struct ContentView: View {
         .scrollIndicators(.hidden)
         .background(lightBackgroundColor)
         // 添加删除习惯的确认对话框
-        .alert("确认删除", isPresented: $showDeleteConfirmation) {
-            Button("取消", role: .cancel) { }
-            Button("删除", role: .destructive) {
+        .alert("确认删除".localized(in: .contentView), isPresented: $showDeleteConfirmation) {
+            Button("取消".localized(in: .common), role: .cancel) { }
+            Button("删除".localized(in: .common), role: .destructive) {
                 if let habit = habitToDelete {
                     withAnimation {
                         habitStore.removeHabit(habit)
@@ -210,7 +218,7 @@ struct ContentView: View {
                 }
             }
         } message: {
-            Text("确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。")
+            Text("确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。".localized(in: .contentView))
         }
     }
     

@@ -12,6 +12,47 @@ struct PaymentView: View {
         case lifetime
     }
     
+    // 根据语言返回不同的价格
+    private func localizedPrice(for plan: PaymentPlan) -> (price: String, originalPrice: String?) {
+        let language = habitStore.appLanguage.isEmpty ? 
+                       (Locale.preferredLanguages.first?.hasPrefix("zh") == true ? "zh-Hans" : 
+                        (Locale.preferredLanguages.first?.hasPrefix("ja") == true ? "ja" : "en")) : 
+                       habitStore.appLanguage
+        
+        switch language {
+        case "en":
+            // 英文价格
+            switch plan {
+            case .monthly:
+                return ("$1.99", nil)
+            case .annually:
+                return ("$11.99", nil)
+            case .lifetime:
+                return ("$29.99", "$59.99")
+            }
+        case "ja":
+            // 日文价格
+            switch plan {
+            case .monthly:
+                return ("¥250", nil)
+            case .annually:
+                return ("¥1500", nil)
+            case .lifetime:
+                return ("¥3000", "¥6000")
+            }
+        default:
+            // 中文价格（默认）
+            switch plan {
+            case .monthly:
+                return ("¥6.00", nil)
+            case .annually:
+                return ("¥36.00", nil)
+            case .lifetime:
+                return ("¥96.00", "¥196.00")
+            }
+        }
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -23,7 +64,7 @@ struct PaymentView: View {
                         Text("PRO")
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(Color(hex: "eab308"))
-                        Text("Minimalism, Focus, Always Ad-Free")
+                        Text("极简，专注，永远无广告".localized(in: .payment))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -32,10 +73,12 @@ struct PaymentView: View {
                     // 支付选项
                     HStack(spacing: 16) {
                         // 月付选项
+                        let monthlyPriceInfo = localizedPrice(for: .monthly)
                         PaymentOptionCard(
-                            title: "Monthly",
-                            price: "¥6.00",
-                            subtitle: "Monthly",
+                            title: "月付".localized(in: .payment),
+                            price: monthlyPriceInfo.price,
+                            subtitle: "月付".localized(in: .payment),
+                            originalPrice: monthlyPriceInfo.originalPrice,
                             isSelected: selectedPlan == .monthly,
                             action: {
                                 selectedPlan = .monthly
@@ -43,10 +86,12 @@ struct PaymentView: View {
                         )
                         
                         // 年付选项
+                        let annuallyPriceInfo = localizedPrice(for: .annually)
                         PaymentOptionCard(
-                            title: "Annually",
-                            price: "¥36.00",
-                            subtitle: "50% OFF",
+                            title: "年付".localized(in: .payment),
+                            price: annuallyPriceInfo.price,
+                            subtitle: "50%优惠".localized(in: .payment),
+                            originalPrice: annuallyPriceInfo.originalPrice,
                             isSelected: selectedPlan == .annually,
                             action: {
                                 selectedPlan = .annually
@@ -54,12 +99,12 @@ struct PaymentView: View {
                         )
                         
                         // 永久选项
+                        let lifetimePriceInfo = localizedPrice(for: .lifetime)
                         PaymentOptionCard(
-                            title: "Lifetime",
-                            price: "¥36.00",
-                            subtitle: "Limited time offer!",
-                            originalPrice: "¥96.00",
-                            // originalPrice: "¥126.00",
+                            title: "永久".localized(in: .payment),
+                            price: lifetimePriceInfo.price,
+                            subtitle: "限时优惠！".localized(in: .payment),
+                            originalPrice: lifetimePriceInfo.originalPrice,
                             isSelected: selectedPlan == .lifetime,
                             action: {
                                 selectedPlan = .lifetime
@@ -70,20 +115,20 @@ struct PaymentView: View {
                     
                     // 功能对比表
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Entitlements Comparison")
+                        Text("权益对比".localized(in: .payment))
                             .font(.title2)
                             .fontWeight(.bold)
                             .padding(.top)
                         
-                        ComparisonRow(feature: "Widget Support", standardEnabled: true, proEnabled: true)
-                        ComparisonRow(feature: "Basic Statistics", standardEnabled: true, proEnabled: true)
-                        ComparisonRow(feature: "Share Habit", standardEnabled: true, proEnabled: true)
-                        ComparisonRow(feature: "Export/Import Data", standardEnabled: true, proEnabled: true)
-                        ComparisonRow(feature: "More Theme Colors", standardEnabled: false, proEnabled: true)
-                        ComparisonRow(feature: "Unlimited Habits", standardEnabled: false, proEnabled: true)
-                        ComparisonRow(feature: "iCloud Sync", standardEnabled: false, proEnabled: true)
-                        ComparisonRow(feature: "Ads Free", standardEnabled: false, proEnabled: true)
-                        // ComparisonRow(feature: "Remove Watermark", standardEnabled: false, proEnabled: true)
+                        ComparisonRow(feature: "小组件支持".localized(in: .payment), standardEnabled: true, proEnabled: true)
+                        ComparisonRow(feature: "基础统计".localized(in: .payment), standardEnabled: true, proEnabled: true)
+                        ComparisonRow(feature: "分享习惯".localized(in: .payment), standardEnabled: true, proEnabled: true)
+                        ComparisonRow(feature: "导入导出数据".localized(in: .payment), standardEnabled: true, proEnabled: true)
+                        ComparisonRow(feature: "更多主题颜色".localized(in: .payment), standardEnabled: false, proEnabled: true)
+                        ComparisonRow(feature: "无限习惯".localized(in: .payment), standardEnabled: false, proEnabled: true)
+                        ComparisonRow(feature: "iCloud同步".localized(in: .payment), standardEnabled: false, proEnabled: true)
+                        ComparisonRow(feature: "无广告".localized(in: .payment), standardEnabled: false, proEnabled: true)
+                        // ComparisonRow(feature: "移除水印", standardEnabled: false, proEnabled: true)
                     }
                     .padding()
                     
@@ -92,17 +137,20 @@ struct PaymentView: View {
                         // TODO: 根据 selectedPlan 拉起对应的 App Store 支付
                         switch selectedPlan {
                         case .monthly:
-                            print("Initiating monthly subscription purchase")
+                            let priceInfo = localizedPrice(for: .monthly)
+                            print("Initiating monthly subscription purchase: \(priceInfo.price)")
                         case .annually:
-                            print("Initiating annual subscription purchase")
+                            let priceInfo = localizedPrice(for: .annually)
+                            print("Initiating annual subscription purchase: \(priceInfo.price)")
                         case .lifetime:
-                            print("Initiating lifetime purchase")
+                            let priceInfo = localizedPrice(for: .lifetime)
+                            print("Initiating lifetime purchase: \(priceInfo.price)")
                         }
                         // 暂时保留这个逻辑用于测试
                         habitStore.upgradeToPro()
                         dismiss()
                     }) {
-                        Text("Continue")
+                        Text("继续".localized(in: .payment))
                             .font(.headline)
                             .foregroundColor(colorScheme == .dark ? .black : .white)
                             .frame(maxWidth: .infinity)
@@ -114,13 +162,13 @@ struct PaymentView: View {
                     
                     // 底部链接
                     HStack(spacing: 20) {
-                        Button("Privacy Policy") {
+                        Button("隐私政策".localized(in: .payment)) {
                             // TODO: 显示隐私政策
                         }
-                        Button("User Agreement") {
+                        Button("用户协议".localized(in: .payment)) {
                             // TODO: 显示用户协议
                         }
-                        Button("Restore subscription") {
+                        Button("恢复购买".localized(in: .payment)) {
                             // TODO: 恢复购买
                         }
                     }
@@ -129,7 +177,7 @@ struct PaymentView: View {
                     // .padding(.top)
                 }
             }
-            .navigationBarItems(leading: Button("Close") {
+            .navigationBarItems(leading: Button("关闭".localized(in: .payment)) {
                 dismiss()
             })
         }
@@ -170,7 +218,7 @@ struct PaymentOptionCard: View {
                         .foregroundColor(.secondary)
                 }
                 Text(subtitle)
-                    .font(subtitle == "Limited time offer!" ? .caption2 : .caption)
+                    .font(subtitle == "限时优惠！".localized(in: .payment) ? .caption2 : .caption)
                     .foregroundColor(.secondary)
             }
             .frame(maxWidth: .infinity)
@@ -198,7 +246,7 @@ struct ComparisonRow: View {
             Text(feature)
                 .font(.subheadline)
             Spacer()
-            Text("Standard")
+            Text("标准版".localized(in: .payment))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             Image(systemName: standardEnabled ? "checkmark.circle.fill" : "xmark.circle.fill")

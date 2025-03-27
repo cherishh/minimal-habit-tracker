@@ -13,6 +13,9 @@ struct minimal_habit_trackerApp: App {
     @StateObject private var habitStore = HabitStore.shared
     @AppStorage("themeMode") private var themeMode: Int = 0 // 0: 自适应系统, 1: 明亮模式, 2: 暗黑模式
     
+    // 用于监听语言改变的状态变量
+    @State private var languageUpdateTrigger = false
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -29,6 +32,12 @@ struct minimal_habit_trackerApp: App {
                         habitStore.reloadData()
                     }
                 }
+                // 监听语言变化事件
+                .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("LanguageChanged"))) { _ in
+                    // 语言变化时刷新整个应用
+                    languageUpdateTrigger.toggle()
+                }
+                .id(languageUpdateTrigger) // 通过ID强制刷新整个应用
                 .onAppear {
                     // 应用初始化时的日志
                     print("【App】应用初始化，当前habits: \(habitStore.habits.count)个，logs: \(habitStore.habitLogs.count)个")

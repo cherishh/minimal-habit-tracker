@@ -19,7 +19,7 @@ struct ImportExportView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                Text("选择要执行的操作")
+                Text("选择要执行的操作".localized(in: .importExport))
                     .font(.headline)
                     .padding(.top, 20)
                 
@@ -29,8 +29,8 @@ struct ImportExportView: View {
                     // 导出按钮
                     actionButton(
                         icon: "file-up",
-                        title: "导出数据",
-                        description: "将您的所有习惯和打卡记录导出为标准CSV文件，可用于备份",
+                        title: "导出数据".localized(in: .importExport),
+                        description: "将您的所有习惯和打卡记录导出为标准CSV文件，可用于备份".localized(in: .importExport),
                         action: exportData,
                         disabled: isGeneratingCSV || csvTempFileURL == nil
                     )
@@ -38,8 +38,8 @@ struct ImportExportView: View {
                     // 导入按钮
                     actionButton(
                         icon: "file-down",
-                        title: "导入数据",
-                        description: "从CSV文件导入习惯和打卡记录，用于恢复备份或迁移数据",
+                        title: "导入数据".localized(in: .importExport),
+                        description: "从CSV文件导入习惯和打卡记录，用于恢复备份或迁移数据".localized(in: .importExport),
                         action: { showingImporter = true },
                         disabled: false
                     )
@@ -47,17 +47,17 @@ struct ImportExportView: View {
                 .padding(.horizontal)
                 
                 if isGeneratingCSV {
-                    ProgressView("准备导出数据中...")
+                    ProgressView("准备导出数据中...".localized(in: .importExport))
                         .padding()
                 }
                 
                 Spacer()
             }
-            .navigationTitle("导入 & 导出")
+            .navigationTitle("导入 & 导出".localized(in: .settings))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") {
+                    Button("完成".localized(in: .settings)) {
                         dismiss()
                     }
                 }
@@ -83,12 +83,12 @@ struct ImportExportView: View {
                         loadCSVFile(from: url)
                     }
                 case .failure:
-                    alertMessage = "导入失败，请重试。"
+                    alertMessage = "导入失败，请重试。".localized(in: .importExport)
                     showingAlert = true
                 }
             }
             .alert(alertMessage, isPresented: $showingAlert) {
-                Button("确定", role: .cancel) { }
+                Button("确定".localized(in: .common), role: .cancel) { }
             }
             .onAppear {
                 // 视图出现时预先生成CSV文件
@@ -212,7 +212,7 @@ struct ImportExportView: View {
                 }
             } catch {
                 DispatchQueue.main.async {
-                    alertMessage = "创建导出文件失败：\(error.localizedDescription)"
+                    alertMessage = "创建导出文件失败：\(error.localizedDescription)".localized(in: .importExport)
                     showingAlert = true
                     isGeneratingCSV = false
                 }
@@ -235,7 +235,7 @@ struct ImportExportView: View {
         } else {
             // 如果文件不存在，重新生成
             generateCSVFile()
-            alertMessage = "正在准备数据，请稍后重试"
+            alertMessage = "正在准备数据，请稍后重试".localized(in: .importExport)
             showingAlert = true
         }
     }
@@ -256,7 +256,7 @@ struct ImportExportView: View {
             
             // 验证CSV文件格式
             guard rows.count > 1 else {
-                alertMessage = "导入文件为空或格式不正确"
+                alertMessage = "导入文件为空或格式不正确".localized(in: .importExport)
                 showingAlert = true
                 return
             }
@@ -267,7 +267,7 @@ struct ImportExportView: View {
             
             guard headers.count == expectedHeaders.count,
                   headers.enumerated().allSatisfy({ expectedHeaders[$0.offset] == $0.element }) else {
-                alertMessage = "CSV文件格式不正确，请确保包含正确的列标题"
+                alertMessage = "CSV文件格式不正确，请确保包含正确的列标题".localized(in: .importExport)
                 showingAlert = true
                 return
             }
@@ -285,7 +285,7 @@ struct ImportExportView: View {
                 
                 let columns = parseCSVLine(row)
                 guard columns.count == expectedHeaders.count else {
-                    alertMessage = "CSV文件格式不正确，第\(i+1)行数据不完整"
+                    alertMessage = "CSV文件格式不正确，第\(i+1)行数据不完整".localized(in: .importExport)
                     showingAlert = true
                     return
                 }
@@ -293,7 +293,7 @@ struct ImportExportView: View {
                 // 解析数据
                 let habitIdString = columns[0]
                 guard let habitId = UUID(uuidString: habitIdString) else {
-                    alertMessage = "无效的习惯ID格式：\(habitIdString)"
+                    alertMessage = "无效的习惯ID格式：\(habitIdString)".localized(in: .importExport)
                     showingAlert = true
                     return
                 }
@@ -306,21 +306,21 @@ struct ImportExportView: View {
                 let dateFormatter = DateFormatter()
                 dateFormatter.dateFormat = "yyyy-MM-dd"
                 guard let date = dateFormatter.date(from: dateString) else {
-                    alertMessage = "无效的日期格式：\(dateString)"
+                    alertMessage = "无效的日期格式：\(dateString)".localized(in: .importExport)
                     showingAlert = true
                     return
                 }
                 
                 // 解析打卡次数
                 guard let checkInCount = Int(columns[4]) else {
-                    alertMessage = "无效的打卡次数：\(columns[4])"
+                    alertMessage = "无效的打卡次数：\(columns[4])".localized(in: .importExport)
                     showingAlert = true
                     return
                 }
                 
                 // 解析最大打卡次数
                 guard let maxCount = Int(columns[5]) else {
-                    alertMessage = "无效的最大打卡次数：\(columns[5])"
+                    alertMessage = "无效的最大打卡次数：\(columns[5])".localized(in: .importExport)
                     showingAlert = true
                     return
                 }
@@ -328,7 +328,7 @@ struct ImportExportView: View {
                 // 解析习惯类型
                 let habitTypeString = columns[6]
                 guard let habitType = Habit.HabitType(rawValue: habitTypeString) else {
-                    alertMessage = "无效的习惯类型：\(habitTypeString)"
+                    alertMessage = "无效的习惯类型：\(habitTypeString)".localized(in: .importExport)
                     showingAlert = true
                     return
                 }
@@ -336,7 +336,7 @@ struct ImportExportView: View {
                 // 解析颜色主题
                 let colorThemeString = columns[7]
                 guard let colorTheme = Habit.ColorThemeName(rawValue: colorThemeString) else {
-                    alertMessage = "无效的颜色主题：\(colorThemeString)"
+                    alertMessage = "无效的颜色主题：\(colorThemeString)".localized(in: .importExport)
                     showingAlert = true
                     return
                 }
@@ -370,7 +370,7 @@ struct ImportExportView: View {
             
             // 检查是否有重复ID
             if !duplicateIds.isEmpty {
-                alertMessage = "导入数据中有\(duplicateIds.count)个习惯ID与现有习惯重复：\(duplicateIds.joined(separator: ", "))"
+                alertMessage = "导入数据中有\(duplicateIds.count)个习惯ID与现有习惯重复：\(duplicateIds.joined(separator: ", "))".localized(in: .importExport)
                 showingAlert = true
                 return
             }
@@ -392,11 +392,11 @@ struct ImportExportView: View {
             // 保存数据
             habitStore.saveDataForExport()
             
-            alertMessage = "成功导入\(importedHabits.count)个习惯和\(importedLogs.count)条打卡记录"
+            alertMessage = "成功导入\(importedHabits.count)个习惯和\(importedLogs.count)条打卡记录".localized(in: .importExport)
             showingAlert = true
             
         } catch {
-            alertMessage = "读取CSV文件失败：\(error.localizedDescription)"
+            alertMessage = "读取CSV文件失败：\(error.localizedDescription)".localized(in: .importExport)
             showingAlert = true
         }
     }

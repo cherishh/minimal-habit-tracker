@@ -25,16 +25,16 @@ struct HabitSortView: View {
                 }
             }
             .environment(\.editMode, .constant(.active))
-            .navigationTitle("排序习惯")
+            .navigationTitle("排序习惯".localized(in: .contentView))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") {
+                    Button("取消".localized(in: .common)) {
                         isPresented = false
                     }
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
+                    Button("保存".localized(in: .common)) {
                         saveHabitOrder()
                         isPresented = false
                     }
