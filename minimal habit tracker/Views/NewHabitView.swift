@@ -244,7 +244,7 @@ struct HabitFormView: View {
                         }
                     }) {
                         HStack {
-                            Text(theme.name)
+                            Text(theme.localizedName())
                                 .foregroundColor(isProTheme && !habitStore.isPro && !habitStore.debugMode ? .secondary : .primary)
                             
                             Spacer()

@@ -12,6 +12,71 @@ struct ColorTheme: Identifiable {
         return isDarkMode ? darkColors[level] : lightColors[level]
     }
     
+    // 获取本地化的主题名称
+    func localizedName() -> String {
+        // 获取当前语言设置
+        let language = HabitStore.shared.appLanguage
+        
+        // 手动定义翻译映射，避免引用其他文件中的类
+        let translations: [String: [String: String]] = [
+            "en": [
+                "🤖 默认": "🤖 Default",
+                "🌊 蓝色海洋": "🌊 Blue Ocean",
+                "🌅 日落": "🌅 Sunset",
+                "🟪 紫雨": "🟪 Purple Rain",
+                "🏜 黄金国": "🏜 Golden Land",
+                "🌿 芳草地": "🌿 Meadow",
+                "🩵 清晨湖水": "🩵 Morning Lake",
+                "🌹 玫瑰": "🌹 Rose",
+                "🪨 青岩": "🪨 Cyan Rock",
+                "🩶 黑白森林": "🩶 Monochrome Forest",
+                "🍬 糖果": "🍬 Candy"
+            ],
+            "ja": [
+                "🤖 默认": "🤖 デフォルト",
+                "🌊 蓝色海洋": "🌊 ブルーオーシャン",
+                "🌅 日落": "🌅 サンセット",
+                "🟪 紫雨": "🟪 パープルレイン",
+                "🏜 黄金国": "🏜 ゴールデンランド",
+                "🌿 芳草地": "🌿 メドウ", 
+                "🩵 清晨湖水": "🩵 モーニングレイク",
+                "🌹 玫瑰": "🌹 ローズ",
+                "🪨 青岩": "🪨 シアンロック",
+                "🩶 黑白森林": "🩶 モノクローム",
+                "🍬 糖果": "🍬 キャンディ"
+            ]
+        ]
+        
+        // 如果是空字符串（系统默认），则根据系统语言选择
+        if language.isEmpty {
+            let systemLanguage = Locale.preferredLanguages.first ?? "en"
+            if systemLanguage.hasPrefix("zh") {
+                // 如果系统是中文，返回原始中文字符串
+                return name
+            } else if systemLanguage.hasPrefix("ja") {
+                // 如果系统是日语，使用日语翻译
+                return translations["ja"]?[name] ?? name
+            } else {
+                // 默认使用英文
+                return translations["en"]?[name] ?? name
+            }
+        }
+        
+        if language == "en" {
+            // 如果是英文，查找翻译
+            return translations["en"]?[name] ?? name
+        } else if language == "zh-Hans" {
+            // 如果是中文，返回原始中文字符串
+            return name
+        } else if language == "ja" {
+            // 如果是日语，查找翻译
+            return translations["ja"]?[name] ?? name
+        }
+        
+        // 如果没有找到匹配的翻译，就返回原字符串
+        return name
+    }
+    
     // 根据用户自定义打卡次数获取颜色
     func colorForCount(count: Int, maxCount: Int, isDarkMode: Bool) -> Color {
         // 如果未打卡，返回基础颜色

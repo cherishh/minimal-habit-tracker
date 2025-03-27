@@ -218,10 +218,10 @@ struct Japanese {
     
     // Emoji选择器翻译
     static let emojiPickerTranslations: [String: String] = [
-        "emoji.最近使用": "最近使用したもの",
-        "emoji.人物": "人々",
+        "emoji.最近使用": "最近使用",
+        "emoji.人物": "人物",
         "emoji.自然": "自然",
-        "emoji.物品": "物",
+        "emoji.物品": "物品",
         "emoji.地点": "場所",
         "emoji.符号": "記号",
         "emoji.Emoji": "絵文字",
