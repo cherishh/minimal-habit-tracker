@@ -55,7 +55,7 @@ struct SettingsView: View {
                                         .foregroundColor(.secondary)
                                 }
                                 
-                                Text("解锁完整体验")
+                                Text("解锁完整体验".localized(in: .proFeatures))
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                 
@@ -131,14 +131,14 @@ struct SettingsView: View {
         let deviceInfo = """
         
         ----------
-        设备信息:
-        设备型号: \(UIDevice.current.model)
-        系统版本: \(UIDevice.current.systemVersion)
-        应用版本: \(appVersion) (\(buildNumber))
-        习惯数量: \(habitStore.habits.count)
+        \("设备信息".localized(in: .common)):
+        \("设备型号".localized(in: .common)): \(UIDevice.current.model)
+        \("系统版本".localized(in: .common)): \(UIDevice.current.systemVersion)
+        \("应用版本".localized(in: .common)): \(appVersion) (\(buildNumber))
+        \("习惯数量".localized(in: .common)): \(habitStore.habits.count)
         ----------
         
-        请在此处描述您的问题或建议:
+        \("请在此处描述您的问题或建议".localized(in: .common)):
         
         """
         
@@ -164,7 +164,7 @@ struct SettingsView: View {
                 Image(systemName: icon)
                     .font(.system(size: 20))
                     .foregroundColor(.secondary)
-                Text(text)
+                Text(text.localized(in: .proFeatures))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

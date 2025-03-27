@@ -115,6 +115,8 @@ struct Japanese {
     static let proFeaturesTranslations: [String: String] = [
         "pro.解锁完整体验": "完全体験をアンロック",
         "pro.更多主题色": "より多くのテーマカラー",
+        "pro.无限习惯": "無制限の習慣",
+        "pro.iCloud同步": "iCloud同期",
         "pro.请升级到 Pro 版本以使用自定义颜色主题功能": "カスタムカラーテーマを使用するにはProバージョンにアップグレードしてください",
         "pro.自定义颜色主题功能即将推出，敬请期待": "カスタムカラーテーマは近日公開予定です",
         "pro.请升级到 Pro 版本以使用 iCloud 同步功能": "iCloud同期機能を使用するにはProバージョンにアップグレードしてください",

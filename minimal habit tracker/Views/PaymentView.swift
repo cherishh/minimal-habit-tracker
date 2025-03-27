@@ -162,10 +162,10 @@ struct PaymentView: View {
                     
                     // 底部链接
                     HStack(spacing: 20) {
-                        Button("隐私政策".localized(in: .payment)) {
+                        Button("隐私政策".localized(in: .settings)) {
                             // TODO: 显示隐私政策
                         }
-                        Button("用户协议".localized(in: .payment)) {
+                        Button("用户协议".localized(in: .settings)) {
                             // TODO: 显示用户协议
                         }
                         Button("恢复购买".localized(in: .payment)) {

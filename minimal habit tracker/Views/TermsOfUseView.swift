@@ -78,7 +78,7 @@ struct TermsOfUseView: View {
             }
             .padding()
         }
-        .navigationTitle(habitStore.appLanguage == "en" ? "Terms of Use" : "用户协议")
+        .navigationTitle("用户协议".localized(in: .settings))
         .navigationBarTitleDisplayMode(.inline)
     }
 } 

@@ -134,6 +134,8 @@ struct English {
     static let proFeaturesTranslations: [String: String] = [
         "pro.解锁完整体验": "Unlock Full Experience",
         "pro.更多主题色": "More Themes",
+        "pro.无限习惯": "Unlimited Habits",
+        "pro.iCloud同步": "iCloud Sync",
         "pro.请升级到 Pro 版本以使用自定义颜色主题功能": "Please upgrade to Pro version to use custom color themes",
         "pro.自定义颜色主题功能即将推出，敬请期待": "Custom color themes coming soon",
         "pro.请升级到 Pro 版本以使用 iCloud 同步功能": "Please upgrade to Pro version to use iCloud sync",

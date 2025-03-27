@@ -78,7 +78,7 @@ struct PrivacyPolicyView: View {
             }
             .padding()
         }
-        .navigationTitle(habitStore.appLanguage == "en" ? "Privacy Policy" : "隐私政策")
+        .navigationTitle("隐私政策".localized(in: .settings))
         .navigationBarTitleDisplayMode(.inline)
     }
 } 
