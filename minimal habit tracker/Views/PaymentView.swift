@@ -14,10 +14,33 @@ struct PaymentView: View {
     
     // 根据语言返回不同的价格
     private func localizedPrice(for plan: PaymentPlan) -> (price: String, originalPrice: String?) {
-        let language = habitStore.appLanguage.isEmpty ? 
-                       (Locale.preferredLanguages.first?.hasPrefix("zh") == true ? "zh-Hans" : 
-                        (Locale.preferredLanguages.first?.hasPrefix("ja") == true ? "ja" : "en")) : 
-                       habitStore.appLanguage
+        let language: String
+        
+        if habitStore.appLanguage.isEmpty {
+            // 如果是系统默认，则根据系统语言选择
+            let systemLanguage = Locale.preferredLanguages.first ?? "en"
+            
+            // 使用 switch 语句替代嵌套的三元运算符
+            switch true {
+            case systemLanguage.hasPrefix("zh"):
+                language = "zh-Hans"
+            case systemLanguage.hasPrefix("ja"):
+                language = "ja"
+            case systemLanguage.hasPrefix("ru"):
+                language = "ru"
+            case systemLanguage.hasPrefix("es"):
+                language = "es"
+            case systemLanguage.hasPrefix("de"):
+                language = "de"
+            case systemLanguage.hasPrefix("fr"):
+                language = "fr"
+            default:
+                language = "en"
+            }
+        } else {
+            // 否则使用用户选择的语言
+            language = habitStore.appLanguage
+        }
         
         switch language {
         case "en":
@@ -39,6 +62,46 @@ struct PaymentView: View {
                 return ("¥1500", nil)
             case .lifetime:
                 return ("¥3000", "¥6000")
+            }
+        case "ru":
+            // 俄文价格
+            switch plan {
+            case .monthly:
+                return ("₽149", nil)
+            case .annually:
+                return ("₽999", nil)
+            case .lifetime:
+                return ("₽2490", "₽4990")
+            }
+        case "es":
+            // 西班牙语价格（欧元）
+            switch plan {
+            case .monthly:
+                return ("€1.99", nil)
+            case .annually:
+                return ("€11.99", nil)
+            case .lifetime:
+                return ("€29.99", "€59.99")
+            }
+        case "de":
+            // 德语价格（欧元）
+            switch plan {
+            case .monthly:
+                return ("€1.99", nil)
+            case .annually:
+                return ("€11.99", nil)
+            case .lifetime:
+                return ("€29.99", "€59.99")
+            }
+        case "fr":
+            // 法语价格（欧元）
+            switch plan {
+            case .monthly:
+                return ("€1.99", nil)
+            case .annually:
+                return ("€11.99", nil)
+            case .lifetime:
+                return ("€29.99", "€59.99")
             }
         default:
             // 中文价格（默认）

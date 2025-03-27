@@ -71,6 +71,7 @@ struct SettingsView: View {
                 }
                 
                 AppearanceSection
+                LanguageSection
                 DataSection
                 // UpgradeSection
                 AboutSection
@@ -85,8 +86,8 @@ struct SettingsView: View {
                     ))
                 }
             }
-            .navigationTitle("设置")
-            .navigationBarItems(trailing: Button("完成") {
+            .navigationTitle("设置".localized(in: .settings))
+            .navigationBarItems(trailing: Button("完成".localized(in: .settings)) {
                 isPresented = false
             })
             .sheet(isPresented: $showingImportExport) {
@@ -96,7 +97,7 @@ struct SettingsView: View {
                 PaymentView()
             }
             .alert(comingSoonMessage, isPresented: $showingComingSoonAlert) {
-                Button("好的", role: .cancel) { }
+                Button("好的".localized(in: .common), role: .cancel) { }
             }
             .sheet(isPresented: $showingMailView) {
                 if MFMailComposeViewController.canSendMail() {
@@ -104,7 +105,7 @@ struct SettingsView: View {
                 }
             }
             .alert(isPresented: $showingMailCannotSendAlert) {
-                Alert(title: Text("无法发送邮件"), message: Text("您的设备未设置邮件账户或无法发送邮件。请手动发送邮件至jasonlovescola@gmail.com"), dismissButton: .default(Text("确定")))
+                Alert(title: Text("无法发送邮件".localized(in: .common)), message: Text("您的设备未设置邮件账户或无法发送邮件。请手动发送邮件至jasonlovescola@gmail.com".localized(in: .common)), dismissButton: .default(Text("确定".localized(in: .common))))
             }
         }
         .id(forceUpdate) // 使用简单的状态变量
@@ -179,12 +180,20 @@ struct SettingsView: View {
                 Text("明亮模式".localized(in: .settings)).tag(1)
                 Text("暗黑模式".localized(in: .settings)).tag(2)
             }
-            
+        }
+    }
+    
+    private var LanguageSection: some View {
+        Section(header: Text("语言".localized(in: .settings))) {
             Picker("语言".localized(in: .settings), selection: $selectedLanguage) {
                 Text("系统默认".localized(in: .settings)).tag("")
-                Text("中文".localized(in: .settings)).tag("zh-Hans")
                 Text("英文".localized(in: .settings)).tag("en")
+                Text("德语".localized(in: .settings)).tag("de")
+                Text("西班牙语".localized(in: .settings)).tag("es")
+                Text("法语".localized(in: .settings)).tag("fr")
                 Text("日语".localized(in: .settings)).tag("ja")
+                Text("俄语".localized(in: .settings)).tag("ru")
+                Text("中文".localized(in: .settings)).tag("zh-Hans")
             }
             .onChange(of: selectedLanguage) { newValue in
                 // 不直接调用habitStore.setAppLanguage，而是先保存当前界面状态

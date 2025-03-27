@@ -22,6 +22,10 @@ struct Japanese {
         "settings.中文": "中国語",
         "settings.英文": "英語",
         "settings.日语": "日本語",
+        "settings.俄语": "ロシア語",
+        "settings.西班牙语": "スペイン語",
+        "settings.德语": "ドイツ語",
+        "settings.法语": "フランス語",
         "settings.系统默认": "システムデフォルト",
         "settings.Debug 模式": "デバッグモード"
     ]
@@ -178,7 +182,8 @@ struct Japanese {
         "common.确定": "OK",
         "common.取消": "キャンセル",
         "common.返回": "戻る",
-        "common.保存": "保存"
+        "common.保存": "保存",
+        "common.删除": "削除"
     ]
     
     // 主内容页面翻译

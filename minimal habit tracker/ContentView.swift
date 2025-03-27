@@ -27,6 +27,9 @@ struct ContentView: View {
     // 用于触发界面刷新的状态变量
     @State private var languageUpdateTrigger = false
     
+    // 松鼠图片翻转状态
+    @State private var isSquirrelFlipped = false
+    
     // 自定义更淡的背景色
     private var lightBackgroundColor: Color {
         colorScheme == .dark 
@@ -162,9 +165,16 @@ struct ContentView: View {
             Spacer()
             
             // 简化后的文案
-            Text("空空如也".localized(in: .contentView))
-                .font(.system(size: 28, weight: .bold))
-                .padding(.bottom, 4)
+            Image("squirrel")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 100, height: 100)
+                .scaleEffect(x: isSquirrelFlipped ? -1 : 1, y: 1) // 水平翻转
+                .onTapGesture {
+                    // 点击时翻转松鼠图片
+                    isSquirrelFlipped.toggle()
+                }
+                .padding(.bottom, 20)
             
             Text("👇开始记录追踪你的习惯".localized(in: .contentView))
                 .font(.body)

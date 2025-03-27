@@ -197,22 +197,36 @@ struct ImportExportView: View {
                 csvString += "\"00000000-0000-0000-0000-000000000000\",\"示例习惯\",\"📝\",\"2023-01-01\",\"1\",\"1\",\"Checkbox\",\"GitHub\"\n"
             }
             
-            // 将CSV内容写入临时文件
-            let tempDir = FileManager.default.temporaryDirectory
+            // 使用文档目录而不是临时目录
+            let fileManager = FileManager.default
+            let documentsURL = try? fileManager.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
             let fileName = "习惯数据_\(formattedDate()).csv"
-            let fileURL = tempDir.appendingPathComponent(fileName)
             
-            do {
-                try csvString.write(to: fileURL, atomically: true, encoding: .utf8)
-                
-                // 在主线程更新UI状态
-                DispatchQueue.main.async {
-                    csvTempFileURL = fileURL
-                    isGeneratingCSV = false
+            if let fileURL = documentsURL?.appendingPathComponent(fileName) {
+                do {
+                    // 删除之前同名的文件（如果存在）
+                    if fileManager.fileExists(atPath: fileURL.path) {
+                        try fileManager.removeItem(at: fileURL)
+                    }
+                    
+                    // 写入CSV内容
+                    try csvString.write(to: fileURL, atomically: true, encoding: .utf8)
+                    
+                    // 在主线程更新UI状态
+                    DispatchQueue.main.async {
+                        csvTempFileURL = fileURL
+                        isGeneratingCSV = false
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        alertMessage = "创建导出文件失败：\(error.localizedDescription)".localized(in: .importExport)
+                        showingAlert = true
+                        isGeneratingCSV = false
+                    }
                 }
-            } catch {
+            } else {
                 DispatchQueue.main.async {
-                    alertMessage = "创建导出文件失败：\(error.localizedDescription)".localized(in: .importExport)
+                    alertMessage = "创建文件路径失败".localized(in: .importExport)
                     showingAlert = true
                     isGeneratingCSV = false
                 }
@@ -223,7 +237,10 @@ struct ImportExportView: View {
     // 清理临时文件
     private func cleanupTempFile() {
         if let url = csvTempFileURL {
-            try? FileManager.default.removeItem(at: url)
+            // 只在临时目录时删除文件
+            if url.absoluteString.contains("/tmp/") {
+                try? FileManager.default.removeItem(at: url)
+            }
             csvTempFileURL = nil
         }
     }

@@ -227,9 +227,11 @@ struct HabitFormView: View {
             Section(header: VStack(alignment: .leading, spacing: 3) {
                 Text("颜色主题".localized(in: .createHabit))
                     .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
-                Text("购买 PRO 版本解锁高级主题".localized(in: .createHabit))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                if !habitStore.isPro && !habitStore.debugMode {
+                    Text("购买 PRO 版本解锁高级主题".localized(in: .createHabit))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }) {
                 ForEach(Habit.ColorThemeName.allCases, id: \.self) { themeName in
                     let theme = ColorTheme.getTheme(for: themeName)

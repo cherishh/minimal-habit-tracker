@@ -22,6 +22,10 @@ struct English {
         "settings.中文": "Chinese",
         "settings.英文": "English",
         "settings.日语": "Japanese",
+        "settings.俄语": "Russian",
+        "settings.西班牙语": "Spanish",
+        "settings.德语": "German",
+        "settings.法语": "French",
         "settings.系统默认": "System Default",
         "settings.Debug 模式": "Debug Mode"
     ]
@@ -197,7 +201,8 @@ struct English {
         "common.取消": "Cancel",
         "common.返回": "Back",
         "common.保存": "Save",
-        "common.确定": "OK"
+        "common.确定": "OK",
+        "common.删除": "Delete"
     ]
     
     // 主内容页面翻译

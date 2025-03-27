@@ -25,31 +25,60 @@ class LanguageManager {
         // 如果是空字符串（系统默认），则根据系统语言选择
         if language.isEmpty {
             let systemLanguage = Locale.preferredLanguages.first ?? "en"
-            if systemLanguage.hasPrefix("zh") {
+            
+            // 根据系统语言选择翻译
+            switch true {
+            case systemLanguage.hasPrefix("zh"):
                 // 如果系统是中文，返回原始中文字符串
                 return key
-            } else if systemLanguage.hasPrefix("ja") {
+            case systemLanguage.hasPrefix("ja"):
                 // 如果系统是日语，使用日语翻译
                 return getJapaneseTranslation(for: context, key: contextKey) ?? key
-            } else {
+            case systemLanguage.hasPrefix("ru"):
+                // 如果系统是俄语，使用俄语翻译
+                return getRussianTranslation(for: context, key: contextKey) ?? key
+            case systemLanguage.hasPrefix("es"):
+                // 如果系统是西班牙语，使用西班牙语翻译
+                return getSpanishTranslation(for: context, key: contextKey) ?? key
+            case systemLanguage.hasPrefix("de"):
+                // 如果系统是德语，使用德语翻译
+                return getGermanTranslation(for: context, key: contextKey) ?? key
+            case systemLanguage.hasPrefix("fr"):
+                // 如果系统是法语，使用法语翻译
+                return getFrenchTranslation(for: context, key: contextKey) ?? key
+            default:
                 // 默认使用英文
                 return getEnglishTranslation(for: context, key: contextKey) ?? key
             }
         }
         
-        if language == "en" {
+        // 根据用户设置的语言选择翻译
+        switch language {
+        case "en":
             // 如果是英文，查找带前缀的翻译
             return getEnglishTranslation(for: context, key: contextKey) ?? key
-        } else if language == "zh-Hans" {
+        case "zh-Hans":
             // 如果是中文，返回原始中文字符串
             return key
-        } else if language == "ja" {
+        case "ja":
             // 如果是日语，查找带前缀的翻译
             return getJapaneseTranslation(for: context, key: contextKey) ?? key
+        case "ru":
+            // 如果是俄语，查找带前缀的翻译
+            return getRussianTranslation(for: context, key: contextKey) ?? key
+        case "es":
+            // 如果是西班牙语，查找带前缀的翻译
+            return getSpanishTranslation(for: context, key: contextKey) ?? key
+        case "de":
+            // 如果是德语，查找带前缀的翻译
+            return getGermanTranslation(for: context, key: contextKey) ?? key
+        case "fr":
+            // 如果是法语，查找带前缀的翻译
+            return getFrenchTranslation(for: context, key: contextKey) ?? key
+        default:
+            // 如果没有找到匹配的翻译，就返回原字符串
+            return key
         }
-        
-        // 如果没有找到匹配的翻译，就返回原字符串
-        return key
     }
     
     // 根据上下文和键获取英文翻译
@@ -100,6 +129,102 @@ class LanguageManager {
         }
     }
     
+    // 根据上下文和键获取俄语翻译
+    private func getRussianTranslation(for context: PageType, key: String) -> String? {
+        switch context {
+        case .settings:
+            return Russian.settingsTranslations[key]
+        case .createHabit:
+            return Russian.createHabitTranslations[key]
+        case .habitDetail:
+            return Russian.habitDetailTranslations[key]
+        case .proFeatures:
+            return Russian.proFeaturesTranslations[key]
+        case .importExport:
+            return Russian.importExportTranslations[key]
+        case .common:
+            return Russian.commonTranslations[key]
+        case .contentView:
+            return Russian.contentViewTranslations[key]
+        case .payment:
+            return Russian.paymentViewTranslations[key]
+        case .emojiPicker:
+            return Russian.emojiPickerTranslations[key]
+        }
+    }
+    
+    // 根据上下文和键获取西班牙语翻译
+    private func getSpanishTranslation(for context: PageType, key: String) -> String? {
+        switch context {
+        case .settings:
+            return Spanish.settingsTranslations[key]
+        case .createHabit:
+            return Spanish.createHabitTranslations[key]
+        case .habitDetail:
+            return Spanish.habitDetailTranslations[key]
+        case .proFeatures:
+            return Spanish.proFeaturesTranslations[key]
+        case .importExport:
+            return Spanish.importExportTranslations[key]
+        case .common:
+            return Spanish.commonTranslations[key]
+        case .contentView:
+            return Spanish.contentViewTranslations[key]
+        case .payment:
+            return Spanish.paymentViewTranslations[key]
+        case .emojiPicker:
+            return Spanish.emojiPickerTranslations[key]
+        }
+    }
+    
+    // 根据上下文和键获取德语翻译
+    private func getGermanTranslation(for context: PageType, key: String) -> String? {
+        switch context {
+        case .settings:
+            return German.settingsTranslations[key]
+        case .createHabit:
+            return German.createHabitTranslations[key]
+        case .habitDetail:
+            return German.habitDetailTranslations[key]
+        case .proFeatures:
+            return German.proFeaturesTranslations[key]
+        case .importExport:
+            return German.importExportTranslations[key]
+        case .common:
+            return German.commonTranslations[key]
+        case .contentView:
+            return German.contentViewTranslations[key]
+        case .payment:
+            return German.paymentViewTranslations[key]
+        case .emojiPicker:
+            return German.emojiPickerTranslations[key]
+        }
+    }
+    
+    // 根据上下文和键获取法语翻译
+    private func getFrenchTranslation(for context: PageType, key: String) -> String? {
+        switch context {
+        case .settings:
+            return French.settingsTranslations[key]
+        case .createHabit:
+            return French.createHabitTranslations[key]
+        case .habitDetail:
+            return French.habitDetailTranslations[key]
+        case .proFeatures:
+            return French.proFeaturesTranslations[key]
+        case .importExport:
+            return French.importExportTranslations[key]
+        case .common:
+            return French.commonTranslations[key]
+        case .contentView:
+            return French.contentViewTranslations[key]
+        case .payment:
+            return French.paymentViewTranslations[key]
+        case .emojiPicker:
+            return French.emojiPickerTranslations[key]
+        }
+    }
+    
     // 页面类型枚举
     enum PageType {
         case settings
@@ -134,10 +259,14 @@ class LanguageManager {
             case "zh-Hans": return "中文"
             case "en": return "英文"
             case "ja": return "日语"
+            case "ru": return "俄语"
+            case "es": return "西班牙语"
+            case "de": return "德语"
+            case "fr": return "法语"
             default: return "系统默认"
         }
     }
     
     // 支持的语言代码数组 - 添加新语言时扩展此数组
-    static let supportedLanguages = ["", "zh-Hans", "en", "ja"]
+    static let supportedLanguages = ["", "zh-Hans", "en", "ja", "ru", "es", "de", "fr"]
 } 

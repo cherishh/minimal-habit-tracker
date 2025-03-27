@@ -49,19 +49,11 @@ class HabitStore: ObservableObject {
         isPro = sharedDefaults.bool(forKey: isProKey)
         
         // 加载语言设置
-        if let savedLanguage = sharedDefaults.string(forKey: appLanguageKey), !savedLanguage.isEmpty {
+        if let savedLanguage = sharedDefaults.string(forKey: appLanguageKey) {
             appLanguage = savedLanguage
         } else {
-            // 默认使用系统语言
-            let preferredLanguage = Locale.preferredLanguages.first ?? "en"
-            // 根据系统语言设置默认语言
-            if preferredLanguage.hasPrefix("zh") {
-                appLanguage = "zh-Hans" // 中文
-            } else if preferredLanguage.hasPrefix("ja") {
-                appLanguage = "ja" // 日语
-            } else {
-                appLanguage = "en" // 英文
-            }
+            // 首次启动时默认为空字符串，表示跟随系统
+            appLanguage = ""
             sharedDefaults.set(appLanguage, forKey: appLanguageKey)
         }
         
