@@ -76,7 +76,7 @@ struct English {
         "detail.习惯详情": "Habit Details",
         "detail.统计": "Statistics",
         "detail.总打卡次数": "Total Check-ins",
-        "detail.总天数": "Total Days",
+        "detail.总天数": "Total",
         "detail.连续打卡": "Streak",
         "detail.最长连续": "Longest Streak",
         "detail.当前连续": "Current Streak",
@@ -88,7 +88,7 @@ struct English {
         "detail.您确定要删除这个习惯吗？此操作不可撤销，所有相关数据将被永久删除。": "Are you sure you want to delete this habit? This action cannot be undone, and all related data will be permanently deleted.",
         "detail.分享功能即将推出": "Share Feature Coming Soon",
         "detail.正在开发中，敬请期待": "Under development, stay tuned",
-        "detail.总计天数": "Total Days",
+        "detail.总计天数": "Total",
         "detail.天": " days",
         "detail.本月打卡": "This Month",
         "detail.少": "Less",
@@ -237,6 +237,7 @@ struct English {
         "payment.无广告": "Ads Free",
         "payment.标准版": "Standard",
         "payment.50%优惠": "50% OFF",
+        "payment.优惠": "OFF",
         "payment.恢复购买": "Restore subscription"
     ]
     

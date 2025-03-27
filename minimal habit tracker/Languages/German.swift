@@ -235,6 +235,7 @@ struct German {
         "payment.无广告": "Werbefrei",
         "payment.标准版": "Standard",
         "payment.50%优惠": "50% Rabatt",
+        "payment.优惠": "Rabatt",
         "payment.恢复购买": "Abonnement wiederherstellen"
     ]
     

@@ -218,6 +218,7 @@ struct Japanese {
         "payment.无广告": "広告なし",
         "payment.标准版": "スタンダード",
         "payment.50%优惠": "50%オフ",
+        "payment.优惠": "オフ",
         "payment.恢复购买": "購入を復元"
     ]
     

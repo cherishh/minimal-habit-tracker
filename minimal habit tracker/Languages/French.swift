@@ -235,6 +235,7 @@ struct French {
         "payment.无广告": "Sans publicité",
         "payment.标准版": "Standard",
         "payment.50%优惠": "50% de réduction",
+        "payment.优惠": "de réduction",
         "payment.恢复购买": "Restaurer l'abonnement"
     ]
     

@@ -47,81 +47,71 @@ struct PaymentView: View {
             // 英文价格
             switch plan {
             case .monthly:
-                return ("$0.99", nil)
+                return ("$1.99", nil)
             case .annually:
-                return ("$5.99", nil)
+                return ("$11.99", nil)
             case .lifetime:
-                return ("$9.99", "$19.99")
+                return ("$29.99", "$59.99")
             }
-        case "zh-Hans":
-            // 人民币价格
+        case "ja":
+            // 日文价格
+            switch plan {
+            case .monthly:
+                return ("¥250", nil)
+            case .annually:
+                return ("¥1500", nil)
+            case .lifetime:
+                return ("¥3000", "¥6000")
+            }
+        case "ru":
+            // 俄文价格
+            switch plan {
+            case .monthly:
+                return ("₽149", nil)
+            case .annually:
+                return ("₽999", nil)
+            case .lifetime:
+                return ("₽2490", "₽4990")
+            }
+        case "es":
+            // 西班牙语价格（欧元）
+            switch plan {
+            case .monthly:
+                return ("€1.99", nil)
+            case .annually:
+                return ("€11.99", nil)
+            case .lifetime:
+                return ("€29.99", "€59.99")
+            }
+        case "de":
+            // 德语价格（欧元）
+            switch plan {
+            case .monthly:
+                return ("€1.99", nil)
+            case .annually:
+                return ("€11.99", nil)
+            case .lifetime:
+                return ("€29.99", "€59.99")
+            }
+        case "fr":
+            // 法语价格（欧元）
+            switch plan {
+            case .monthly:
+                return ("€1.99", nil)
+            case .annually:
+                return ("€11.99", nil)
+            case .lifetime:
+                return ("€29.99", "€59.99")
+            }
+        default:
+            // 中文价格（默认）
             switch plan {
             case .monthly:
                 return ("¥6.00", nil)
             case .annually:
                 return ("¥36.00", nil)
             case .lifetime:
-                return ("¥66.00", "¥126.00")
-            }
-        case "ja":
-            // 日文价格
-            switch plan {
-            case .monthly:
-                return ("¥120", nil)
-            case .annually:
-                return ("¥720", nil)
-            case .lifetime:
-                return ("¥1800", "¥3600")
-            }
-        case "ru":
-            // 俄文价格
-            switch plan {
-            case .monthly:
-                return ("$0.99", nil)
-            case .annually:
-                return ("$5.99", nil)
-            case .lifetime:
-                return ("$9.99", "$19.99")
-            }
-        case "es":
-            // 西班牙语价格（欧元）
-            switch plan {
-            case .monthly:
-                return ("€0.99", nil)
-            case .annually:
-                return ("€5.99", nil)
-            case .lifetime:
-                return ("€9.99", "€19.99")
-            }
-        case "de":
-            // 德语价格（欧元）
-            switch plan {
-            case .monthly:
-                return ("€0.99", nil)
-            case .annually:
-                return ("€5.99", nil)
-            case .lifetime:
-                return ("€9.99", "€19.99")
-            }
-        case "fr":
-            // 法语价格（欧元）
-            switch plan {
-            case .monthly:
-                return ("€0.99", nil)
-            case .annually:
-                return ("€5.99", nil)
-            case .lifetime:
-                return ("€9.99", "€19.99")
-            }
-        default:
-            // 默认使用英文美元价格
-            switch plan {
-            case .monthly:
-                return ("$0.99", nil)
-            case .annually:
-                return ("$5.99", nil)
-            case .lifetime:
-                return ("$9.99", "$19.99")
+                return ("¥96.00", "¥196.00")
             }
         }
     }
@@ -160,29 +150,10 @@ struct PaymentView: View {
                         
                         // 年付选项
                         let annuallyPriceInfo = localizedPrice(for: .annually)
-                        // 计算折扣率
-                        let discountText: String = {
-                            // 获取纯数字价格（移除货币符号）
-                            let monthlyPrice = extractNumericValue(from: monthlyPriceInfo.price)
-                            let annuallyPrice = extractNumericValue(from: annuallyPriceInfo.price)
-                            
-                            // 计算年付相当于几个月的月付
-                            if let monthlyP = monthlyPrice, let annuallyP = annuallyPrice, monthlyP > 0 {
-                                let monthEquivalent = annuallyP / monthlyP
-                                // 计算节省百分比 (12 - monthEquivalent) / 12 * 100
-                                let savePercent = Int((12 - monthEquivalent) / 12 * 100)
-                                // 将百分比和文本分开国际化
-                                return "\(savePercent)% " + "优惠".localized(in: .payment)
-                            }
-                            
-                            // 如果计算失败，返回默认值
-                            return "优惠".localized(in: .payment)
-                        }()
-                        
                         PaymentOptionCard(
                             title: "年付".localized(in: .payment),
                             price: annuallyPriceInfo.price,
-                            subtitle: discountText,
+                            subtitle: "50%优惠".localized(in: .payment),
                             originalPrice: annuallyPriceInfo.originalPrice,
                             isSelected: selectedPlan == .annually,
                             action: {
@@ -350,24 +321,6 @@ struct ComparisonRow: View {
                 .foregroundColor(proEnabled ? .green : .secondary)
         }
     }
-}
-
-// 辅助函数：从价格字符串中提取数值
-private func extractNumericValue(from priceString: String) -> Double? {
-    // 使用正则表达式匹配数字部分
-    let regex = try? NSRegularExpression(pattern: "[0-9]+([,.][0-9]+)?", options: [])
-    let range = NSRange(location: 0, length: priceString.utf16.count)
-    
-    if let match = regex?.firstMatch(in: priceString, options: [], range: range) {
-        // 将匹配结果转换为Swift字符串
-        if let matchRange = Range(match.range, in: priceString) {
-            let numericString = priceString[matchRange]
-                .replacingOccurrences(of: ",", with: ".") // 将逗号替换为小数点
-            return Double(numericString)
-        }
-    }
-    
-    return nil
 }
 
 #Preview {

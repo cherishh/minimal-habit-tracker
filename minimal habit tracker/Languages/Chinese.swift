@@ -23,5 +23,7 @@ struct Chinese {
     static let contentViewTranslations: [String: String] = [:]
     
     // 支付页面翻译
-    static let paymentViewTranslations: [String: String] = [:]
+    static let paymentViewTranslations: [String: String] = [
+        "payment.优惠": "优惠"
+    ]
 } 
