@@ -291,7 +291,7 @@ struct HabitFormView: View {
                             .font(.subheadline)
                         
                         Picker("打卡次数上限".localized(in: .createHabit), selection: $maxCheckInCount) {
-                            ForEach(1...10, id: \.self) { count in
+                            ForEach(2...10, id: \.self) { count in
                                 Text("\(count)").tag(count)
                             }
                         }
