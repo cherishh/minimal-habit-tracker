@@ -29,7 +29,7 @@ struct ColorTheme: Identifiable {
                 "🩵 清晨湖水": "🩵 Morning Lake",
                 "🌹 玫瑰": "🌹 Rose",
                 "🪨 青岩": "🪨 Cyan Rock",
-                "🩶 黑白森林": "🩶 Monochrome Forest",
+                "🩶 黑白森 林": "🩶 Monochrome Forest",
                 "🍬 糖果": "🍬 Candy"
             ],
             "ja": [
@@ -44,6 +44,58 @@ struct ColorTheme: Identifiable {
                 "🪨 青岩": "🪨 シアンロック",
                 "🩶 黑白森林": "🩶 モノクローム",
                 "🍬 糖果": "🍬 キャンディ"
+            ],
+            "ru": [
+                "🤖 默认": "🤖 По умолчанию",
+                "🌊 蓝色海洋": "🌊 Синий океан",
+                "🌅 日落": "🌅 Закат",
+                "🟪 紫雨": "🟪 Фиолетовый дождь",
+                "🏜 黄金国": "🏜 Золотая земля",
+                "🌿 芳草地": "🌿 Луг", 
+                "🩵 清晨湖水": "🩵 Утреннее озеро",
+                "🌹 玫瑰": "🌹 Роза",
+                "🪨 青岩": "🪨 Голубая скала",
+                "🩶 黑白森林": "🩶 Монохромный лес",
+                "🍬 糖果": "🍬 Конфеты"
+            ],
+            "de": [
+                "🤖 默认": "🤖 Standard",
+                "🌊 蓝色海洋": "🌊 Blauer Ozean",
+                "🌅 日落": "🌅 Sonnenuntergang",
+                "🟪 紫雨": "🟪 Violetter Regen",
+                "🏜 黄金国": "🏜 Goldenes Land",
+                "🌿 芳草地": "🌿 Wiese", 
+                "🩵 清晨湖水": "🩵 Morgensee",
+                "🌹 玫瑰": "🌹 Rose",
+                "🪨 青岩": "🪨 Türkisfelsen",
+                "🩶 黑白森林": "🩶 Monochrome Wald",
+                "🍬 糖果": "🍬 Süßigkeiten"
+            ],
+            "fr": [
+                "🤖 默认": "🤖 Par défaut",
+                "🌊 蓝色海洋": "🌊 Océan bleu",
+                "🌅 日落": "🌅 Coucher de soleil",
+                "🟪 紫雨": "🟪 Pluie violette",
+                "🏜 黄金国": "🏜 Pays doré",
+                "🌿 芳草地": "🌿 Prairie", 
+                "🩵 清晨湖水": "🩵 Lac du matin",
+                "🌹 玫瑰": "🌹 Rose",
+                "🪨 青岩": "🪨 Roche turquoise",
+                "🩶 黑白森林": "🩶 Forêt monochrome",
+                "🍬 糖果": "🍬 Bonbon"
+            ],
+            "es": [
+                "🤖 默认": "🤖 Predeterminado",
+                "🌊 蓝色海洋": "🌊 Océano azul",
+                "🌅 日落": "🌅 Puesta de sol",
+                "🟪 紫雨": "🟪 Lluvia púrpura",
+                "🏜 黄金国": "🏜 Tierra dorada",
+                "🌿 芳草地": "🌿 Pradera", 
+                "🩵 清晨湖水": "🩵 Lago de la mañana",
+                "🌹 玫瑰": "🌹 Rosa",
+                "🪨 青岩": "🪨 Roca turquesa",
+                "🩶 黑白森林": "🩶 Bosque monocromático",
+                "🍬 糖果": "🍬 Caramelo"
             ]
         ]
         
@@ -56,6 +108,18 @@ struct ColorTheme: Identifiable {
             } else if systemLanguage.hasPrefix("ja") {
                 // 如果系统是日语，使用日语翻译
                 return translations["ja"]?[name] ?? name
+            } else if systemLanguage.hasPrefix("ru") {
+                // 如果系统是俄语，使用俄语翻译
+                return translations["ru"]?[name] ?? name
+            } else if systemLanguage.hasPrefix("es") {
+                // 如果系统是西班牙语，使用西班牙语翻译
+                return translations["es"]?[name] ?? name
+            } else if systemLanguage.hasPrefix("de") {
+                // 如果系统是德语，使用德语翻译
+                return translations["de"]?[name] ?? name
+            } else if systemLanguage.hasPrefix("fr") {
+                // 如果系统是法语，使用法语翻译
+                return translations["fr"]?[name] ?? name
             } else {
                 // 默认使用英文
                 return translations["en"]?[name] ?? name
@@ -71,6 +135,18 @@ struct ColorTheme: Identifiable {
         } else if language == "ja" {
             // 如果是日语，查找翻译
             return translations["ja"]?[name] ?? name
+        } else if language == "ru" {
+            // 如果是俄语，查找翻译
+            return translations["ru"]?[name] ?? name
+        } else if language == "es" {
+            // 如果是西班牙语，查找翻译
+            return translations["es"]?[name] ?? name
+        } else if language == "de" {
+            // 如果是德语，查找翻译
+            return translations["de"]?[name] ?? name
+        } else if language == "fr" {
+            // 如果是法语，查找翻译
+            return translations["fr"]?[name] ?? name
         }
         
         // 如果没有找到匹配的翻译，就返回原字符串

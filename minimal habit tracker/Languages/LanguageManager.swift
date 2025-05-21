@@ -255,15 +255,20 @@ class LanguageManager {
     
     // 获取指定语言代码对应的语言名称
     func getLanguageName(for code: String) -> String {
+        if code.isEmpty {
+            // 空字符串表示系统默认，返回对应翻译
+            return "系统默认".localized(in: .settings)
+        }
+        
         switch code {
             case "zh-Hans": return "中文"
-            case "en": return "英文"
-            case "ja": return "日语"
-            case "ru": return "俄语"
-            case "es": return "西班牙语"
-            case "de": return "德语"
-            case "fr": return "法语"
-            default: return "系统默认"
+            case "en": return "English"
+            case "ja": return "日本語"
+            case "ru": return "Русский"
+            case "es": return "Español"
+            case "de": return "Deutsch"
+            case "fr": return "Français"
+            default: return code
         }
     }
     

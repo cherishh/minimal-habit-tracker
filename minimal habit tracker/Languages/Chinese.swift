@@ -26,4 +26,19 @@ struct Chinese {
     static let paymentViewTranslations: [String: String] = [
         "payment.优惠": "优惠"
     ]
+    
+    // Emoji选择器翻译
+    static let emojiPickerTranslations: [String: String] = [
+        "emoji.最近使用": "最近使用",
+        "emoji.人物": "人物",
+        "emoji.自然": "自然",
+        "emoji.物品": "物品",
+        "emoji.地点": "地点",
+        "emoji.符号": "符号",
+        "emoji.Emoji": "Emoji",
+        "emoji.Text": "文字",
+        "emoji.输入文字": "输入文字",
+        "emoji.将取第一个字作为习惯图标。你也可以输入自定义的 emoji": "将取第一个字作为习惯图标。你也可以输入自定义的 emoji",
+        "emoji.选择图标": "选择图标"
+    ]
 } 

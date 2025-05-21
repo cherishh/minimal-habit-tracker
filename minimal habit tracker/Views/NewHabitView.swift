@@ -227,30 +227,29 @@ struct HabitFormView: View {
             Section(header: VStack(alignment: .leading, spacing: 3) {
                 Text("颜色主题".localized(in: .createHabit))
                     .foregroundColor(colorScheme == .dark ? .primary.opacity(0.8) : .primary)
+                /*
                 if !habitStore.isPro && !habitStore.debugMode {
                     Text("购买 PRO 版本解锁高级主题".localized(in: .createHabit))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
+                */
             }) {
                 ForEach(Habit.ColorThemeName.allCases, id: \.self) { themeName in
                     let theme = ColorTheme.getTheme(for: themeName)
-                    let isProTheme = !habitStore.canUseProTheme(themeName)
-                    
+                    // let isProTheme = !habitStore.canUseProTheme(themeName)
                     Button(action: {
-                        if isProTheme && !habitStore.isPro && !habitStore.debugMode {
-                            // 显示升级提示
-                            showingProAlert = true
-                        } else {
+                        // if isProTheme && !habitStore.isPro && !habitStore.debugMode {
+                        //     // 显示升级提示
+                        //     showingProAlert = true
+                        // } else {
                             selectedTheme = themeName
-                        }
+                        // }
                     }) {
                         HStack {
                             Text(theme.localizedName())
-                                .foregroundColor(isProTheme && !habitStore.isPro && !habitStore.debugMode ? .secondary : .primary)
-                            
+                                .foregroundColor(.primary)
                             Spacer()
-                            
                             // 主题预览
                             HStack(spacing: 2) {
                                 ForEach(0..<HabitStore.maxCheckInCount+1) { level in
@@ -259,19 +258,14 @@ struct HabitFormView: View {
                                         .frame(width: 16, height: 16)
                                 }
                             }
-                            
                             if selectedTheme == themeName {
                                 Image(systemName: "checkmark")
                                     .foregroundColor(.blue)
                                     .padding(.leading, 5)
-                            } else if isProTheme && !habitStore.isPro && !habitStore.debugMode {
-                                Image(systemName: "lock.fill")
-                                    .foregroundColor(.secondary)
-                                    .padding(.leading, 5)
                             }
                         }
                     }
-                    .disabled(isProTheme && !habitStore.isPro && !habitStore.debugMode)
+                    // .disabled(isProTheme && !habitStore.isPro && !habitStore.debugMode)
                 }
             }
 

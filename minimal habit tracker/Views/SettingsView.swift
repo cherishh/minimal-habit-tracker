@@ -35,6 +35,7 @@ struct SettingsView: View {
         NavigationView {
             List {
                 // Pro 升级卡片
+                /*
                 if !habitStore.isPro && !habitStore.debugMode {
                     Section {
                         Button(action: {
@@ -69,6 +70,7 @@ struct SettingsView: View {
                         }
                     }
                 }
+                */
                 
                 AppearanceSection
                 LanguageSection
@@ -77,14 +79,14 @@ struct SettingsView: View {
                 AboutSection
                 
                 // Debug 按钮
-                Section {
-                    Toggle("Debug 模式", isOn: Binding(
-                        get: { habitStore.debugMode },
-                        set: { newValue in
-                            habitStore.toggleDebugMode()
-                        }
-                    ))
-                }
+                // Section {
+                //     Toggle("Debug 模式", isOn: Binding(
+                //         get: { habitStore.debugMode },
+                //         set: { newValue in
+                //             habitStore.toggleDebugMode()
+                //         }
+                //     ))
+                // }
             }
             .navigationTitle("设置".localized(in: .settings))
             .navigationBarItems(trailing: Button("完成".localized(in: .settings)) {
@@ -186,14 +188,14 @@ struct SettingsView: View {
     private var LanguageSection: some View {
         Section(header: Text("语言".localized(in: .settings))) {
             Picker("语言".localized(in: .settings), selection: $selectedLanguage) {
-                Text("系统默认".localized(in: .settings)).tag("")
-                Text("英文".localized(in: .settings)).tag("en")
-                Text("德语".localized(in: .settings)).tag("de")
-                Text("西班牙语".localized(in: .settings)).tag("es")
-                Text("法语".localized(in: .settings)).tag("fr")
-                Text("日语".localized(in: .settings)).tag("ja")
-                Text("俄语".localized(in: .settings)).tag("ru")
-                Text("中文".localized(in: .settings)).tag("zh-Hans")
+                Text(LanguageManager.shared.getLanguageName(for: "")).tag("")
+                Text(LanguageManager.shared.getLanguageName(for: "en")).tag("en")
+                Text(LanguageManager.shared.getLanguageName(for: "de")).tag("de")
+                Text(LanguageManager.shared.getLanguageName(for: "es")).tag("es")
+                Text(LanguageManager.shared.getLanguageName(for: "fr")).tag("fr")
+                Text(LanguageManager.shared.getLanguageName(for: "ja")).tag("ja")
+                Text(LanguageManager.shared.getLanguageName(for: "ru")).tag("ru")
+                Text(LanguageManager.shared.getLanguageName(for: "zh-Hans")).tag("zh-Hans")
             }
             .onChange(of: selectedLanguage) { newValue in
                 // 不直接调用habitStore.setAppLanguage，而是先保存当前界面状态

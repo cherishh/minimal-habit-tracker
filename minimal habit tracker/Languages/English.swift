@@ -19,13 +19,6 @@ struct English {
         "settings.为我们评分": "Rate Us",
         "settings.我抓到了🐞": "I Found a Bug",
         "settings.语言": "Language",
-        "settings.中文": "Chinese",
-        "settings.英文": "English",
-        "settings.日语": "Japanese",
-        "settings.俄语": "Russian",
-        "settings.西班牙语": "Spanish",
-        "settings.德语": "German",
-        "settings.法语": "French",
         "settings.系统默认": "System Default",
         "settings.Debug 模式": "Debug Mode"
     ]
