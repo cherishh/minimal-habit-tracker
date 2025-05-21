@@ -861,6 +861,13 @@ struct GitHubStyleHeatmapView: View {
         // 直接使用habitStore的语言设置而不是系统locale
         let language = HabitStore.shared.appLanguage
         
+        // 如果设置为简体中文或系统默认但系统语言是简体中文
+        if language == "zh-Hans" || (language.isEmpty && Locale.preferredLanguages.first?.hasPrefix("zh") == true 
+            && !Locale.preferredLanguages.first!.hasPrefix("zh-Hant")) {
+            // 直接返回简体中文月份
+            return "\(month)月"
+        }
+        
         // 如果设置为英文或系统默认但系统语言是英文
         if language == "en" || (language.isEmpty && Locale.preferredLanguages.first?.hasPrefix("en") == true) {
             let formatter = DateFormatter()
@@ -879,6 +886,13 @@ struct GitHubStyleHeatmapView: View {
     private func formatHeatmapWeekday(_ weekday: String) -> String {
         // 直接使用habitStore的语言设置而不是系统locale
         let language = HabitStore.shared.appLanguage
+        
+        // 如果设置为简体中文或系统默认但系统语言是简体中文
+        if language == "zh-Hans" || (language.isEmpty && Locale.preferredLanguages.first?.hasPrefix("zh") == true 
+            && !Locale.preferredLanguages.first!.hasPrefix("zh-Hant")) {
+            // 直接返回简体中文星期
+            return weekday
+        }
         
         // 如果设置为英文或系统默认但系统语言是英文
         if language == "en" || (language.isEmpty && Locale.preferredLanguages.first?.hasPrefix("en") == true) {
