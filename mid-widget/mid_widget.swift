@@ -2,7 +2,7 @@
 //  mid_widget.swift
 //  mid-widget
 //
-//  Created by 王仲玺 on 2025/3/10.
+//  Created by 图蜥 on 2025/3/10.
 //
 
 import WidgetKit

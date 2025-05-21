@@ -1,36 +1,97 @@
-# minimal habit tracker
-以 github contributions heatmap 的形式为用户提供习惯追踪。
+# EasyHabit
 
-## 功能描述
-1. 应用有 2 个主要页面组成，分别是 list view 和 detail view。
-2. 在 list view 中，用户可以通过简易卡片查看已经添加的 habit。卡片中包含 habit 的名称、emoji、最近 10 天的微型热力图、打卡按钮。点击卡片进入 detail view。用户也可以点击新建 icon 来新建 habit、左滑删除 habit、以及进入设置页面。
-3. 创建 habit。habit 有两种类型，checkbox 和 count。确定类型后不可修改。用户选择类型后进入下一步，在下一步的创建中，用户选择 emoji、输入名称、选择颜色主题。checkbox 类型下，用户点击一次热力图对应的格子/打卡按钮即完成记录，默认使用用户选择的颜色主题中颜色最深的那个填充热力图；count 类型下，用户每点击一次，热力图颜色加深一点，最多有 4 档。创建成功后进入 detail view 界面。
-4. detail view 中，大致分为上下两部分。上半部分为 heatmap。heatmap 上每一个 block 代表一个日期。用户可以点击 block，从而 log 这一天的习惯已经打卡完成。用户可以多次点击同一个 block，每点击一次，该 block 的颜色加深一点，总共有 4 档。对于 checkbox 类型，在已经 log 的格子上再次点击则取消这天的 log；对于 count 类型，点击第 5 次时也清空 log。下半部分为普通日历，显示当月日期，用户也可以点击日历上的日期从而 log 这一天的习惯已经打卡完成。点击某日期后，该日期画圈。已经打卡的日期同样显示为已画圈。此外用户可随时点击齿轮按钮修改 habit 的名称、emoji、颜色主题。
-5. 用户可以切换light/dark mode；
-    5.1. dark mode下有诸多细节优化。如 primary 在多数时候使用 opacity 0.8 降低对比度；列表页进度指示器/日历进度指示器填充色采用颜色等级 4 而不是 5。迷你热力图整体添加 0.8 透明度，使热力图不那么刺眼。widget 纯黑背景，等。
-    5.2. 还可以进一步优化。有些地方文字依然是纯白刺眼；迷你热力图格子默认颜色可以统一成 gray。
-6. 允许用户将打卡数据导出为标准 csv 文件。也可以导入。用户点击设置中的导入导出，进入 export view 后，csv 文件就会开始生成。如果用户成功导出，则删除临时 csv，如果用户取消导出，则该临时 csv会存在 1min后自动删除。
+**版本:** 0.1 
 
+"EasyHabit" 是一款 iOS 平台的极简风格习惯追踪应用，旨在帮助用户以类似 GitHub contributions heatmap 的形式记录和培养日常习惯。应用核心在于简洁的界面和直观的操作，让用户能够轻松管理和追踪个人习惯的养成过程。
 
+## 主要功能
 
-## Next Step
+* **习惯管理**:
+    * 支持创建、编辑和删除习惯。
+    * 每个习惯包含自定义名称、Emoji 图标和颜色主题。
+    * 提供两种习惯类型：
+        * **Checkbox (打卡型)**：一次点击即可记录完成，如“每日早餐”。
+        * **Count (计数型)**：可设置每日目标次数，支持多次打卡，如“每日饮水X杯”。
+    * 用户可以对习惯列表进行排序。
+* **可视化追踪**:
+    * 主列表页通过卡片展示每个习惯，卡片内含微型热力图，显示近期的打卡情况。
+    * 习惯详情页提供 GitHub 风格的年度热力图，以及月历视图，方便用户查看和操作特定日期的打卡记录。
+* **数据统计**:
+    * 详情页展示总打卡天数、最长连续打卡、当前连续打卡等统计信息。
+    * 热力图和月历视图直观反映打卡频率和完成度。
+* **用户界面与体验**:
+    * 支持浅色模式 (Light Mode) 和深色模式 (Dark Mode)，并可跟随系统设置。
+    * 提供多种预设颜色主题，用户可为不同习惯选择不同主题。
+    * 界面设计注重简约和易用性，操作直观。
+    * 支持包括中文、英文、日文、俄文、西班牙文、德文、法文在内的多语言界面。
+* **数据管理**:
+    * 用户数据存储在本地设备。
+    * 支持将所有习惯和打卡记录导出为 CSV 文件进行备份。
+    * 支持从 CSV 文件导入习惯和打卡记录，方便恢复数据或迁移。
+* **Widget (小组件) - 核心功能**:
+    * 提供桌面小组件，可显示选定习惯的打卡状态和微型热力图。
+    * 用户可以直接通过 Widget 进行打卡操作，无需打开主应用。
+    * 支持添加多个习惯，互相之间可以上下滑动切换（利用 ios widget stack）。
 
+## 技术实现
 
+* **UI 框架**: SwiftUI。
+* **状态管理**: `@EnvironmentObject` 和 `@StateObject` 用于管理应用核心数据 `HabitStore`。
+* **数据持久化**:
+    * 习惯数据和打卡记录通过 `Codable` 协议序列化后存储于 `UserDefaults`（通过 App Group 实现主应用与 Widget 共享）。
+    * 用户设置（如主题模式、语言）也通过 `UserDefaults` (`@AppStorage`) 保存。
+* **WidgetKit**: 用于实现 iOS桌面小组件功能，包含数据显示和交互。
+* **AppIntents**: 用于处理 Widget 上的交互操作，如打卡。
+* **本地化**: 通过自定义的 `LanguageManager` 和结构化的翻译文件实现多语言支持。
+
+## 如何配置和运行
+
+1.  **App Group 设置**:
+    * 为了使主应用和 Widget 能够共享数据（通过 `UserDefaults`），需要在 Xcode 中为应用的 Target 和 Widget Extension Target 配置相同的 App Group。
+    * 详细步骤请参照项目中的 `AppGroup_Setup.md` 文件。
+    * App Group ID 为 `group.com.xi.HabitTracker.minimal-habit-tracker`。
+2.  **构建与运行**:
+    * 在 Xcode 中打开项目。
+    * 确保已正确配置签名和 App Group。
+    * 选择主应用 Target (`minimal habit tracker`) 或 Widget Extension Target (`mid-widgetExtension`)。
+    * 选择一个模拟器或连接的物理设备。
+    * 点击 "Build and Run" (播放按钮)。
+
+## 目录结构简介
+
+* `minimal habit tracker/`: 主应用程序代码。
+    * `Models/`: 包含核心数据模型，如 `Habit.swift`, `HabitLog.swift`, `HabitStore.swift`, `ColorTheme.swift`。
+    * `Views/`: 包含构成应用界面的 SwiftUI 视图，如 `ContentView.swift`, `HabitDetailView.swift`, `NewHabitView.swift`, `SettingsView.swift` 等。
+    * `Languages/`: 包含多语言支持的相关文件，如 `LanguageManager.swift` 和各语言的翻译结构体。
+    * `Assets.xcassets/`: 主应用的资源文件，如图标、图片。
+* `mid-widget/`: Widget 扩展代码。
+    * `mid_widget.swift`: Widget 的主要逻辑，包括 `Provider`, `Entry`, 视图 (`HabitWidgetEntryView`) 和打卡意图 (`CheckInHabitIntent`)。
+    * `mid_widgetBundle.swift`: Widget Bundle 定义。
+    * `Assets.xcassets/`: Widget 的资源文件。
+* `AppGroup_Setup.md`: App Group 配置指南。
+* `emojis.md`: 项目中可能用到的 Emoji 列表参考。
+* `prd.md`: iCloud 同步功能的产品需求文档 (规划中)。
+* `spec.md`: iCloud 同步功能的技术规格文档 (规划中)。
 
 ## todos
-- [ ] 用户可以在桌面添加该 app 的 widget。这个 widget 显示当前 habit 的 heatmap。如果用户点击 widget，直接默认在当前 habit 上 log+1。【不需要】进入 app。
-- [ ] 设置页扩展
-    - [ ] light dark 切换
-    - [ ] 热力图颜色自定义
-    - [ ] coming soon
-        - [ ] 自定义 color theme
-        - [ ] 数据云同步
-        - [ ] 无限 habits 数量
-        - [ ] note 功能
-
 - [ ] invite buddy
+- [ ] Pro 版本
+- [ ] 数据云同步
 - [ ] 热力图自动滚动到当前日期为最后一列
 - [ ] 设置每天的提醒时间，提醒用户打卡
 - [ ] 最长连续的计算优化（最多往前算 365 天可跨年）
 - [ ] audio 
 - [ ] 同步到 notion
+- [ ] note 功能
+
+
+## 贡献
+
+如果您对改进此项目有任何建议或发现了 bug，欢迎通过提交 Issue 或 Pull Request 的方式参与贡献。
+
+---
+
+**开发者**: 图蜥
+
+
+

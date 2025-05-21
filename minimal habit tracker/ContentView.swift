@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  minimal habit tracker
 //
-//  Created by 王仲玺 on 2025/3/6.
+//  Created by 图蜥 on 2025/3/6.
 //
 
 import SwiftUI
