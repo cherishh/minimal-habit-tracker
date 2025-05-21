@@ -41,13 +41,11 @@ struct Provider: AppIntentTimelineProvider {
     func snapshot(for configuration: HabitSelectionIntent, in context: Context) async -> HabitEntry {
         print("【Widget】生成snapshot，配置habitId: \(configuration.habitId)")
         
-        // 检查刷新时间戳
-        let lastTimestamp = sharedDefaults.double(forKey: "widget_refresh_timestamp")
-        if lastTimestamp > 0 {
-            print("【Widget】检测到更新时间戳: \(lastTimestamp)")
-        }
+        // 每次都强制同步UserDefaults，确保读取到最新数据
+        sharedDefaults.synchronize()
         
-        // 从 UserDefaults 直接加载最新习惯数据
+        // 从 UserDefaults 直接加载最新习惯数据 
+        // 始终创建新实例不使用缓存
         let habitStore = loadHabitStore()
         
         // 获取选择的习惯，如果没有选择或找不到，则使用第一个习惯
@@ -65,14 +63,22 @@ struct Provider: AppIntentTimelineProvider {
             print("【Widget】没有找到习惯，使用默认习惯")
         }
         
-        // 获取习惯的日志
-        let logs = habitStore.habitLogs.filter { $0.habitId == selectedHabit.id }
-        print("【Widget】过滤出该习惯的日志数量: \(logs.count)条")
+        // 获取习惯的日志 - 强制从UserDefaults加载最新数据
+        var logs: [HabitLog] = []
+        if let logsData = sharedDefaults.data(forKey: "habitLogs"),
+           let allLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
+            logs = allLogs.filter { $0.habitId == selectedHabit.id }
+            print("【Widget】snapshot直接从UserDefaults读取到\(logs.count)条该习惯的日志")
+        }
         
-        // 获取今天的打卡次数
-        let todayCount = habitStore.getLogCountForDate(habitId: selectedHabit.id, date: Date())
+        // 获取今天的打卡次数 - 直接计算而不是使用habitStore方法
+        let calendar = Calendar.current
+        let todayCount = logs.filter { 
+            calendar.isDate($0.date, inSameDayAs: Date()) 
+        }.first?.count ?? 0
         print("【Widget】今日打卡次数: \(todayCount)")
         
+        // 返回带有最新数据的条目
         return HabitEntry(
             date: Date(),
             habit: selectedHabit,
@@ -84,35 +90,21 @@ struct Provider: AppIntentTimelineProvider {
     
     // 时间线数据
     func timeline(for configuration: HabitSelectionIntent, in context: Context) async -> Timeline<HabitEntry> {
+        // 强制同步UserDefaults以确保读取到最新数据
+        sharedDefaults.synchronize()
+        
+        // 获取最新快照
         let entry = await snapshot(for: configuration, in: context)
         
-        // 计算多个更新时间点以实现更频繁的刷新
-        var entries = [entry]
-        let currentDate = Date()
-        
-        // 未来5分钟、15分钟和30分钟各安排一次更新
-        let updateTimes = [5, 15, 30]
-        for minutes in updateTimes {
-            if let futureDate = Calendar.current.date(byAdding: .minute, value: minutes, to: currentDate) {
-                let futureEntry = HabitEntry(
-                    date: futureDate,
-                    habit: entry.habit,
-                    logs: entry.logs,
-                    todayCount: entry.todayCount,
-                    configuration: entry.configuration
-                )
-                entries.append(futureEntry)
-            }
-        }
-        
-        print("【Widget】计划了\(entries.count)个时间点的更新")
-        return Timeline(entries: entries, policy: .atEnd)
+        // 设置为.never，只在用户主动触发时更新，不进行后台自动刷新
+        let timelinePolicy: TimelineReloadPolicy = .never
+        return Timeline(entries: [entry], policy: timelinePolicy)
     }
     
     // 从 UserDefaults 加载习惯数据
     private func loadHabitStore() -> HabitStore {
         print("【Widget Provider】开始loadHabitStore - 强制从UserDefaults读取")
-        
+        sharedDefaults.synchronize()
         // 创建新实例，避免使用可能未更新的共享单例
         let habitStore = HabitStore()
         
@@ -333,6 +325,31 @@ struct WidgetMiniHeatmapView: View {
         return 0
     }
     
+    // 获取日期的热力图颜色 - 与主程序保持一致的逻辑
+    private func getColorForDate(date: Date) -> Color {
+        let count = getLogCountForDate(date: date)
+        
+        // 未打卡情况 - 保持原来的底色逻辑
+        if count == 0 {
+            return colorScheme == .dark ? theme.color(for: 0, isDarkMode: true) : Color(hex: "ebedf0")
+        }
+        
+        // 打卡情况 - 根据习惯类型使用不同颜色逻辑
+        if habit.habitType == .checkbox {
+            // checkbox类型: 使用最深颜色
+            return colorScheme == .dark 
+                ? theme.color(for: 4, isDarkMode: true) 
+                : theme.color(for: 5, isDarkMode: false)
+        } else {
+            // count类型: 根据打卡次数使用渐变颜色
+            // 计算颜色级别: 1-5
+            let level = max(1, min(5, Int(ceil(Double(count) / Double(habit.maxCheckInCount) * 4.0))))
+            return colorScheme == .dark 
+                ? theme.color(for: level, isDarkMode: true) 
+                : theme.color(for: level, isDarkMode: false)
+        }
+    }
+    
     var body: some View {
         // 计算总共需要显示的列数
         let columnCount = dateGrid.isEmpty ? 0 : dateGrid[0].count
@@ -345,15 +362,9 @@ struct WidgetMiniHeatmapView: View {
                     ForEach(0..<columnCount, id: \.self) { column in
                         // 获取该位置的日期
                         if let date = dateGrid[row][column] {
-                            let count = getLogCountForDate(date: date)
-                            
-                            // 单个格子
+                            // 使用统一的颜色获取方法
                             RoundedRectangle(cornerRadius: 2)
-                                .fill(count > 0 
-                                      ? theme.colorForCount(count: count, maxCount: habit.maxCheckInCount, isDarkMode: colorScheme == .dark)
-                                      : (colorScheme == .dark 
-                                         ? theme.color(for: 0, isDarkMode: true) 
-                                         : Color(hex: "ebedf0")))
+                                .fill(getColorForDate(date: date))
                                 .frame(width: cellSize, height: cellSize)
                         } else {
                             // 没有日期的位置（例如超过今天的日期）
@@ -366,7 +377,7 @@ struct WidgetMiniHeatmapView: View {
             }
         }
         .frame(height: 7 * (cellSize + cellSpacing) - cellSpacing)
-        .frame(width: 190) // 从190减小到185，提供更多边距空间
+        .frame(width: 190) // 提供更多边距空间
     }
 }
 
@@ -488,32 +499,39 @@ struct CheckInHabitIntent: AppIntent {
     }
     
     // 实现功能
-    func perform() async throws -> some IntentResult {
+    @MainActor
+    func perform() async throws -> some IntentResult & ProvidesDialog {
         // 调试日志：开始执行打卡操作
         print("【Widget】开始执行打卡操作，habitId: \(habitId)")
         
-        // 1. 获取当前习惯信息
-        let habitStore = HabitStore.shared
+        // 获取共享的UserDefaults实例
+        var sharedDefaultsIntent = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker")!
+        
+        // 1. 直接从UserDefaults读取数据，不依赖主应用的单例
+        // 创建新的HabitStore实例
+        let habitStore = HabitStore()
+        
+        // 读取习惯数据
+        if let habitsData = sharedDefaultsIntent.data(forKey: "habits"),
+           let decodedHabits = try? JSONDecoder().decode([Habit].self, from: habitsData) {
+            habitStore.habits = decodedHabits
+            print("【Widget】Intent直接从UserDefaults读取到\(decodedHabits.count)个习惯")
+        } else {
+            print("【Widget】Intent中UserDefaults没有找到习惯数据")
+        }
+        
+        // 读取日志数据
+        if let logsData = sharedDefaultsIntent.data(forKey: "habitLogs"),
+           let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
+            habitStore.habitLogs = decodedLogs
+            print("【Widget】Intent直接从UserDefaults读取到\(decodedLogs.count)个日志")
+        } else {
+            print("【Widget】Intent中UserDefaults没有找到日志数据")
+        }
         
         // 调试：检查Widget中读取到的习惯和日志
         print("【Widget】当前内存中的习惯数量: \(habitStore.habits.count)")
         print("【Widget】当前内存中的日志数量: \(habitStore.habitLogs.count)")
-        
-        // 调试：直接从UserDefaults读取一次数据检查
-        let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker")!
-        if let habitsData = sharedDefaults.data(forKey: "habits"),
-           let decodedHabits = try? JSONDecoder().decode([Habit].self, from: habitsData) {
-            print("【Widget】UserDefaults中的习惯数量: \(decodedHabits.count)")
-        } else {
-            print("【Widget】UserDefaults中没有找到习惯数据")
-        }
-        
-        if let logsData = sharedDefaults.data(forKey: "habitLogs"),
-           let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
-            print("【Widget】UserDefaults中的日志数量: \(decodedLogs.count)")
-        } else {
-            print("【Widget】UserDefaults中没有找到日志数据")
-        }
         
         guard let habitUUID = UUID(uuidString: habitId),
               let habit = habitStore.habits.first(where: { $0.id == habitUUID }) else {
@@ -522,16 +540,84 @@ struct CheckInHabitIntent: AppIntent {
             return .result(dialog: "找不到指定习惯")
         }
         
-        // 获取打卡前的状态
-        let beforeCount = habitStore.getLogCountForDate(habitId: habitUUID, date: date)
+        // 获取打卡前的状态 - 直接从内存中计算，不依赖habitStore方法
+        let calendarForCount = Calendar.current
+        let beforeCount = habitStore.habitLogs.filter { log in
+            calendarForCount.isDate(log.date, inSameDayAs: date) && log.habitId == habitUUID
+        }.first?.count ?? 0
         print("【Widget】打卡前习惯状态 - 名称: \(habit.name), 打卡次数: \(beforeCount)/\(habit.maxCheckInCount)")
         
         // 2. 执行打卡操作
-        habitStore.logHabit(habitId: habitUUID, date: date)
-        print("【Widget】已执行logHabit操作")
+        // 查找对应habitUUID的日志
+        // 找到同一天的日志，如果存在则增加计数，否则创建新日志
+        let calendarIntent = Calendar.current
+        let todayLogs = habitStore.habitLogs.filter { log in
+            calendarIntent.isDate(log.date, inSameDayAs: date) && log.habitId == habitUUID
+        }
+        
+        if let existingLog = todayLogs.first {
+            // 如果已有该习惯今天的日志
+            let currentCount = existingLog.count
+            
+            // 对于checkbox类型，切换状态；对于count类型，增加计数直到达到上限后重置
+            if habit.habitType == .checkbox {
+                // 切换状态: 如果已打卡则取消，否则打卡
+                if currentCount > 0 {
+                    // 找到并删除该日志
+                    if let indexToRemove = habitStore.habitLogs.firstIndex(where: { log in
+                        calendarIntent.isDate(log.date, inSameDayAs: date) && log.habitId == habitUUID
+                    }) {
+                        habitStore.habitLogs.remove(at: indexToRemove)
+                    }
+                } else {
+                    // 将count设为最大值（与主程序保持一致）- 确保热力图显示正确颜色
+                    if let indexToUpdate = habitStore.habitLogs.firstIndex(where: { log in
+                        calendarIntent.isDate(log.date, inSameDayAs: date) && log.habitId == habitUUID
+                    }) {
+                        // checkbox类型打卡设置为最大值（默认为1，但为了与主程序保持一致）
+                        habitStore.habitLogs[indexToUpdate].count = 5
+                    }
+                }
+            } else {
+                // 计数类型
+                if currentCount >= habit.maxCheckInCount {
+                    // 达到上限，重置计数
+                    if let indexToRemove = habitStore.habitLogs.firstIndex(where: { log in
+                        calendarIntent.isDate(log.date, inSameDayAs: date) && log.habitId == habitUUID
+                    }) {
+                        habitStore.habitLogs.remove(at: indexToRemove)
+                    }
+                } else {
+                    // 增加计数
+                    if let indexToUpdate = habitStore.habitLogs.firstIndex(where: { log in
+                        calendarIntent.isDate(log.date, inSameDayAs: date) && log.habitId == habitUUID
+                    }) {
+                        habitStore.habitLogs[indexToUpdate].count += 1
+                    }
+                }
+            }
+        } else {
+            // 如果没有今天的日志，创建一个新日志
+            // 根据习惯类型设置不同的初始count值
+            let initialCount = habit.habitType == .checkbox ? 5 : 1
+            let newLog = HabitLog(habitId: habitUUID, date: date, count: initialCount)
+            habitStore.habitLogs.append(newLog)
+        }
+        
+        // 保存更新后的数据到UserDefaults
+        if let logsData = try? JSONEncoder().encode(habitStore.habitLogs) {
+            // 先保存日志数据
+            sharedDefaultsIntent.set(logsData, forKey: "habitLogs")
+            print("【Widget】已保存更新后的日志数据到UserDefaults")
+            
+            // 强制同步确保数据写入
+            sharedDefaultsIntent.synchronize()
+        }
+        
+        print("【Widget】已执行Widget内部打卡操作")
         
         // 调试：检查操作后的UserDefaults
-        if let logsData = sharedDefaults.data(forKey: "habitLogs"),
+        if let logsData = sharedDefaultsIntent.data(forKey: "habitLogs"),
            let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
             let habitLogs = decodedLogs.filter { $0.habitId == habitUUID }
             print("【Widget】操作后UserDefaults中该习惯的日志数量: \(habitLogs.count)")
@@ -542,12 +628,14 @@ struct CheckInHabitIntent: AppIntent {
             }
         }
         
-        // 3. 刷新所有Widget
-        WidgetCenter.shared.reloadAllTimelines()
-        print("【Widget】已刷新Widget")
+        // 3. 只刷新当前类型的Widget，更精确和高效
+        WidgetCenter.shared.reloadTimelines(ofKind: "HabitWidget")
         
         // 4. 返回成功信息，根据习惯类型和结果提供不同反馈
-        let afterCount = habitStore.getLogCountForDate(habitId: habitUUID, date: date)
+        // 直接从内存中计算最新状态，而不是依赖habitStore方法
+        let afterCount = habitStore.habitLogs.filter { log in
+            calendarIntent.isDate(log.date, inSameDayAs: date) && log.habitId == habitUUID
+        }.first?.count ?? 0
         print("【Widget】打卡后习惯状态 - 打卡次数: \(afterCount)/\(habit.maxCheckInCount)")
         
         if habit.habitType == .checkbox {
