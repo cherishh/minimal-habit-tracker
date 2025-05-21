@@ -19,7 +19,7 @@ struct Habit: Identifiable, Codable {
         // case starNight = "Star Night"
         case purpleRain = "Purple Rain"
         case desert = "Desert"
-        case forestGreen = "Forest Green"
+        // case forestGreen = "Forest Green" // 暂时移除芳草地主题
         case morningLake = "Morning Lake"
         case rose = "Rose"
         case cyanRock = "Cyan Rock"

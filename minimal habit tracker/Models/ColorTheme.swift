@@ -314,26 +314,26 @@ extension ColorTheme {
                 Color(hex: "fffbeb")  // lightest
             ]
         ),
-        ColorTheme(
-            id: .forestGreen,
-            name: "🌿 芳草地",
-            lightColors: [
-                Color(hex: "E8F5E9"), // lightest
-                Color(hex: "C8E6C9"), // lighter
-                Color(hex: "A5D6A7"), // light
-                Color(hex: "81C784"), // medium
-                Color(hex: "66BB6A"), // dark
-                Color(hex: "2E7D32")  // darkest
-            ],
-            darkColors: [
-                Color(hex: "161b22"), // 
-                Color(hex: "2E5E33"), // dark
-                Color(hex: "438A4B"), // medium
-                Color(hex: "58B563"), // light
-                Color(hex: "70DE7A"), // lighter
-                Color(hex: "A5F0A9")  // lightest
-            ]
-        ),
+        // ColorTheme(
+        //     id: .forestGreen,
+        //     name: "🌿 芳草地",
+        //     lightColors: [
+        //         Color(hex: "E8F5E9"), // lightest
+        //         Color(hex: "C8E6C9"), // lighter
+        //         Color(hex: "A5D6A7"), // light
+        //         Color(hex: "81C784"), // medium
+        //         Color(hex: "66BB6A"), // dark
+        //         Color(hex: "2E7D32")  // darkest
+        //     ],
+        //     darkColors: [
+        //         Color(hex: "161b22"), // 
+        //         Color(hex: "2E5E33"), // dark
+        //         Color(hex: "438A4B"), // medium
+        //         Color(hex: "58B563"), // light
+        //         Color(hex: "70DE7A"), // lighter
+        //         Color(hex: "A5F0A9")  // lightest
+        //     ]
+        // ),
         ColorTheme(
             id: .morningLake,
             name: "🩵 清晨湖水",
