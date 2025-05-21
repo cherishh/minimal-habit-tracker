@@ -41,6 +41,16 @@ struct Provider: AppIntentTimelineProvider {
     func snapshot(for configuration: HabitSelectionIntent, in context: Context) async -> HabitEntry {
         print("【Widget】生成snapshot，配置habitId: \(configuration.habitId)")
         
+        // 检查是否是午夜更新
+        let nowCalendar = Calendar.current
+        let now = Date()
+        let hour = nowCalendar.component(.hour, from: now)
+        let minute = nowCalendar.component(.minute, from: now)
+        
+        if hour == 0 && minute < 10 {
+            print("🌙【Widget深夜更新】时间 \(hour):\(String(format: "%02d", minute))，Widget已在午夜后更新数据")
+        }
+        
         // 每次都强制同步UserDefaults，确保读取到最新数据
         sharedDefaults.synchronize()
         
@@ -93,40 +103,37 @@ struct Provider: AppIntentTimelineProvider {
         // 强制同步UserDefaults以确保读取到最新数据
         sharedDefaults.synchronize()
         
-        // 获取最新快照
-        let entry = await snapshot(for: configuration, in: context)
+        // 获取当前时间的快照
+        let currentEntry = await snapshot(for: configuration, in: context)
         
         // 创建时间线条目数组，先添加当前条目
-        var entries = [entry]
+        var entries = [currentEntry]
         
-        // 计算下一个午夜时间点（实际设为午夜后5分钟，避开系统可能的高负载时间）
+        // 计算下一个午夜时间点（实际设为午夜后1分钟，避开系统可能的高负载时间）
         let calendar = Calendar.current
         var dateComponents = calendar.dateComponents([.year, .month, .day], from: Date())
         dateComponents.day! += 1 // 明天
         dateComponents.hour = 0
-        dateComponents.minute = 5
+        dateComponents.minute = 1
         dateComponents.second = 0
         
         if let midnightDate = calendar.date(from: dateComponents) {
             // 创建午夜更新的条目
-            let midnightEntry = HabitEntry(
-                date: midnightDate,
-                habit: entry.habit,
-                logs: entry.logs,
-                todayCount: entry.todayCount,
-                configuration: entry.configuration
-            )
+            let midnightEntry = HabitEntry.midnightEntry(from: currentEntry, date: midnightDate)
             entries.append(midnightEntry)
             
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyy-MM-dd HH:mm:ss ZZZZ"
             formatter.timeZone = TimeZone.current
             print("【Widget】已设置本地午夜更新时间点：\(formatter.string(from: midnightDate))")
+            
+            // 在午夜后请求新的时间线
+            let refreshDate = midnightDate.addingTimeInterval(60) // 午夜后60秒
+            return Timeline(entries: entries, policy: .after(refreshDate))
         }
         
-        // 混合刷新策略：用户交互刷新 + 午夜自动更新
-        // 设置为.atEnd策略，这样系统会在当前Timeline结束后请求新的Timeline
-        // 由于我们设置了午夜的entry，系统会在午夜后自动请求新数据
+        // 如果无法计算午夜时间，使用atEnd策略
+        print("【Widget】无法计算午夜时间，使用.atEnd策略")
         return Timeline(entries: entries, policy: .atEnd)
     }
     
@@ -166,6 +173,29 @@ struct HabitEntry: TimelineEntry {
     let logs: [HabitLog]
     let todayCount: Int
     let configuration: HabitSelectionIntent
+    var renderDate: Date // 改为var使其可变
+    
+    init(date: Date, habit: Habit, logs: [HabitLog], todayCount: Int, configuration: HabitSelectionIntent) {
+        self.date = date
+        self.habit = habit
+        self.logs = logs
+        self.todayCount = todayCount
+        self.configuration = configuration
+        self.renderDate = date // 默认使用entry的date
+    }
+    
+    // 专门用于创建午夜更新的entry
+    static func midnightEntry(from entry: HabitEntry, date: Date) -> HabitEntry {
+        var newEntry = HabitEntry(
+            date: date,
+            habit: entry.habit,
+            logs: entry.logs,
+            todayCount: 0, // 新的一天从0开始
+            configuration: entry.configuration
+        )
+        newEntry.renderDate = date // 确保使用新的日期渲染
+        return newEntry
+    }
 }
 
 // Widget 的视图
@@ -215,7 +245,8 @@ struct HabitWidgetEntryView: View {
                     WidgetMiniHeatmapView(
                         logs: entry.logs,
                         habit: entry.habit,
-                        colorScheme: colorScheme
+                        colorScheme: colorScheme,
+                        renderDate: entry.renderDate // 传递渲染日期
                     )
                     .padding(.vertical, 8)
                     .padding(.horizontal, 6)
@@ -284,53 +315,57 @@ struct WidgetMiniHeatmapView: View {
     let logs: [HabitLog]
     let habit: Habit
     let colorScheme: ColorScheme
+    let renderDate: Date // 从外部传入的渲染日期参数
     
     // 热力图大小配置
     private let cellSize: CGFloat = 11
     private let cellSpacing: CGFloat = 3
     
-    // 热力图日期配置
-    private let daysToShow = 77 // 显示过去77天，正好11列
+    // 热力图布局配置
+    private let columnsToShow = 11 // 显示11列（11周）
+    private let daysInWeek = 7 // 每周7天
     
     // 获取习惯的主题颜色
     private var theme: ColorTheme {
         ColorTheme.getTheme(for: habit.colorTheme)
     }
     
-    // 生成过去100天的日期网格，按周组织
+    // 生成热力图日期网格，按周组织 - 每列代表一周，从周一到周日
     private var dateGrid: [[Date?]] {
         let calendar = Calendar.current
-        let today = Date()
+        let today = renderDate
         
-        // 1. 计算100天前的日期
-        guard let startDate100DaysAgo = calendar.date(byAdding: .day, value: -(daysToShow-1), to: today) else {
+        // 简化调试日志
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        // print("【Widget热力图】使用渲染日期：\(formatter.string(from: today))")
+        
+        // 1. 确定当前是周几（1是周日，2是周一...7是周六）
+        let currentWeekday = calendar.component(.weekday, from: today)
+        
+        // 2. 计算到本周一的偏移量（如果今天是周一，偏移量为0）
+        let daysToSubtractForCurrentWeekStart = (currentWeekday == 1) ? 6 : (currentWeekday - 2)
+        
+        // 3. 计算本周一的日期
+        guard let currentWeekMonday = calendar.date(byAdding: .day, value: -daysToSubtractForCurrentWeekStart, to: today) else {
             return []
         }
         
-        // 2. 找到起始日期所在周的周一
-        var startDate = startDate100DaysAgo
-        let startWeekday = calendar.component(.weekday, from: startDate)
-        // 将startDate调整为那周的周一（weekday=2是周一）
-        let daysToSubtract = (startWeekday == 1) ? 6 : (startWeekday - 2)
-        if daysToSubtract > 0 {
-            startDate = calendar.date(byAdding: .day, value: -daysToSubtract, to: startDate) ?? startDate
+        // 4. 计算需要显示的最早那周的周一（往前推 columns-1 周）
+        guard let firstMonday = calendar.date(byAdding: .weekOfYear, value: -(columnsToShow - 1), to: currentWeekMonday) else {
+            return []
         }
         
-        // 3. 计算需要多少列（周）才能覆盖到今天
-        // 计算从起始日期到今天一共有多少天
-        let components = calendar.dateComponents([.day], from: startDate, to: today)
-        let totalDays = components.day ?? 0
-        // 加上7天确保有足够的列来显示，然后除以7得到周数
-        let totalColumns = (totalDays + 7) / 7 + 1
+        // 5. 初始化一个7行（周一到周日）x 11列（11周）的二维数组
+        var grid: [[Date?]] = Array(repeating: Array(repeating: nil, count: columnsToShow), count: daysInWeek)
         
-        // 4. 构建日期网格（比实际需要的多一点以确保所有日期都能显示）
-        var grid: [[Date?]] = Array(repeating: Array(repeating: nil, count: totalColumns), count: 7)
-        
-        // 5. 填充日期网格
-        for column in 0..<totalColumns {
-            for row in 0..<7 {
-                if let date = calendar.date(byAdding: .day, value: (column * 7) + row, to: startDate) {
-                    // 如果日期超过今天，则不添加
+        // 6. 填充日期网格
+        for column in 0..<columnsToShow {
+            for row in 0..<daysInWeek {
+                // 计算对应的日期：从第一个周一开始，每列递增一周，每行递增一天
+                // column代表第几周，row代表周几（0是周一，6是周日）
+                if let date = calendar.date(byAdding: .day, value: (column * daysInWeek) + row, to: firstMonday) {
+                    // 只添加不超过今天的日期
                     if date <= today {
                         grid[row][column] = date
                     }
@@ -341,22 +376,22 @@ struct WidgetMiniHeatmapView: View {
         return grid
     }
     
-    // 获取指定日期的打卡次数 - 检查当前日期
+    // 获取指定日期的打卡次数
     private func getLogCountForDate(date: Date) -> Int {
-        // 确保我们使用的是请求日期当天的打卡记录，而不是历史记录
         let calendar = Calendar.current
-        let todayDate = Date() // 获取当前日期
         
-        // 如果是查询今天的打卡次数，确保我们使用的是今天的日期
-        let targetDate = calendar.isDateInToday(date) ? todayDate : date
+        // 只保留日期部分进行比较
+        var dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+        let normalizedDate = calendar.date(from: dateComponents)!
         
-        if let log = logs.first(where: { log in
-            calendar.isDate(log.date, inSameDayAs: targetDate)
-        }) {
-            return log.count
+        // 使用标准化的日期查找匹配的日志
+        let matchingLog = logs.first { log in
+            let logComponents = calendar.dateComponents([.year, .month, .day], from: log.date)
+            let normalizedLogDate = calendar.date(from: logComponents)!
+            return normalizedLogDate == normalizedDate
         }
         
-        return 0
+        return matchingLog?.count ?? 0
     }
     
     // 获取日期的热力图颜色 - 与主程序保持一致的逻辑
@@ -385,15 +420,12 @@ struct WidgetMiniHeatmapView: View {
     }
     
     var body: some View {
-        // 计算总共需要显示的列数
-        let columnCount = dateGrid.isEmpty ? 0 : dateGrid[0].count
-        
         VStack(alignment: .leading, spacing: cellSpacing) {
             // 每行代表星期几（0是周一，6是周日）
-            ForEach(0..<7, id: \.self) { row in
+            ForEach(0..<daysInWeek, id: \.self) { row in
                 HStack(spacing: cellSpacing) {
                     // 每列代表一周
-                    ForEach(0..<columnCount, id: \.self) { column in
+                    ForEach(0..<columnsToShow, id: \.self) { column in
                         // 获取该位置的日期
                         if let date = dateGrid[row][column] {
                             // 使用统一的颜色获取方法
@@ -410,8 +442,9 @@ struct WidgetMiniHeatmapView: View {
                 }
             }
         }
-        .frame(height: 7 * (cellSize + cellSpacing) - cellSpacing)
-        .frame(width: 190) // 提供更多边距空间
+        .frame(height: CGFloat(daysInWeek) * (cellSize + cellSpacing) - cellSpacing)
+        .frame(width: CGFloat(columnsToShow) * (cellSize + cellSpacing) + cellSpacing) // 确保宽度足够
+        .id("heatmap-\(Calendar.current.startOfDay(for: renderDate))") // 使用传入的渲染日期
     }
 }
 
@@ -535,14 +568,28 @@ struct CheckInHabitIntent: AppIntent {
     // 实现功能
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        // 调试日志：开始执行打卡操作
-        print("【Widget】开始执行打卡操作，habitId: \(habitId)")
+        print("【打卡】开始执行打卡操作，habitId: \(habitId)")
+        
+        // 强制使用最新日期，而不是使用传入的可能过时的date参数
+        let currentDate = Date()
+        
+        // 检查传入日期与当前日期是否为同一天
+        let calendar = Calendar.current
+        let isSameDay = calendar.isDate(date, inSameDayAs: currentDate)
+        if !isSameDay {
+            // 如果不是同一天，打印警告并使用最新日期
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            print("⚠️【Widget打卡警告】传入日期 \(formatter.string(from: date)) 与当前日期 \(formatter.string(from: currentDate)) 不在同一天，将使用当前日期")
+            
+            // 更新date为当前日期
+            date = currentDate
+        }
         
         // 获取共享的UserDefaults实例
         var sharedDefaultsIntent = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker")!
         
-        // 1. 直接从UserDefaults读取数据，不依赖主应用的单例
-        // 创建新的HabitStore实例
+        // 1. 从UserDefaults读取数据
         let habitStore = HabitStore()
         
         // 读取习惯数据
@@ -558,14 +605,7 @@ struct CheckInHabitIntent: AppIntent {
         if let logsData = sharedDefaultsIntent.data(forKey: "habitLogs"),
            let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
             habitStore.habitLogs = decodedLogs
-            print("【Widget】Intent直接从UserDefaults读取到\(decodedLogs.count)个日志")
-        } else {
-            print("【Widget】Intent中UserDefaults没有找到日志数据")
         }
-        
-        // 调试：检查Widget中读取到的习惯和日志
-        print("【Widget】当前内存中的习惯数量: \(habitStore.habits.count)")
-        print("【Widget】当前内存中的日志数量: \(habitStore.habitLogs.count)")
         
         guard let habitUUID = UUID(uuidString: habitId),
               let habit = habitStore.habits.first(where: { $0.id == habitUUID }) else {
@@ -604,11 +644,10 @@ struct CheckInHabitIntent: AppIntent {
                         habitStore.habitLogs.remove(at: indexToRemove)
                     }
                 } else {
-                    // 将count设为最大值（与主程序保持一致）- 确保热力图显示正确颜色
+                    // 将count设为最大值（与主程序保持一致）
                     if let indexToUpdate = habitStore.habitLogs.firstIndex(where: { log in
                         calendarIntent.isDate(log.date, inSameDayAs: date) && log.habitId == habitUUID
                     }) {
-                        // checkbox类型打卡设置为最大值（默认为1，但为了与主程序保持一致）
                         habitStore.habitLogs[indexToUpdate].count = 5
                     }
                 }
@@ -632,7 +671,6 @@ struct CheckInHabitIntent: AppIntent {
             }
         } else {
             // 如果没有今天的日志，创建一个新日志
-            // 根据习惯类型设置不同的初始count值
             let initialCount = habit.habitType == .checkbox ? 5 : 1
             let newLog = HabitLog(habitId: habitUUID, date: date, count: initialCount)
             habitStore.habitLogs.append(newLog)
@@ -648,30 +686,16 @@ struct CheckInHabitIntent: AppIntent {
             sharedDefaultsIntent.synchronize()
         }
         
-        print("【Widget】已执行Widget内部打卡操作")
-        
-        // 调试：检查操作后的UserDefaults
-        if let logsData = sharedDefaultsIntent.data(forKey: "habitLogs"),
-           let decodedLogs = try? JSONDecoder().decode([HabitLog].self, from: logsData) {
-            let habitLogs = decodedLogs.filter { $0.habitId == habitUUID }
-            print("【Widget】操作后UserDefaults中该习惯的日志数量: \(habitLogs.count)")
-            if let todayLog = habitLogs.first(where: { Calendar.current.isDate($0.date, inSameDayAs: Date()) }) {
-                print("【Widget】操作后UserDefaults中今日该习惯的打卡次数: \(todayLog.count)")
-            } else {
-                print("【Widget】操作后UserDefaults中未找到今日该习惯的打卡记录")
-            }
-        }
-        
-        // 3. 只刷新当前类型的Widget，更精确和高效
+        // 刷新Widget
         WidgetCenter.shared.reloadTimelines(ofKind: "HabitWidget")
         
-        // 4. 返回成功信息，根据习惯类型和结果提供不同反馈
-        // 直接从内存中计算最新状态，而不是依赖habitStore方法
+        // 获取操作后的状态
         let afterCount = habitStore.habitLogs.filter { log in
             calendarIntent.isDate(log.date, inSameDayAs: date) && log.habitId == habitUUID
         }.first?.count ?? 0
         print("【Widget】打卡后习惯状态 - 打卡次数: \(afterCount)/\(habit.maxCheckInCount)")
         
+        // 返回结果
         if habit.habitType == .checkbox {
             if beforeCount > 0 && afterCount == 0 {
                 return .result(dialog: "已取消打卡")
@@ -706,6 +730,7 @@ struct HabitWidget: Widget {
         .configurationDisplayName("习惯追踪")
         .description("直接从桌面打卡你的习惯，习惯ID从习惯详情设置页获取")
         .supportedFamilies([.systemMedium])
+        .contentMarginsDisabled()  // 添加此行以确保Widget能准确接收系统刷新
     }
 }
 
