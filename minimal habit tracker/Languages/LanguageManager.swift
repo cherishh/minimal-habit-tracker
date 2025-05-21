@@ -28,9 +28,12 @@ class LanguageManager {
             
             // 根据系统语言选择翻译
             switch true {
-            case systemLanguage.hasPrefix("zh"):
-                // 如果系统是中文，返回原始中文字符串
+            case systemLanguage.hasPrefix("zh-Hans") || (systemLanguage.hasPrefix("zh") && !systemLanguage.hasPrefix("zh-Hant")):
+                // 如果系统是简体中文，返回原始中文字符串
                 return key
+            case systemLanguage.hasPrefix("zh-Hant"):
+                // 如果系统是繁体中文，使用繁体中文翻译
+                return getTraditionalChineseTranslation(for: context, key: contextKey) ?? key
             case systemLanguage.hasPrefix("ja"):
                 // 如果系统是日语，使用日语翻译
                 return getJapaneseTranslation(for: context, key: contextKey) ?? key
@@ -58,8 +61,11 @@ class LanguageManager {
             // 如果是英文，查找带前缀的翻译
             return getEnglishTranslation(for: context, key: contextKey) ?? key
         case "zh-Hans":
-            // 如果是中文，返回原始中文字符串
+            // 如果是简体中文，返回原始中文字符串
             return key
+        case "zh-Hant":
+            // 如果是繁体中文，查找带前缀的翻译
+            return getTraditionalChineseTranslation(for: context, key: contextKey) ?? key
         case "ja":
             // 如果是日语，查找带前缀的翻译
             return getJapaneseTranslation(for: context, key: contextKey) ?? key
@@ -225,6 +231,30 @@ class LanguageManager {
         }
     }
     
+    // 添加一个新的方法来获取繁体中文翻译
+    private func getTraditionalChineseTranslation(for context: PageType, key: String) -> String? {
+        switch context {
+        case .settings:
+            return TraditionalChinese.settingsTranslations[key]
+        case .createHabit:
+            return TraditionalChinese.createHabitTranslations[key]
+        case .habitDetail:
+            return TraditionalChinese.habitDetailTranslations[key]
+        case .proFeatures:
+            return TraditionalChinese.proFeaturesTranslations[key]
+        case .importExport:
+            return TraditionalChinese.importExportTranslations[key]
+        case .common:
+            return TraditionalChinese.commonTranslations[key]
+        case .contentView:
+            return TraditionalChinese.contentViewTranslations[key]
+        case .payment:
+            return TraditionalChinese.paymentViewTranslations[key]
+        case .emojiPicker:
+            return TraditionalChinese.emojiPickerTranslations[key]
+        }
+    }
+    
     // 页面类型枚举
     enum PageType {
         case settings
@@ -261,7 +291,8 @@ class LanguageManager {
         }
         
         switch code {
-            case "zh-Hans": return "中文"
+            case "zh-Hans": return "简体中文"
+            case "zh-Hant": return "繁體中文"
             case "en": return "English"
             case "ja": return "日本語"
             case "ru": return "Русский"
@@ -273,5 +304,5 @@ class LanguageManager {
     }
     
     // 支持的语言代码数组 - 添加新语言时扩展此数组
-    static let supportedLanguages = ["", "zh-Hans", "en", "ja", "ru", "es", "de", "fr"]
+    static let supportedLanguages = ["", "zh-Hans", "zh-Hant", "en", "ja", "ru", "es", "de", "fr"]
 } 

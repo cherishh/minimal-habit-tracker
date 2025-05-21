@@ -196,6 +196,7 @@ struct SettingsView: View {
                 Text(LanguageManager.shared.getLanguageName(for: "ja")).tag("ja")
                 Text(LanguageManager.shared.getLanguageName(for: "ru")).tag("ru")
                 Text(LanguageManager.shared.getLanguageName(for: "zh-Hans")).tag("zh-Hans")
+                Text(LanguageManager.shared.getLanguageName(for: "zh-Hant")).tag("zh-Hant")
             }
             .onChange(of: selectedLanguage) { newValue in
                 // 不直接调用habitStore.setAppLanguage，而是先保存当前界面状态
