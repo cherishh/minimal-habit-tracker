@@ -96,9 +96,38 @@ struct Provider: AppIntentTimelineProvider {
         // 获取最新快照
         let entry = await snapshot(for: configuration, in: context)
         
-        // 设置为.never，只在用户主动触发时更新，不进行后台自动刷新
-        let timelinePolicy: TimelineReloadPolicy = .never
-        return Timeline(entries: [entry], policy: timelinePolicy)
+        // 创建时间线条目数组，先添加当前条目
+        var entries = [entry]
+        
+        // 计算下一个午夜时间点（实际设为午夜后5分钟，避开系统可能的高负载时间）
+        let calendar = Calendar.current
+        var dateComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+        dateComponents.day! += 1 // 明天
+        dateComponents.hour = 0
+        dateComponents.minute = 5
+        dateComponents.second = 0
+        
+        if let midnightDate = calendar.date(from: dateComponents) {
+            // 创建午夜更新的条目
+            let midnightEntry = HabitEntry(
+                date: midnightDate,
+                habit: entry.habit,
+                logs: entry.logs,
+                todayCount: entry.todayCount,
+                configuration: entry.configuration
+            )
+            entries.append(midnightEntry)
+            
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd HH:mm:ss ZZZZ"
+            formatter.timeZone = TimeZone.current
+            print("【Widget】已设置本地午夜更新时间点：\(formatter.string(from: midnightDate))")
+        }
+        
+        // 混合刷新策略：用户交互刷新 + 午夜自动更新
+        // 设置为.atEnd策略，这样系统会在当前Timeline结束后请求新的Timeline
+        // 由于我们设置了午夜的entry，系统会在午夜后自动请求新数据
+        return Timeline(entries: entries, policy: .atEnd)
     }
     
     // 从 UserDefaults 加载习惯数据
@@ -312,12 +341,17 @@ struct WidgetMiniHeatmapView: View {
         return grid
     }
     
-    // 获取指定日期的打卡次数
+    // 获取指定日期的打卡次数 - 检查当前日期
     private func getLogCountForDate(date: Date) -> Int {
+        // 确保我们使用的是请求日期当天的打卡记录，而不是历史记录
         let calendar = Calendar.current
+        let todayDate = Date() // 获取当前日期
+        
+        // 如果是查询今天的打卡次数，确保我们使用的是今天的日期
+        let targetDate = calendar.isDateInToday(date) ? todayDate : date
         
         if let log = logs.first(where: { log in
-            calendar.isDate(log.date, inSameDayAs: date)
+            calendar.isDate(log.date, inSameDayAs: targetDate)
         }) {
             return log.count
         }

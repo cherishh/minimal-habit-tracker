@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import WidgetKit
 
 @main
 struct minimal_habit_trackerApp: App {
@@ -30,6 +31,8 @@ struct minimal_habit_trackerApp: App {
                     print("【App】应用即将进入前台，刷新数据")
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         habitStore.reloadData()
+                        // 检查日期变更并更新Widget
+                        checkDateChangeAndUpdateWidget()
                     }
                 }
                 // 监听语言变化事件
@@ -94,5 +97,25 @@ struct minimal_habit_trackerApp: App {
                 NotificationCenter.default.post(name: NSNotification.Name("NavigateToDetail"), object: habit)
             }
         }
+    }
+    
+    // 检查日期变更并更新Widget
+    private func checkDateChangeAndUpdateWidget() {
+        let sharedDefaults = UserDefaults(suiteName: "group.com.xi.HabitTracker.minimal-habit-tracker")!
+        let currentDate = Calendar.current.startOfDay(for: Date())
+        
+        // 获取上次活跃的日期
+        let lastActiveDate = sharedDefaults.object(forKey: "last_active_date") as? Date ?? Date(timeIntervalSince1970: 0)
+        let lastActiveDay = Calendar.current.startOfDay(for: lastActiveDate)
+        
+        // 如果日期不同，刷新Widget
+        if !Calendar.current.isDate(currentDate, inSameDayAs: lastActiveDay) {
+            print("【App】检测到日期变更，刷新Widget")
+            // 只刷新习惯追踪相关的Widget
+            WidgetCenter.shared.reloadTimelines(ofKind: "HabitWidget")
+        }
+        
+        // 更新最后活跃日期
+        sharedDefaults.set(currentDate, forKey: "last_active_date")
     }
 }
