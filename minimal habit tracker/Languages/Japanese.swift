@@ -112,7 +112,26 @@ struct Japanese {
         "detail.9月": "9月",
         "detail.10月": "10月",
         "detail.11月": "11月",
-        "detail.12月": "12月"
+        "detail.12月": "12月",
+        "detail.热图.一": "月",
+        "detail.热图.二": "火",
+        "detail.热图.三": "水",
+        "detail.热图.四": "木",
+        "detail.热图.五": "金",
+        "detail.热图.六": "土",
+        "detail.热图.日": "日",
+        "detail.热图.1月": "1月",
+        "detail.热图.2月": "2月",
+        "detail.热图.3月": "3月",
+        "detail.热图.4月": "4月",
+        "detail.热图.5月": "5月",
+        "detail.热图.6月": "6月",
+        "detail.热图.7月": "7月",
+        "detail.热图.8月": "8月",
+        "detail.热图.9月": "9月",
+        "detail.热图.10月": "10月",
+        "detail.热图.11月": "11月",
+        "detail.热图.12月": "12月"
     ]
     
     // Pro功能翻译

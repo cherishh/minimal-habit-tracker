@@ -870,8 +870,9 @@ struct GitHubStyleHeatmapView: View {
                 return formatter.string(from: date)
             }
         }
-        // 其他语言环境下使用默认格式
-        return "\(month)月".localized(in: .habitDetail)
+        
+        // 使用专门为热力图定义的本地化键
+        return "热图.\(month)月".localized(in: .habitDetail)
     }
     
     // 获取热力图星期标签的格式化字符串
@@ -889,8 +890,9 @@ struct GitHubStyleHeatmapView: View {
             default: return weekday
             }
         }
-        // 其他语言环境下使用默认的本地化字符串
-        return weekday.localized(in: .habitDetail)
+        
+        // 使用专门为热力图定义的本地化键
+        return "热图.\(weekday)".localized(in: .habitDetail)
     }
 }
 
