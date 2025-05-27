@@ -103,7 +103,7 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showingMailView) {
                 if MFMailComposeViewController.canSendMail() {
-                    MailView(result: $mailResult, recipient: "jasonlovescola@gmail.com", subject: "EasyHabit用户反馈", body: generateEmailBody())
+                    MailView(result: $mailResult, recipient: "jasonlovescola@gmail.com", subject: "EasyHabit User Feedback", body: generateEmailBody())
                 }
             }
             .alert(isPresented: $showingMailCannotSendAlert) {
@@ -137,7 +137,7 @@ struct SettingsView: View {
         \("设备信息".localized(in: .common)):
         \("设备型号".localized(in: .common)): \(UIDevice.current.model)
         \("系统版本".localized(in: .common)): \(UIDevice.current.systemVersion)
-        \("应用版本".localized(in: .common)): \(appVersion) (\(buildNumber))
+        \("应用版本".localized(in: .settings)): \(appVersion) (\(buildNumber))
         \("习惯数量".localized(in: .common)): \(habitStore.habits.count)
         ----------
         
