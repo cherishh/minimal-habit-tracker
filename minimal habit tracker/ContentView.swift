@@ -128,7 +128,7 @@ struct ContentView: View {
             .alert(isPresented: $showingMaxHabitsAlert) {
                 Alert(
                     title: Text("达到最大数量".localized(in: .contentView)),
-                    message: Text("您最多只能创建 \(HabitStore.maxHabitCount) 个习惯。如需添加更多，请前往设置页面升级到Pro版本。".localized(in: .contentView)),
+                    message: Text("最多追踪 \(HabitStore.maxHabitCount) 个习惯。这是为了帮你更好地坚持每一个:)".localized(in: .contentView)),
                     dismissButton: .default(Text("我知道了".localized(in: .contentView)))
                 )
             }

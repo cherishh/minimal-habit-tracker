@@ -20,7 +20,7 @@ struct ColorTheme: Identifiable {
         // 手动定义翻译映射，避免引用其他文件中的类
         let translations: [String: [String: String]] = [
             "en": [
-                "�� 默认": "🤖 Default",
+                "🤖 默认": "🤖 Default",
                 "🌊 蓝色海洋": "🌊 Whispering Ocean",
                 "🌅 日落": "🌅 Ember Glow",
                 "🟪 紫雨": "🟪 Velvet Rain",

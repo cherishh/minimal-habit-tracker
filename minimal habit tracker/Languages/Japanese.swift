@@ -27,7 +27,53 @@ struct Japanese {
         "settings.德语": "ドイツ語",
         "settings.法语": "フランス語",
         "settings.系统默认": "システムのデフォルト",
-        "settings.Debug 模式": "デバッグモード"
+        "settings.Debug 模式": "デバッグモード",
+
+        // Terms of Use View - Japanese
+        "settings.terms.pageTitle": "利用規約",
+        "settings.terms.welcomeHeader": "EasyHabitアプリへようこそ",
+        "settings.terms.welcomeBody": "本規約は、お客様とEasyHabit（以下「当社」といいます）との間の、EasyHabitアプリケーションおよび関連サービスの利用に関する合意です。EasyHabitアプリケーションの使用を開始する前に、本規約の全内容を注意深く読み、十分に理解してください。",
+        "settings.terms.acceptanceHeader": "1. 規約への同意",
+        "settings.terms.acceptanceBody": "EasyHabitアプリケーションを使用することにより、お客様は16歳以上であり、本規約に拘束されることに同意したことになります。16歳未満の場合は、保護者の方と一緒に本規約を読み、保護者の方の同意を得た上で当社のサービスをご利用ください。",
+        "settings.terms.serviceDescriptionHeader": "2. サービスの説明",
+        "settings.terms.serviceDescriptionBody": "EasyHabitは、ユーザーが習慣を記録し、育成するのに役立つアプリケーションです。当社は、ユーザーが日常の習慣をより良く管理できるように、習慣の追跡、統計、分析機能を提供します。",
+        "settings.terms.userBehaviorHeader": "3. ユーザー行動規範",
+        "settings.terms.userBehaviorBody": "お客様は、中華人民共和国の関連法規を遵守し、本アプリケーションを違法行為に利用してはなりません。お客様は、本アプリケーションの利用について責任を負い、提供および公開するコンテンツが合法、真実、正確であり、第三者の正当な権利利益を侵害しないことを保証するものとします。",
+        "settings.terms.privacyProtectionHeader": "4. プライバシー保護",
+        "settings.terms.privacyProtectionBody": "当社は、ユーザーのプライバシー保護を重視しています。お客様が当社のサービスを利用する際、当社はお客様の関連情報を収集および利用することがあります。当社は、「EasyHabitプライバシーポリシー」に従ってお客様の情報を収集、利用、保存、共有します。",
+        "settings.terms.intellectualPropertyHeader": "5. 知的財産権",
+        "settings.terms.intellectualPropertyBody": "EasyHabitアプリケーションおよびそのすべてのコンテンツ（テキスト、グラフィック、ユーザーインターフェース、ロゴ、アイコン、画像、音声、コンピューターコードを含みますが、これらに限定されません）は、知的財産法によって保護されており、これらの権利は当社または当社のライセンサーに帰属します。",
+        "settings.terms.disclaimerHeader": "6. 免責事項",
+        "settings.terms.disclaimerBody": "EasyHabitは習慣の追跡および管理ツールのみを提供し、ユーザーが本アプリケーションを使用したことに起因する直接的または間接的な損失について一切責任を負いません。当社は、サービスがお客様の要件を満たすことを保証せず、またサービスが中断されないことも保証しません。",
+        "settings.terms.agreementModificationsHeader": "7. 規約の変更",
+        "settings.terms.agreementModificationsBody": "当社は、いつでも本規約を変更する権利を留保します。本規約の変更は、アプリケーション内またはウェブサイトで公開される通知を通じてユーザーに通知されます。変更後もEasyHabitを引き続き使用する場合、変更後の規約に同意したものとみなされます。",
+        "settings.terms.contactUsHeader": "8. お問い合わせ",
+        "settings.terms.contactUsBody": "本規約またはEasyHabitアプリケーションに関してご不明な点がある場合は、アプリケーション内の「ユーザーフィードバック」機能からお問い合わせください。",
+        "settings.terms.lastUpdatedPrefix": "最終更新日：",
+        "settings.terms.lastUpdatedDate": "2025年5月27日",
+
+        // Privacy Policy View - Japanese
+        "settings.privacy.pageTitle": "プライバシーポリシー",
+        "settings.privacy.policyHeader": "EasyHabitプライバシーポリシー",
+        "settings.privacy.policyBody": "このプライバシーポリシーは、当社がお客様の個人情報をどのように収集、使用、保存、共有するか、以及お客様が有する関連権利について理解していただくためのものです。EasyHabitアプリケーションを使用する前に、このプライバシーポリシーの全内容を注意深く読み、理解してください。",
+        "settings.privacy.infoWeCollectHeader": "1. 収集する情報",
+        "settings.privacy.infoWeCollectBody": "• お客様が提供する情報：EasyHabitアプリケーションを使用する際、習慣の記録を作成したり、リマインダーを設定したりすることがあり、これらの情報はデバイスに保存されます。\n• デバイス情報：アプリケーションのパフォーマンスを向上させるために、使用しているデバイスのモデル、オペレーティングシステムのバージョンなどの基本情報を収集する場合があります。\n• アプリケーションの使用状況データ：ユーザーエクスペリエンスを最適化するために、機能の使用頻度、アプリケーションのクラッシュ記録など、アプリケーションの使用方法に関する情報を収集する場合があります。",
+        "settings.privacy.useOfInfoHeader": "2. 情報の利用",
+        "settings.privacy.useOfInfoBody": "収集した情報は、以下の目的で使用します。\n• EasyHabitアプリケーションの機能とサービスの提供、維持、改善\n• 新しい機能とサービスの開発\n• ユーザーエクスペリエンスを改善するためのアプリケーションの使用状況の把握\n• アプリケーションの更新や新機能に関する通知の送信",
+        "settings.privacy.storageOfInfoHeader": "3. 情報の保管",
+        "settings.privacy.storageOfInfoBody": "お客様の情報のセキュリティを保護するために、以下の措置を講じます。\n• お客様の習慣データは主にデバイスに保存されます\n• クラウド同期機能（アドバンスト版）を有効にすると、データは暗号化されてクラウドサービスに保存されます\n• お客様のデータが不正アクセスから保護されるように、合理的な技術的措置を講じます",
+        "settings.privacy.infoSharingHeader": "4. 情報の共有",
+        "settings.privacy.infoSharingBody": "以下の場合を除き、お客様の個人情報を第三者と共有することはありません。\n• 法律により開示が要求される場合\n• EasyHabitの正当な利益を保護するため\n• お客様の明確な同意がある場合",
+        "settings.privacy.yourRightsHeader": "5. お客様の権利",
+        "settings.privacy.yourRightsBody": "お客様は、ご自身の個人情報に関して以下の権利を有します。\n• ご自身の個人情報へのアクセス\n• アプリケーション内のすべてのデータの削除\n• データの書き出し\n• いつでも当社のサービスの利用を停止する",
+        "settings.privacy.childrensPrivacyHeader": "6. お子様のプライバシー",
+        "settings.privacy.childrensPrivacyBody": "EasyHabitアプリケーションは、16歳未満のお子様を対象としていません。保護者の方で、お子様がお客様の同意なしに当社に個人情報を提供したことを発見した場合は、アプリケーション内の「ユーザーフィードバック」機能からご連絡ください。",
+        "settings.privacy.policyUpdatesHeader": "7. プライバシーポリシーの更新",
+        "settings.privacy.policyUpdatesBody": "当社は、このプライバシーポリシーを随時更新することがあります。重大な変更を行う場合は、アプリケーション内でお知らせします。アプリケーションを引き続き使用することにより、変更後のプライバシーポリシーに同意したものとみなされます。",
+        "settings.privacy.contactUsHeader": "8. お問い合わせ",
+        "settings.privacy.contactUsBody": "このプライバシーポリシーに関してご不明な点がある場合は、アプリケーション内の「ユーザーフィードバック」機能からお問い合わせください。",
+        "settings.privacy.lastUpdatedPrefix": "最終更新日：",
+        "settings.privacy.lastUpdatedDate": "2025年5月27日"
     ]
     
     // 習慣作成ページ翻訳
@@ -212,7 +258,8 @@ struct Japanese {
         "content.我知道了": "わかりました",
         "content.确认删除": "削除の確認",
         "content.确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。": "この習慣を削除してもよろしいですか？関連するすべての記録も削除されます。この操作は取り消しできません。",
-        "content.排序习惯": "習慣を並べ替え"
+        "content.排序习惯": "習慣を並べ替え",
+        "content.最多追踪 \(HabitStore.maxHabitCount) 个习惯。这是为了帮你更好地坚持每一个:)": "最大\(HabitStore.maxHabitCount)個まで習慣を追跡できます。これは、一つ一つの習慣をよりしっかり続けるためのものです:)"
     ]
     
     // 支払いページ翻訳

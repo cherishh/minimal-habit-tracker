@@ -206,13 +206,14 @@ struct TraditionalChinese {
     // 主內容頁面翻譯
     static let contentViewTranslations: [String: String] = [
         "content.空空如也": "空空如也",
-        "content.��开始记录追踪你的习惯": "👇開始記錄並追蹤您的習慣",
+        "content.👇开始记录追踪你的习惯": "👇開始記錄並追蹤您的習慣",
         "content.达到最大数量": "已達最大數量",
         "content.您最多只能创建 \(HabitStore.maxHabitCount) 个习惯。如需添加更多，请前往设置页面升级到Pro版本。": "您最多只能建立 \(HabitStore.maxHabitCount) 個習慣。如需新增更多，請前往設定頁面升級至Pro版本。",
         "content.我知道了": "了解",
         "content.确认删除": "確認刪除",
         "content.确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。": "確定要刪除此習慣嗎？所有相關的記錄也將被刪除。此操作無法復原。",
-        "content.排序习惯": "排序習慣"
+        "content.排序习惯": "排序習慣",
+        "content.最多追踪 \(HabitStore.maxHabitCount) 个习惯。这是为了帮你更好地坚持每一个:)": "最多可追蹤 \(HabitStore.maxHabitCount) 個習慣。這是為了幫你更好地堅持每一個:)"
     ]
     
     // 支付頁面翻譯

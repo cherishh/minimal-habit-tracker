@@ -27,7 +27,53 @@ struct French {
         "settings.德语": "Allemand",
         "settings.法语": "Français",
         "settings.系统默认": "Par défaut (système)",
-        "settings.Debug 模式": "Mode de débogage"
+        "settings.Debug 模式": "Mode de débogage",
+
+        // Terms of Use View - French
+        "settings.terms.pageTitle": "Conditions d'utilisation",
+        "settings.terms.welcomeHeader": "Bienvenue sur l'application EasyHabit",
+        "settings.terms.welcomeBody": "Cet accord est conclu entre vous et EasyHabit (ci-après dénommé \"nous\" ou \"l'application\" ou \"EasyHabit\") concernant votre utilisation de l'application EasyHabit et des services associés. Avant de commencer à utiliser l'application EasyHabit, veuillez lire attentivement et comprendre intégralement l'ensemble du contenu de cet accord.",
+        "settings.terms.acceptanceHeader": "1. Acceptation des conditions",
+        "settings.terms.acceptanceBody": "En utilisant l'application EasyHabit, vous confirmez que vous avez au moins 16 ans et acceptez d'être lié par cet accord. Si vous avez moins de 16 ans, vous devez lire cet accord avec votre tuteur légal et utiliser nos services avec le consentement de votre tuteur.",
+        "settings.terms.serviceDescriptionHeader": "2. Description du service",
+        "settings.terms.serviceDescriptionBody": "EasyHabit est une application qui aide les utilisateurs à enregistrer et à cultiver des habitudes. Nous fournissons aux utilisateurs des fonctions de suivi des habitudes, de statistiques et d'analyse pour les aider à mieux gérer leurs habitudes quotidiennes.",
+        "settings.terms.userBehaviorHeader": "3. Normes de comportement de l'utilisateur",
+        "settings.terms.userBehaviorBody": "Vous devez vous conformer aux lois et réglementations en vigueur de la République populaire de Chine et ne devez pas utiliser cette application à des fins illégales. Vous êtes responsable de votre utilisation de cette application et devez vous assurer que le contenu que vous fournissez et publiez est légal, véridique et exact, et qu'il ne porte pas atteinte aux droits et intérêts légitimes de tiers.",
+        "settings.terms.privacyProtectionHeader": "4. Protection de la vie privée",
+        "settings.terms.privacyProtectionBody": "Nous attachons de l'importance à la protection de la vie privée des utilisateurs. Lorsque vous utilisez nos services, nous pouvons collecter et utiliser vos informations pertinentes. Nous collecterons, utiliserons, stockerons et partagerons vos informations conformément à la \"Politique de confidentialité d'EasyHabit\".",
+        "settings.terms.intellectualPropertyHeader": "5. Propriété intellectuelle",
+        "settings.terms.intellectualPropertyBody": "L'application EasyHabit et tout son contenu, y compris, mais sans s'y limiter, les textes, graphiques, interface utilisateur, logos, icônes, images, audio et code informatique, sont protégés par les lois sur la propriété intellectuelle, et ces droits nous appartiennent ou appartiennent à nos concédants de licence.",
+        "settings.terms.disclaimerHeader": "6. Clause de non-responsabilité",
+        "settings.terms.disclaimerBody": "EasyHabit fournit uniquement des outils de suivi et de gestion des habitudes et n'est pas responsable des pertes directes ou indirectes résultant de l'utilisation de cette application par les utilisateurs. Nous ne garantissons pas que le service répondra à vos exigences, ni que le service ne sera pas interrompu.",
+        "settings.terms.agreementModificationsHeader": "7. Modifications de l'accord",
+        "settings.terms.agreementModificationsBody": "Nous nous réservons le droit de modifier cet accord à tout moment. Les modifications apportées à cet accord seront communiquées aux utilisateurs par le biais de notifications publiées dans l'application ou sur le site Web. Si vous continuez à utiliser EasyHabit après la modification, cela sera considéré comme une acceptation de l'accord modifié.",
+        "settings.terms.contactUsHeader": "8. Nous contacter",
+        "settings.terms.contactUsBody": "Si vous avez des questions concernant cet accord ou l'application EasyHabit, veuillez nous contacter via la fonction \"Commentaires des utilisateurs\" dans l'application.",
+        "settings.terms.lastUpdatedPrefix": "Dernière mise à jour : ",
+        "settings.terms.lastUpdatedDate": "27 mai 2025",
+
+        // Privacy Policy View - French
+        "settings.privacy.pageTitle": "Politique de confidentialité",
+        "settings.privacy.policyHeader": "Politique de confidentialité d'EasyHabit",
+        "settings.privacy.policyBody": "Cette politique de confidentialité est conçue pour vous aider à comprendre comment nous collectons, utilisons, stockons et partageons vos informations personnelles, ainsi que les droits dont vous disposez. Avant d'utiliser l'application EasyHabit, veuillez lire attentivement et comprendre intégralement l'ensemble du contenu de cette politique de confidentialité.",
+        "settings.privacy.infoWeCollectHeader": "1. Informations que nous collectons",
+        "settings.privacy.infoWeCollectBody": "• Informations que vous fournissez : lorsque vous utilisez l'application EasyHabit, vous pouvez créer des enregistrements d'habitudes, définir des rappels, etc., qui seront stockés sur votre appareil.\n• Informations sur l'appareil : nous pouvons collecter des informations de base telles que le modèle de l'appareil et la version du système d'exploitation que vous utilisez pour améliorer les performances de l'application.\n• Données d'utilisation de l'application : nous pouvons collecter des informations sur la façon dont vous utilisez l'application, telles que la fréquence d'utilisation des fonctionnalités, les enregistrements de plantage de l'application, etc., afin d'optimiser l'expérience utilisateur.",
+        "settings.privacy.useOfInfoHeader": "2. Utilisation des informations",
+        "settings.privacy.useOfInfoBody": "Nous utilisons les informations collectées pour :\n• Fournir, maintenir et améliorer les fonctions et services de l'application EasyHabit\n• Développer de nouvelles fonctionnalités et de nouveaux services\n• Comprendre comment les utilisateurs utilisent notre application afin d'améliorer l'expérience utilisateur\n• Vous envoyer des notifications concernant les mises à jour de l'application ou les nouvelles fonctionnalités",
+        "settings.privacy.storageOfInfoHeader": "3. Stockage des informations",
+        "settings.privacy.storageOfInfoBody": "Nous prenons les mesures suivantes pour protéger la sécurité de vos informations :\n• Vos données d'habitudes sont principalement stockées sur votre appareil\n• Si vous activez la fonction de synchronisation cloud (version avancée), vos données seront cryptées et stockées dans des services cloud\n• Nous prenons des mesures techniques raisonnables pour protéger vos données contre tout accès non autorisé",
+        "settings.privacy.infoSharingHeader": "4. Partage des informations",
+        "settings.privacy.infoSharingBody": "Nous ne partagerons pas vos informations personnelles avec des tiers, sauf dans les cas suivants :\n• Divulgation requise par la loi\n• Pour protéger les intérêts légitimes d'EasyHabit\n• Avec votre consentement explicite",
+        "settings.privacy.yourRightsHeader": "5. Vos droits",
+        "settings.privacy.yourRightsBody": "Vous disposez des droits suivants concernant vos informations personnelles :\n• Accéder à vos informations personnelles\n• Supprimer toutes les données de l'application\n• Exporter vos données\n• Cesser d'utiliser nos services à tout moment",
+        "settings.privacy.childrensPrivacyHeader": "6. Confidentialité des enfants",
+        "settings.privacy.childrensPrivacyBody": "L'application EasyHabit n'est pas destinée aux enfants de moins de 16 ans. Si vous êtes un parent ou un tuteur et que vous découvrez que votre enfant nous a fourni des informations personnelles sans votre consentement, veuillez nous contacter via la fonction \"Commentaires des utilisateurs\" dans l'application.",
+        "settings.privacy.policyUpdatesHeader": "7. Mises à jour de la politique de confidentialité",
+        "settings.privacy.policyUpdatesBody": "Nous pouvons mettre à jour cette politique de confidentialité de temps à autre. Lorsque nous apportons des modifications importantes, nous vous en informerons dans l'application. Votre utilisation continue de l'application sera considérée comme votre acceptation de la politique de confidentialité modifiée.",
+        "settings.privacy.contactUsHeader": "8. Nous contacter",
+        "settings.privacy.contactUsBody": "Si vous avez des questions concernant cette politique de confidentialité, veuillez nous contacter via la fonction \"Commentaires des utilisateurs\" dans l'application.",
+        "settings.privacy.lastUpdatedPrefix": "Dernière mise à jour : ",
+        "settings.privacy.lastUpdatedDate": "27 mai 2025"
     ]
     
     // 创建习惯页面翻译
@@ -212,7 +258,8 @@ struct French {
         "content.我知道了": "Compris",
         "content.确认删除": "Confirmer la suppression",
         "content.确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。": "Êtes-vous sûr(e) de vouloir supprimer cette habitude\u{00A0}? Tous les enregistrements associés seront également supprimés. Cette action est irréversible.",
-        "content.排序习惯": "Trier les habitudes"
+        "content.排序习惯": "Trier les habitudes",
+        "content.最多追踪 \(HabitStore.maxHabitCount) 个习惯。这是为了帮你更好地坚持每一个:)": "Vous pouvez suivre jusqu'à \(HabitStore.maxHabitCount) habitudes. C'est pour vous aider à mieux vous y tenir pour chacune :)"
     ]
     
     // 支付页面翻译

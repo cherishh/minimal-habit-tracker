@@ -20,7 +20,53 @@ struct English {
         "settings.我抓到了🐞": "I Found a Bug",
         "settings.语言": "Language",
         "settings.系统默认": "System Default",
-        "settings.Debug 模式": "Debug Mode"
+        "settings.Debug 模式": "Debug Mode",
+
+        // Terms of Use View
+        "settings.terms.pageTitle": "Terms of Use",
+        "settings.terms.welcomeHeader": "Welcome to EasyHabit App",
+        "settings.terms.welcomeBody": "This agreement is between you and EasyHabit (hereinafter referred to as \"we\") regarding your use of the EasyHabit application and related services. Before you start using the EasyHabit application, please carefully read and fully understand the entire content of this agreement.",
+        "settings.terms.acceptanceHeader": "1. Acceptance of Terms",
+        "settings.terms.acceptanceBody": "By using the EasyHabit application, you confirm that you are at least 16 years old and agree to be bound by this agreement. If you are under 16 years of age, you should read this agreement with your guardian and use our services with the consent of your guardian.",
+        "settings.terms.serviceDescriptionHeader": "2. Service Description",
+        "settings.terms.serviceDescriptionBody": "EasyHabit is an application that helps users record and cultivate habits. We provide users with habit tracking, statistics, and analysis functions to help users better manage their daily habits.",
+        "settings.terms.userBehaviorHeader": "3. User Behavior Standards",
+        "settings.terms.userBehaviorBody": "You should comply with relevant laws and regulations of the People's Republic of China and must not use this application for illegal activities. You should be responsible for your use of this application, ensuring that the content you provide and publish is legal, true, and accurate, and does not infringe upon the legitimate rights and interests of any third party.",
+        "settings.terms.privacyProtectionHeader": "4. Privacy Protection",
+        "settings.terms.privacyProtectionBody": "We value user privacy protection. When you use our services, we may collect and use your relevant information. We will collect, use, store, and share your information in accordance with the \"EasyHabit Privacy Policy\".",
+        "settings.terms.intellectualPropertyHeader": "5. Intellectual Property",
+        "settings.terms.intellectualPropertyBody": "The EasyHabit application and all its content, including but not limited to text, graphics, user interface, logos, icons, images, audio, and computer code, are protected by intellectual property laws, and these rights belong to us or our licensors.",
+        "settings.terms.disclaimerHeader": "6. Disclaimer",
+        "settings.terms.disclaimerBody": "EasyHabit only provides habit tracking and management tools and is not responsible for any direct or indirect losses arising from users\' use of this application. We do not guarantee that the service will meet your requirements, nor do we guarantee that the service will not be interrupted.",
+        "settings.terms.agreementModificationsHeader": "7. Agreement Modifications",
+        "settings.terms.agreementModificationsBody": "We reserve the right to modify this agreement at any time. Modifications to this agreement will be communicated to users through notifications published within the application or on the website. If you continue to use EasyHabit after the modification, it will be deemed that you have accepted the modified agreement.",
+        "settings.terms.contactUsHeader": "8. Contact Us",
+        "settings.terms.contactUsBody": "If you have any questions about this agreement or the EasyHabit application, please contact us through the \"User Feedback\" function in the application.",
+        "settings.terms.lastUpdatedPrefix": "Last updated: ",
+        "settings.terms.lastUpdatedDate": "May 27, 2025",
+
+        // Privacy Policy View
+        "settings.privacy.pageTitle": "Privacy Policy",
+        "settings.privacy.policyHeader": "EasyHabit Privacy Policy",
+        "settings.privacy.policyBody": "This privacy policy is designed to help you understand how we collect, use, store, and share your personal information, as well as the rights you have. Before using the EasyHabit application, please carefully read and understand the entire content of this privacy policy.",
+        "settings.privacy.infoWeCollectHeader": "1. Information We Collect",
+        "settings.privacy.infoWeCollectBody": "• Information you provide: When you use the EasyHabit application, you may create habit records, set reminders, etc., which will be stored on your device.\n• Device information: We may collect basic information such as the device model and operating system version you are using to improve application performance.\n• Application usage data: We may collect information about how you use the application, such as feature usage frequency, application crash records, etc., to optimize the user experience.",
+        "settings.privacy.useOfInfoHeader": "2. Use of Information",
+        "settings.privacy.useOfInfoBody": "We use the collected information to:\n• Provide, maintain, and improve the functions and services of the EasyHabit application\n• Develop new features and services\n• Understand how users use our application to improve the user experience\n• Send you notifications about application updates or new features",
+        "settings.privacy.storageOfInfoHeader": "3. Storage of Information",
+        "settings.privacy.storageOfInfoBody": "We take the following measures to protect the security of your information:\n• Your habit data is primarily stored on your device\n• If you enable the cloud sync feature (advanced version), your data will be encrypted and stored in cloud services\n• We take reasonable technical measures to protect your data from unauthorized access",
+        "settings.privacy.infoSharingHeader": "4. Information Sharing",
+        "settings.privacy.infoSharingBody": "We will not share your personal information with any third party unless:\n• Disclosure is required by law\n• To protect the legitimate interests of EasyHabit\n• With your explicit consent",
+        "settings.privacy.yourRightsHeader": "5. Your Rights",
+        "settings.privacy.yourRightsBody": "You have the following rights regarding your personal information:\n• Access your personal information\n• Delete all data within the application\n• Export your data\n• Stop using our services at any time",
+        "settings.privacy.childrensPrivacyHeader": "6. Children\'s Privacy",
+        "settings.privacy.childrensPrivacyBody": "The EasyHabit application is not intended for children under 16 years of age. If you are a parent or guardian and discover that your child has provided us with personal information without your consent, please contact us through the \"User Feedback\" feature in the application.",
+        "settings.privacy.policyUpdatesHeader": "7. Privacy Policy Updates",
+        "settings.privacy.policyUpdatesBody": "We may update this privacy policy from time to time. When we make significant changes, we will notify you within the application. Your continued use of the application will be considered as your acceptance of the modified privacy policy.",
+        "settings.privacy.contactUsHeader": "8. Contact Us",
+        "settings.privacy.contactUsBody": "If you have any questions about this privacy policy, please contact us through the \"User Feedback\" function in the application.",
+        "settings.privacy.lastUpdatedPrefix": "Last updated: ",
+        "settings.privacy.lastUpdatedDate": "May 27, 2025"
     ]
     
     // 创建习惯页面翻译
@@ -207,7 +253,8 @@ struct English {
         "content.我知道了": "Got it",
         "content.确认删除": "Confirm Delete",
         "content.确定要删除这个习惯吗？所有相关的打卡记录也将被删除。此操作无法撤销。": "Are you sure you want to delete this habit? All related check-in records will also be deleted. This action cannot be undone.",
-        "content.排序习惯": "Sort Habits"
+        "content.排序习惯": "Sort Habits",
+        "content.最多追踪 \(HabitStore.maxHabitCount) 个习惯。这是为了帮你更好地坚持每一个:)": "You can track up to \(HabitStore.maxHabitCount) habits. This is to help you stick to each one better :)"
     ]
     
     // 支付页面翻译
