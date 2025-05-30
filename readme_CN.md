@@ -1,10 +1,17 @@
 # EasyHabit
 
+---
+初版现在已发布🎉🎉🎉🥳🥳🥳 
+
+您可以在 App Store 中搜索 **Easy.Habit** 下载❤️
+
+---
+
 [English](https://github.com/cherishh/minimal-habit-tracker/blob/main/readme.md)
 
 **版本:** 0.1 
 
-"EasyHabit" 是一款 iOS 平台的极简风格习惯追踪应用，旨在帮助用户以类似 GitHub contributions heatmap 的形式记录和培养日常习惯。应用核心在于简洁的界面和直观的操作，让用户能够轻松管理和追踪个人习惯的养成过程。
+"EasyHabit" 是一款极简风格、界面漂亮的 iOS 习惯追踪应用，旨在帮助用户以类似 GitHub contributions heatmap 的形式记录和培养日常习惯。应用核心在于简洁的界面和直观的操作，让用户能够轻松管理和追踪个人习惯的养成过程。
 
 ## 主要功能
 
