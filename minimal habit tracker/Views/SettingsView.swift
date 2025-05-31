@@ -293,8 +293,7 @@ struct SettingsView: View {
             }
             
             Button(action: {
-                // 打开App Store评分页面（使用模拟URL）
-                if let url = URL(string: "https://apps.apple.com/app/id1234567890?action=write-review") {
+                if let url = URL(string: "https://apps.apple.com/app/easy-habit/id6743850926?action=write-review") {
                     UIApplication.shared.open(url)
                 }
             }) {
